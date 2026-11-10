@@ -31,6 +31,13 @@ Current scope: the **Nov 22 demo subset** only (spec "P0 demo subset", "In the d
 8. Permissions are enforced server-side (RLS + functions); hiding a button is never the only protection.
 9. Never log notes, contacts, calendar contents, budgets, photos or raw invite codes.
 
+## App conventions
+- Screens live in `app/src/features/<feature>/`, routes in `app/src/app/` are thin re-exports. Shared UI in `src/shared/ui`.
+- Data: react-query + plain `supabase.from(...).select()` for reads (RLS), `supabase.rpc(...)` for every write; Realtime hooks
+  invalidate queries. Every device always has a session (guest by default); use `useAuth()` / `useRequireAccount()`.
+- Copy for error codes comes from `shared/lib/errors.ts` (spec wording). Pure logic gets a `*.test.ts` next to it.
+- Jest: mock factories may only reference variables prefixed `mock`; mock `@/shared/lib/supabase` (it needs native storage).
+
 ## Database conventions
 - Every schema change is a new migration in `supabase/migrations` (never edit an applied one). RPC contract: `docs/rpc.md`.
 - New function => add an explicit `GRANT EXECUTE ... TO authenticated` (defaults are locked down in `..0700_grants.sql`).

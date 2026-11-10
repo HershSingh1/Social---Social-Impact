@@ -1,12 +1,11 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import { env } from './env';
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
-
-// Clients never write tables directly: use supabase.rpc(...) for every write.
-export const supabase = createClient(url, anonKey, {
+// Clients never write tables directly: every write is supabase.rpc(...). Reads go through RLS.
+// Placeholders keep the import from throwing when .env is missing; the root layout shows a setup screen instead.
+export const supabase = createClient(env.supabaseUrl || 'http://127.0.0.1:54321', env.supabaseAnonKey || 'missing-anon-key', {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,

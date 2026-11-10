@@ -5,8 +5,8 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | Milestone | Status |
 | --- | --- |
 | M0 Plan and scaffold | Done (see `docs/m0-plan.md`) |
-| M1 Database | Done, awaiting review (see below) |
-| M2 Accounts and groups (D1, D2) | Not started |
+| M1 Database | Done (pushed `8168a9d`) |
+| M2 Accounts and groups (D1, D2) | Done in code, not yet run on a device (see below) |
 | M3 Discovery (D3) | Not started |
 | M4 Group pick (D3-D5) | Not started |
 | M5 Plans (D6-D8) | Not started |
@@ -14,9 +14,9 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 
 | Req | Demo scope | Status | Deferred to pilot |
 | --- | --- | --- | --- |
-| P0-01 | Join by code + display name | - | Plan links |
-| P0-02 | Apple, email code, guest upgrade | - | Account deletion |
-| P0-03 | Create, join, member list | - | Revoke, regenerate, remove, transfer |
+| P0-01 | Join by code + display name | M2 done (component-tested; not run on a device) | Plan links |
+| P0-02 | Apple, email code, guest upgrade | M2 done (component-tested; Apple/email upgrade need a real backend to verify) | Account deletion, avatar |
+| P0-03 | Create, join, member list | M2 done (live roster via Realtime + 5 s poll) | Revoke, regenerate, remove, transfer |
 | P0-04/05 | Map+list, 40 experiences, activity+price filters | - | Date filter, Search this area, unknown-price toggle |
 | P0-06 | Full | - | |
 | P0-07 | Not shown | - | Full |
@@ -26,7 +26,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | P0-13 | RSVP | - | Plan links, adding invitees |
 | P0-14 | Time change + reconfirm | - | All material fields, minor edits |
 | P0-15 | Booking notice | - | Cancellation |
-| P0-16/17 | Needs response, Open picks, Upcoming; groups, group detail | - | Drafts, Past, profile defaults |
+| P0-16/17 | Needs response, Open picks, Upcoming; groups, group detail | P0-17: Friends tab, group detail, guest banner done in M2 (next-item line says "No plan yet" until M4/M5); P0-16 not started | Drafts, Past, profile defaults |
 | P0-18 | Not shown | - | Full |
 
 ## M1 Database (done)
@@ -75,3 +75,46 @@ Per instruction, no spec column or function signature was altered. Things added 
 - `send_plan` refuses fixed-session experiences (`fixed_sessions_not_supported`): the `sessions` JSON shape is undefined (pilot scope).
 - The P0 analytics "event log table" is mentioned in the spec but never defined; not built.
 - Pilot-only functions not built: `cancel_plan`, `add_invitees`, plan links, `toggle_save`, group management (revoke, regenerate, remove, transfer), `submit_listing`, `review_submission`.
+
+## M2 Accounts and groups (done in code; D1 and D2 not yet run on devices)
+
+Built (app/src): theme + accessible UI kit (44 pt targets, in-button progress, errors under fields, skeleton / empty /
+error states, "Try again keeps what was on screen"), `AuthProvider`, Join flow, Sign-in sheet, Create group, Group detail,
+Friends tab, routes (`sidequest://join/CODE` works), live roster.
+
+How it works
+- **Every device gets a guest session on first launch** (`signInAnonymously`) so the catalog and RPCs work without a
+  sign-in wall; browsing needs a session because RLS grants only the `authenticated` role. A guest joins by code after
+  `set_profile(name)` + `join_group(code)`.
+- **Guest upgrade keeps the same user id.** Apple: `auth.linkIdentity({provider:'apple', token, nonce})` (native id token,
+  supabase-js 2.119). Email: `updateUser({email})` then `verifyOtp(type:'email_change')`. A DB trigger flips
+  `profiles.is_guest` when auth marks the user non-anonymous.
+- **"This sign-in already has an account"** is shown when the Apple ID / email belongs to another account and the guest has
+  groups to lose; a guest with nothing to lose is switched silently. Switching never merges data (spec).
+- **Sign in and return to the same step:** `useRequireAccount()` sends guests to `/sign-in?returnTo=...`; only in-app
+  paths are accepted as `returnTo`. Create group, and "Sign in instead" on an invitation, both come back to where they were.
+- **Live roster:** Realtime on `group_members` invalidates the member query; a 5 s poll is the backstop for the
+  "within 5 seconds" criterion. Join codes are readable by every member (spec), including guests.
+
+Verified here (no simulators or backend in this environment)
+- `tsc` clean; `expo export` bundles for Android and iOS; 49 Jest tests pass (pure logic, plus component tests with a
+  mocked data layer covering: spec error copy, typed text kept on every error, incomplete code never hits the server,
+  preview never joins, guest name required, double-tap blocked, return-to-step, unsafe return-to rejected, five-try OTP
+  cap in the UI, anonymous bootstrap + retry, guest upgrade keeps the user id, Loading/Empty/Error/stale states).
+- M1 database tests and concurrency checks unchanged and passing.
+
+**Not verified (needs your machine):** D1 and D2 on real phones; the Apple link and email upgrade against a real Supabase
+Auth (including whether the local config's `enable_confirmations = false` changes the email-change flow); Realtime timing;
+screen-reader and 200 % text behaviour on device. `docs/setup.md` has the steps.
+
+Decisions and assumptions to confirm
+- **Anonymous bootstrap on first launch** (see above). Side effect: one `auth.users` row per install, and Supabase's anonymous
+  sign-in rate limit (30/hour/IP locally) applies; raise it for a venue full of phones if the demo hits it.
+- **OTP "at most 5 tries"** is enforced in the UI only. Supabase rate-limits verification per IP, not per code, so a hard
+  per-code limit would need a server-side function (not in the spec's function list).
+- **Session tokens are in AsyncStorage**, not SecureStore (hardening item before the pilot).
+- Sign in with Apple is iOS only; Android demo phones use the email code.
+- Typed routes (Expo Router experiment) turned off; routes are plain strings via `href()`.
+- Avatar upload (P0-02) and sign out are not built (profile defaults and account deletion are pilot scope; the spec has no sign-out).
+- `react-dom@19.3.0` is now an explicit dependency: a clean `npm install` failed (npm picked `react-dom@19.3.1`, which needs
+  `react@19.3.1`; SDK 58 pins 19.3.0). `jest-expo` and Testing Library 14 are now installed.
