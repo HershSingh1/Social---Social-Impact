@@ -115,3 +115,11 @@ export function timeLeft(deadlineIso: string, now: Date = new Date()): string {
   if (h > 0) return `${h}h ${pad(m)}m left`;
   return `${Math.max(m, 1)}m left`;
 }
+
+/** The weekday and day number of an instant in Austin time, for the date block on list rows ("Sat", "14"). */
+export function dayParts(iso: string | Date): { dow: string; day: string } {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, weekday: 'short', day: 'numeric' }).formatToParts(new Date(iso)).map((x) => [x.type, x.value]),
+  );
+  return { dow: p.weekday, day: p.day };
+}

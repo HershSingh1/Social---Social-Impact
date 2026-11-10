@@ -5,6 +5,9 @@ import { href } from '@/shared/lib/nav';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useRequireAccount } from '@/features/auth/useRequireAccount';
 import { useMyGroups } from './hooks';
+import { formatDay, formatWhen } from '@/shared/lib/time';
+import { nextItemForGroup } from '@/features/plans/hub';
+import { useHub } from '@/features/plans/useHub';
 import type { GroupSummary } from './api';
 
 export function FriendsScreen() {
@@ -12,6 +15,7 @@ export function FriendsScreen() {
   const { isAccount } = useAuth();
   const requireAccount = useRequireAccount();
   const groups = useMyGroups();
+  const { hub } = useHub();
 
   const createGroup = () => requireAccount('/create-group', () => router.push(href('/create-group')));
 
@@ -48,7 +52,7 @@ export function FriendsScreen() {
         {(data) => (
           <View style={{ gap: space.md }}>
             <Text variant="small" muted accessibilityRole="header">Your groups ({data.length})</Text>
-            {data.map((g) => <GroupCard key={g.id} group={g} onOpen={() => router.push(href(`/group/${g.id}`))} />)}
+            {data.map((g) => <GroupCard key={g.id} group={g} next={hub ? nextItemForGroup(g.id, hub, { day: formatDay, when: formatWhen }) : 'No plan yet'} onOpen={() => router.push(href(`/group/${g.id}`))} />)}
           </View>
         )}
       </AsyncView>
@@ -56,14 +60,14 @@ export function FriendsScreen() {
   );
 }
 
-function GroupCard({ group, onOpen }: { group: GroupSummary; onOpen: () => void }) {
+function GroupCard({ group, next, onOpen }: { group: GroupSummary; next: string; onOpen: () => void }) {
   const c = useColors();
   const joined = `${group.memberCount} joined`;
   return (
     <Pressable
       onPress={onOpen}
       accessibilityRole="button"
-      accessibilityLabel={`${group.name}, ${joined}. No plan yet.`}
+      accessibilityLabel={`${group.name}, ${joined}. ${next}.`}
       style={({ pressed }) => [styles.card, { backgroundColor: c.card, borderColor: c.border, opacity: pressed ? 0.85 : 1 }]}
     >
       <View style={styles.cardTop}>
@@ -77,8 +81,7 @@ function GroupCard({ group, onOpen }: { group: GroupSummary; onOpen: () => void 
           ))}
         </View>
       </View>
-      {/* picks and plans land in M4/M5; the next-item line is filled in then */}
-      <Text variant="small" muted>No plan yet</Text>
+      <Text variant="small" muted>{next}</Text>
     </Pressable>
   );
 }

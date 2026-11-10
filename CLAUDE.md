@@ -36,6 +36,7 @@ Current scope: the **Nov 22 demo subset** only (spec "P0 demo subset", "In the d
 - Screens live in `app/src/features/<feature>/`, routes in `app/src/app/` are thin re-exports. Shared UI in `src/shared/ui`.
 - Data: react-query + plain `supabase.from(...).select()` for reads (RLS), `supabase.rpc(...)` for every write; Realtime hooks
   invalidate queries. Every device always has a session (guest by default); use `useAuth()` / `useRequireAccount()`.
+- Never put test files (or anything that is not a route) inside `app/src/app`: Expo Router turns every file there into a route and bundles it.
 - Copy for error codes comes from `shared/lib/errors.ts` (spec wording). Pure logic gets a `*.test.ts` next to it.
 - Jest: mock factories may only reference variables prefixed `mock`; mock `@/shared/lib/supabase` (it needs native storage).
 

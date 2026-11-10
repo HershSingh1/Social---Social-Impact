@@ -57,3 +57,10 @@ describe('picker options and countdown', () => {
     expect(minutesBetween(new Date('2026-11-14T20:00:00Z'), new Date('2026-11-14T21:30:00Z'))).toBe(90);
   });
 });
+
+describe('dayParts', () => {
+  it('gives the Austin weekday and day', () => {
+    expect(require('./time').dayParts('2026-11-14T20:00:00Z')).toEqual({ dow: 'Sat', day: '14' });
+    expect(require('./time').dayParts('2026-11-15T03:00:00Z')).toEqual({ dow: 'Sat', day: '14' }); // still Saturday evening in Austin
+  });
+});

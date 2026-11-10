@@ -10,7 +10,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | M3 Discovery (D3) | Done in code, not yet run on a device (see below) |
 | M4 Group pick (D3-D5) | Done in code, not yet run on a device (see below) |
 | M5 Plans (D6-D8) | Done in code, not yet run on a device (see below) |
-| M6 Hubs and polish | Not started |
+| M6 Hubs and polish | Done in code; D1-D8, T01, T04 still to be run on devices (`docs/demo-runbook.md`) |
 
 | Req | Demo scope | Status | Deferred to pilot |
 | --- | --- | --- | --- |
@@ -26,7 +26,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | P0-13 | RSVP | M5 done | Plan links, adding invitees |
 | P0-14 | Time change + reconfirm | - | All material fields, minor edits |
 | P0-15 | Booking notice | - | Cancellation |
-| P0-16/17 | Needs response, Open picks, Upcoming; groups, group detail | P0-17: Friends tab, group detail, guest banner done in M2 (next-item line says "No plan yet" until M4/M5); P0-16 not started | Drafts, Past, profile defaults |
+| P0-16/17 | Needs response, Open picks, Upcoming; groups, group detail | M6 done: Plans hub + tab badge, Friends next item, Group detail picks and plans | Drafts, Past, profile defaults |
 | P0-18 | Not shown | - | Full |
 
 ## M1 Database (done)
@@ -219,3 +219,43 @@ Decisions and gaps
   The server allows it; editing the note or meeting point of such a plan works.
 - Cancellation, adding invitees, plan links and minor-edit "Updated" labels are pilot scope and not built (the plan screen already
   renders the cancelled state if the server sends one).
+
+## M6 Hubs and polish (done in code)
+
+Built: Plans tab (`PlansHubScreen`), tab badge, Friends "next item" lines, Group detail "Picks and plans", the demo database
+script, and `docs/demo-runbook.md` for the three-phone run.
+
+- **Plans hub:** Needs your response (Needs reconfirmation first, then Awaiting reply, each by start time), Open group picks
+  ("Vote needed" first), Upcoming (by start time; a cancelled plan stays, labelled, until its original end time). Every plan is in exactly
+  one section; each row has a date block, activity, time range, group and the viewer's status in words. "Start a group pick" at the top
+  (a guest signs in and returns to the builder). Empty: "No plans yet" + "Find something to do". One live read (`useHub`) feeds the
+  hub, the badge, Friends and Group detail; Realtime on `rsvps` / `plans` / `plan_revisions` / `picks` / `pick_voter_status` + a 5 s poll,
+  so a material edit moves the plan on every Going invitee's phone without a refresh.
+- **Tab badge:** plans needing a response plus open picks the viewer has not fully voted on, with a spoken label.
+- **Friends:** each group shows its earliest upcoming plan the viewer is invited to ("Sketch and stroll, Sat Nov 14"), else
+  "Group pick open, closes Mon 9:12 AM", else "No plan yet". **Group detail** lists the group's picks and only the plans the viewer is
+  invited to, and says "Plans you weren't invited to stay hidden."
+- **States:** every data screen has Loading (skeleton), Empty, Error (Try again keeps what was on screen) and Ready; checked by tests.
+
+### Demo acceptance (docs/spec.md "Demo acceptance")
+| Step | Backend (SQL `05_demo_script.test.sql`, 29 assertions) | App (Jest, mocked data layer) | On devices |
+| --- | --- | --- | --- |
+| D1 create group + code | pass | pass (Create group, sign-in returns to the sheet) | not run |
+| D2 guests join, appear marked guest | pass | pass (Join flow, roster tags) | not run |
+| D3 map filter, 3 experiences -> pick; guests see it | pass | pass (filters, add to pick, builder, hub) | not run |
+| D4 votes, tallies on every phone | pass | pass (voting, tallies); realtime timing untested | not run |
+| D5 Close now, same winner + sentence | pass | pass (result screen) | not run |
+| D6 draft, review, send; 1 Going / 2 Awaiting | pass | pass (draft, review, send) | not run |
+| D7 Going / Can't go, counts 2/0/1 | pass | pass (RSVP) | not run |
+| D8 time change, reconfirm, back to 2 Going | pass | pass (edit sheet, banner, stale answer) | not run |
+| T01 whole script with location denied | n/a | pass (location is only asked on tap; denied path tested) | not run |
+| T04 network cut during send, retry = one plan | pass (+ concurrency script) | pass (same request id on Retry) | not run |
+
+**I could not run D1-D8, T01 or T04 on an iPhone and an Android phone from this environment.** Everything that can be checked without a
+device passes (`tsc`; 225 Jest tests in 31 suites; 5 pgTAP files, 267 assertions; concurrency, seed and bundle checks). The remaining risk is
+the real-device behaviour listed under each milestone's "Not verified" (Realtime latency, Apple/email upgrade against a real Auth server,
+maps, accessibility at 200 % text). `docs/demo-runbook.md` is the script to run.
+
+### Known limits for the demo (all in this file above)
+Fixed-session experiences cannot be planned; plans created in the app end by 11:30 PM the same day; drafts are kept on the phone;
+all 42 experiences are placeholders; Android needs a Google Maps key; the OTP "5 tries" cap is UI-only.

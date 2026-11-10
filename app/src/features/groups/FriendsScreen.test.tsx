@@ -4,16 +4,18 @@ import { FriendsScreen } from './FriendsScreen';
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 let mockAuth: { isAccount: boolean };
 let mockGroups: Record<string, unknown>;
+let mockHub: { hub: unknown };
 
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => mockAuth }));
 jest.mock('./hooks', () => ({ useMyGroups: () => mockGroups }));
+jest.mock('@/features/plans/useHub', () => ({ useHub: () => mockHub }));
 
 const refetch = jest.fn();
 const crew = { id: 'g1', name: 'Saturday crew', ownerId: 'u1', memberCount: 6, memberNames: ['Maya', 'Jordan', 'Sam', 'Priya'] };
 const state = (o: object) => ({ data: undefined, isPending: false, isError: false, isRefetching: false, refetch, ...o });
 
-beforeEach(() => { jest.clearAllMocks(); mockAuth = { isAccount: true }; mockGroups = state({ data: [crew] }); });
+beforeEach(() => { jest.clearAllMocks(); mockAuth = { isAccount: true }; mockGroups = state({ data: [crew] }); mockHub = { hub: null }; });
 
 describe('Friends tab (P0-17)', () => {
   it('lists groups with the joined count', async () => {
@@ -72,5 +74,22 @@ describe('Friends tab (P0-17)', () => {
     await render(<FriendsScreen />);
     await fireEvent.press(screen.getByRole('button', { name: 'Join with code' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/join');
+  });
+
+  it('shows the group\'s next plan, or its open pick, or "No plan yet"', async () => {
+    const { buildHub } = require('@/features/plans/hub');
+    const start = new Date(Date.now() + 3 * 86_400_000).toISOString();
+    const end = new Date(Date.now() + 3 * 86_400_000 + 5_400_000).toISOString();
+    mockHub = { hub: buildHub([{ id: 'p', groupId: 'g1', groupName: 'Saturday crew', experienceName: 'Sketch and stroll', startAt: start, endAt: end, state: 'sent', status: 'going', isOrganizer: false }], []) };
+    const { rerender } = await render(<FriendsScreen />);
+    expect(screen.getByText(/^Sketch and stroll, /)).toBeTruthy();
+
+    mockHub = { hub: buildHub([], [{ id: 'k', groupId: 'g1', groupName: 'Saturday crew', state: 'open', deadline: new Date(Date.now() + 86_400_000).toISOString(), voted: false, optionCount: 3, winnerName: null }]) };
+    await rerender(<FriendsScreen />);
+    expect(screen.getByText(/^Group pick open, closes /)).toBeTruthy();
+
+    mockHub = { hub: buildHub([], []) };
+    await rerender(<FriendsScreen />);
+    expect(screen.getByText('No plan yet')).toBeTruthy();
   });
 });

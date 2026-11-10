@@ -1,9 +1,3 @@
-import { Text, View } from 'react-native';
+import { PlansHubScreen } from '@/features/plans/PlansHubScreen';
 
-export default function PlansScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Plans (placeholder, built in a later milestone)</Text>
-    </View>
-  );
-}
+export default PlansHubScreen;

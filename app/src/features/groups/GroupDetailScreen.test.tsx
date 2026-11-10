@@ -5,11 +5,13 @@ import { GroupDetailScreen } from './GroupDetailScreen';
 
 const mockRouter = { replace: jest.fn() };
 let mockGroup: Record<string, unknown>, mockMembers: Record<string, unknown>, mockCode: Record<string, unknown>;
+let mockHub: { hub: unknown };
 
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, Stack: { Screen: () => null } }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn().mockResolvedValue(true) }));
 jest.mock('@/features/auth/AuthProvider', () => ({ useAuth: () => ({ userId: 'u-maya' }) }));
 jest.mock('./hooks', () => ({ useGroup: () => mockGroup, useMembers: () => mockMembers, useJoinCode: () => mockCode }));
+jest.mock('@/features/plans/useHub', () => ({ useHub: () => mockHub }));
 
 const base = { isPending: false, isError: false, isRefetching: false, refetch: jest.fn() };
 const members = [
@@ -22,6 +24,7 @@ beforeEach(() => {
   mockGroup = { ...base, data: { id: 'g1', name: 'Saturday crew', owner_id: 'u-maya' } };
   mockMembers = { ...base, data: members };
   mockCode = { ...base, data: { code: 'SQ7K2M', expires_at: '2026-11-24T18:00:00Z' } };
+  mockHub = { hub: null };
 });
 
 describe('Group detail (P0-03, P0-17)', () => {
@@ -63,5 +66,23 @@ describe('Group detail (P0-03, P0-17)', () => {
     mockMembers = { ...base, isError: true, data: undefined };
     await rerender(<GroupDetailScreen groupId="g1" />);
     expect(screen.getByText("Couldn't load the member list.")).toBeTruthy();
+  });
+
+  it('lists the group\'s open pick and only the plans the viewer is invited to, and says the rest stay hidden', async () => {
+    const { buildHub } = require('@/features/plans/hub');
+    const start = new Date(Date.now() + 3 * 86_400_000).toISOString();
+    const end = new Date(Date.now() + 3 * 86_400_000 + 5_400_000).toISOString();
+    const plan = (id: string, groupId: string) => ({ id, groupId, groupName: 'X', experienceName: `Plan ${id}`, startAt: start, endAt: end, state: 'sent', status: 'going', isOrganizer: false });
+    mockHub = { hub: buildHub([plan('mine', 'g1'), plan('other-group', 'g2')], [{ id: 'k', groupId: 'g1', groupName: 'Saturday crew', state: 'open', deadline: end, voted: false, optionCount: 3, winnerName: null }]) };
+    await render(<GroupDetailScreen groupId="g1" />);
+    expect(screen.getByText('Vote needed')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Plan mine/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Plan other-group/ })).toBeNull();
+    expect(screen.getByText("Plans you weren't invited to stay hidden.")).toBeTruthy();
+  });
+
+  it('says "No plan yet" when there is nothing', async () => {
+    await render(<GroupDetailScreen groupId="g1" />);
+    expect(screen.getByText('No plan yet.')).toBeTruthy();
   });
 });

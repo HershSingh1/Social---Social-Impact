@@ -11,6 +11,8 @@ import { formatDateShort } from '@/shared/lib/time';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { shareMessage, spellCode } from './codes';
 import { useGroup, useJoinCode, useMembers } from './hooks';
+import { PickRow, PlanRow } from '@/features/plans/HubRows';
+import { useHub } from '@/features/plans/useHub';
 
 export function GroupDetailScreen({ groupId }: { groupId: string }) {
   const router = useRouter();
@@ -18,6 +20,9 @@ export function GroupDetailScreen({ groupId }: { groupId: string }) {
   const group = useGroup(groupId);
   const members = useMembers(groupId);
   const code = useJoinCode(groupId);
+  const { hub } = useHub();
+  const groupPicks = hub?.picks.filter((p) => p.groupId === groupId) ?? [];
+  const groupPlans = hub ? [...hub.needsResponse, ...hub.upcoming].filter((p) => p.groupId === groupId) : [];
   const c = useColors();
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -123,6 +128,14 @@ export function GroupDetailScreen({ groupId }: { groupId: string }) {
                   </View>
                 )}
               </AsyncView>
+            </View>
+
+            <View style={{ gap: space.sm }}>
+              <Text variant="bodyStrong" accessibilityRole="header">Picks and plans</Text>
+              {groupPicks.map((p) => <PickRow key={p.id} pick={p} onPress={() => router.push(href(`/pick/${p.id}`))} />)}
+              {groupPlans.map((p) => <PlanRow key={p.id} plan={p} onPress={() => router.push(href(`/plan/${p.id}`))} />)}
+              {groupPicks.length + groupPlans.length === 0 ? <Text muted>No plan yet.</Text> : null}
+              <Text variant="small" muted>Plans you weren't invited to stay hidden.</Text>
             </View>
           </>
         )}
