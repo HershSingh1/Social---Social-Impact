@@ -11,10 +11,10 @@ Mobile app for a group of friends in Austin to pick something to do and turn it 
 - Precedence: spec > spec-decisions > Figma > wireframe. If two disagree, follow the higher one and add a row to `docs/spec-decisions.md`.
 
 ## Accounts
-**No guests.** Every user signs in (Apple, Google or email code) before anything works. The spec's guest rules are superseded; see `docs/spec-decisions.md` D1 and D2. Never add anonymous auth, `is_guest`, or guest UI.
+There are no guests. Every user signs in with Apple, Google or an email code before anything works. The spec's guest rules are superseded (see `docs/spec-decisions.md` D1 and D2), so never add anonymous auth, `is_guest`, or guest UI.
 
 ## Scope now
-One demo, built in phases (team decision D3, Nov 10): **Phase 1 = all of P0** (1a core path, 1b the rest), **Phase 2 = P1** coordination, **Phase 3 = P2 group memory** (P2-01 to P2-05). Each phase passes a check on real phones before the next phase's code starts; design can run ahead. **P2 revenue (P2-06 to P2-10) is on hold**: don't build it. Target demo: week of Dec 14 (proposal, not confirmed). The demo script (three acts) is in the Decision Register: https://claude.ai/artifact/5RqNeJLkWgALx3AzjdRdbK
+We're building one demo in three phases (team decision D3, Nov 10). Phase 1 is all of P0, split into 1a (the core path) and 1b (the rest). Phase 2 is P1. Phase 3 is P2 group memory, P2-01 to P2-05. Each phase passes a check on real phones before the next phase's code starts, though design can run ahead. Don't build P2 revenue (P2-06 to P2-10); it's on hold. The target is the week of Dec 14, which the team hasn't confirmed yet. The three-act demo script is in the Decision Register: https://claude.ai/artifact/5RqNeJLkWgALx3AzjdRdbK
 
 ## Stack and layout
 - `app/`: Expo (React Native) + TypeScript + Expo Router. Routes in `app/src/app` are thin re-exports of screens in `app/src/features/<feature>/`. Shared code: `app/src/ui` (theme, components), `app/src/lib` (supabase client, time, errors).

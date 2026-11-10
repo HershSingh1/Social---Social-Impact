@@ -8,10 +8,10 @@ Decisions and the three-act demo script: Decision Register, https://claude.ai/ar
 
 | Milestone | Target (proposed) | Covers | Phone check |
 | --- | --- | --- | --- |
-| Phase 1a – P0 core path | ~Nov 21 | Sign in, groups, map, votes, plans, answers, time change | TEC-47 (steps TEC-48–55) |
-| Phase 1b – Rest of P0 | ~Nov 25 | Saves, group management, plan links, cancel, sessions, online drafts, Past, profile defaults, suggest a listing, account deletion, analytics | TEC-75 (with T01 TEC-56, T04 TEC-57) |
-| Phase 2 – P1 coordination | ~Dec 4 | P1-01…07 (TEC-58…64) | TEC-76 |
-| Phase 3 – P2 group memory | ~Dec 11 | P2-01…05 (TEC-65…69) | TEC-77 |
+| Phase 1a (P0 core path) | ~Nov 21 | Sign in, groups, map, votes, plans, answers, time change | TEC-47 (steps TEC-48–55) |
+| Phase 1b (rest of P0) | ~Nov 25 | Saves, group management, plan links, cancel, sessions, online drafts, Past, profile defaults, suggest a listing, account deletion, analytics | TEC-75 (with T01 TEC-56, T04 TEC-57) |
+| Phase 2 (P1 coordination) | ~Dec 4 | P1-01…07 (TEC-58…64) | TEC-76 |
+| Phase 3 (P2 group memory) | ~Dec 11 | P2-01…05 (TEC-65…69) | TEC-77 |
 | Rehearsal and demo | week of Dec 14 | All three acts | TEC-78 |
 | P2 revenue (on hold) | none | P2-06…10 (TEC-70…74) | none |
 
