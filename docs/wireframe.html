@@ -1,0 +1,1230 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Sidequest P0 Wireframe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: presenter stage. Live 390x844 phone on the left, a quiet decision panel on the right; stacks under 900px. */
+:root{
+  /* Wireframe: grayscale only, system fonts. Shows flow and data, not visual design. */
+  --fg:#1c1c1c; --fg-2:#3d3d3d; --muted:#6b6b6b; --faint:#9a9a9a;
+  --page:#e6e6e6; --surface:#ffffff; --surface-2:#f2f2f2; --surface-3:#e4e4e4; --line:#d6d6d6; --line-strong:#b8b8b8;
+  --btn:#3a3a3a; --btn-fg:#ffffff;
+  --blue:#3a3a3a; --blue-tint:#ececec; --blue-ink:#2b2b2b;
+  --green:#3a3a3a; --green-tint:#e2e2e2; --green-ink:#1c1c1c;
+  --orange:#7a7a7a; --orange-tint:#f0f0f0; --orange-ink:#2b2b2b;
+  --red:#3a3a3a; --red-tint:#ececec;
+  --frame:#4a4a4a; --overlay:rgba(0,0,0,.35); --shadow:0 0 0 1px #d6d6d6;
+  --map-land:#f4f4f4; --map-block:#e8e8e8; --map-water:#d4d4d4; --map-park:#e0e0e0; --map-road:#ffffff; --map-hwy:#cfcfcf; --map-hwy-edge:#bdbdbd; --map-label:#8a8a8a; --map-water-label:#6b6b6b;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --m:20px; --pad:16px; --sec:24px; --r-card:16px; --r-pill:999px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --fg:#ececec; --fg-2:#cfcfcf; --muted:#9e9e9e; --faint:#6e6e6e;
+  --page:#0f0f0f; --surface:#1a1a1a; --surface-2:#242424; --surface-3:#2e2e2e; --line:#333333; --line-strong:#4a4a4a;
+  --btn:#e0e0e0; --btn-fg:#141414;
+  --blue:#d6d6d6; --blue-tint:#2a2a2a; --blue-ink:#e6e6e6;
+  --green:#d6d6d6; --green-tint:#303030; --green-ink:#f0f0f0;
+  --orange:#a8a8a8; --orange-tint:#262626; --orange-ink:#e0e0e0;
+  --red:#d6d6d6; --red-tint:#2a2a2a;
+  --frame:#3a3a3a; --overlay:rgba(0,0,0,.55); --shadow:0 0 0 1px #333333;
+  --map-land:#1c1c1c; --map-block:#252525; --map-water:#333333; --map-park:#2a2a2a; --map-road:#2e2e2e; --map-hwy:#3a3a3a; --map-hwy-edge:#454545; --map-label:#8a8a8a; --map-water-label:#a0a0a0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --fg:#ececec; --fg-2:#cfcfcf; --muted:#9e9e9e; --faint:#6e6e6e;
+  --page:#0f0f0f; --surface:#1a1a1a; --surface-2:#242424; --surface-3:#2e2e2e; --line:#333333; --line-strong:#4a4a4a;
+  --btn:#e0e0e0; --btn-fg:#141414;
+  --blue:#d6d6d6; --blue-tint:#2a2a2a; --blue-ink:#e6e6e6;
+  --green:#d6d6d6; --green-tint:#303030; --green-ink:#f0f0f0;
+  --orange:#a8a8a8; --orange-tint:#262626; --orange-ink:#e0e0e0;
+  --red:#d6d6d6; --red-tint:#2a2a2a;
+  --frame:#3a3a3a; --overlay:rgba(0,0,0,.55); --shadow:0 0 0 1px #333333;
+  --map-land:#1c1c1c; --map-block:#252525; --map-water:#333333; --map-park:#2a2a2a; --map-road:#2e2e2e; --map-hwy:#3a3a3a; --map-hwy-edge:#454545; --map-label:#8a8a8a; --map-water-label:#a0a0a0;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{background:var(--page);color:var(--fg)}
+body{font-family:var(--font);font-weight:400;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- Stage ---------- */
+.stage{display:flex;gap:40px;justify-content:center;align-items:flex-start;padding-block:32px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.device{flex:none;padding:11px;background:var(--frame);border-radius:58px;box-shadow:0 30px 80px rgba(10,10,11,.22)}
+.phone{position:relative;width:390px;height:844px;border-radius:47px;overflow:hidden;background:var(--surface);display:flex;flex-direction:column;isolation:isolate}
+.device{position:sticky;top:24px}
+.panel{width:360px;min-width:0;display:flex;flex-direction:column;gap:16px}
+@media (max-width: 900px){
+  .device{position:static}
+  .stage{flex-direction:column;align-items:center;gap:24px;padding-block:16px 32px}
+  .panel{position:static;width:100%;max-width:412px}
+}
+@media (max-width: 460px){
+  .device{padding:0;border-radius:28px;width:100%;box-shadow:none;border:1px solid var(--line)}
+  .phone{width:100%;height:780px;border-radius:27px}
+}
+
+/* ---------- Panel ---------- */
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:var(--btn);color:var(--btn-fg);display:grid;place-items:center;flex:none}
+.brand h1{font-size:18px;font-weight:700;margin:0;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.ph{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--fg)}
+.ph small{font-weight:400;color:var(--muted)}
+.idx{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.idx button{width:100%;text-align:left;display:flex;gap:8px;align-items:center;min-height:36px;padding:6px 10px;border:0;border-radius:10px;background:transparent;font-size:13px;color:var(--fg-2)}
+.idx button:hover{background:var(--surface-2)}
+.idx button[aria-current="true"]{background:var(--btn);color:var(--btn-fg)}
+.idx .n{font-variant-numeric:tabular-nums;color:var(--faint);width:16px;flex:none;font-size:12px}
+.idx button[aria-current="true"] .n{color:inherit;opacity:.6}
+.seg{display:flex;background:var(--surface-2);border-radius:var(--r-pill);padding:3px;gap:2px}
+.seg button{flex:1;min-height:38px;border:0;border-radius:var(--r-pill);background:transparent;font-size:13px;font-weight:500;color:var(--muted);padding:0 10px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(10,10,11,.12)}
+.notes{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:13.5px;color:var(--fg-2)}
+.notes b{color:var(--fg);font-weight:600}
+.notes code{font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:1px 4px;border-radius:4px}
+.demo{display:flex;flex-wrap:wrap;gap:6px}
+.demo button{min-height:36px;padding:0 12px;border-radius:var(--r-pill);border:1px dashed var(--line-strong);background:transparent;font-size:12.5px;font-weight:500}
+.demo button:hover:not(:disabled){border-style:solid;background:var(--surface-2)}
+.demo button:disabled{opacity:.4;cursor:not-allowed}
+.demo .done{border-style:solid;border-color:var(--green);color:var(--green-ink)}
+.tally-log{font-size:12.5px;color:var(--muted);margin-top:10px;font-variant-numeric:tabular-nums}
+
+/* ---------- Phone chrome ---------- */
+.sbar{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0 34px;font-size:15px;font-weight:600;z-index:6;position:relative}
+.sbar .isl{position:absolute;left:50%;top:11px;transform:translateX(-50%);width:118px;height:33px;border-radius:20px;background:#000}
+.sbar .sic{display:flex;gap:6px;align-items:center}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.tabs{flex:none;display:flex;justify-content:space-around;border-top:1px solid var(--line);background:var(--surface);padding:6px 12px 26px;z-index:5}
+.tab{flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;font-weight:500;color:var(--faint);position:relative}
+.tab[aria-current="page"]{color:var(--fg)}
+.tab .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--fg);color:var(--surface);font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+
+.nav{display:flex;align-items:center;gap:8px;padding:2px 12px 8px;min-height:52px;flex:none}
+.nav .t{font-weight:600;font-size:16px;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:44px;height:44px;border-radius:22px;border:0;background:transparent;display:grid;place-items:center;flex:none;color:var(--fg)}
+.iconbtn:hover{background:var(--surface-2)}
+.iconbtn.solid{background:var(--surface);box-shadow:var(--shadow)}
+.big{padding:4px var(--m) 4px}
+.big h2{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:0;line-height:1.1;text-wrap:balance}
+.big p{margin:6px 0 0;color:var(--muted)}
+.wrap{padding:0 var(--m) 32px;display:flex;flex-direction:column;gap:var(--sec)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.sec-h h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.sec-h span{color:var(--muted);font-size:13px}
+.quiet{opacity:.82}
+
+/* ---------- Primitives ---------- */
+.btn{min-height:48px;padding:0 20px;border-radius:var(--r-pill);border:0;background:var(--btn);color:var(--btn-fg);font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.full{width:100%}
+.btn.sec2{background:var(--surface-2);color:var(--fg)}
+.btn.line{background:transparent;border:1px solid var(--line-strong);color:var(--fg)}
+.btn.blue{background:var(--btn);color:var(--btn-fg)}
+.btn.danger{background:var(--btn);color:var(--btn-fg)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:14px}
+.link{border:0;background:transparent;color:var(--blue);font-weight:500;min-height:44px;padding:0 4px;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad)}
+.card.flat{background:var(--surface-2);border-color:transparent}
+.chip{min-height:40px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+.chip[aria-pressed="true"]{background:var(--btn);color:var(--btn-fg);border-color:var(--btn)}
+.chip.friend[aria-pressed="true"]{background:var(--btn);border-color:var(--btn);color:var(--btn-fg)}
+.chip.on{border-color:var(--fg);font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px var(--m)}
+.chips::-webkit-scrollbar{display:none}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:var(--r-pill);white-space:nowrap;line-height:1.35}
+.tag.go{background:var(--green-tint);color:var(--green-ink)}
+.tag.wait{background:var(--surface-2);color:var(--fg-2)}
+.tag.no{background:var(--surface-3);color:var(--fg-2)}
+.tag.att{background:var(--orange-tint);color:var(--orange-ink)}
+.tag.blue{background:var(--blue-tint);color:var(--blue-ink)}
+.tag.bad{background:var(--red-tint);color:var(--red)}
+.tag.plain{background:transparent;color:var(--muted);padding:0}
+.notice{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--orange-tint);color:var(--orange-ink);font-size:14px;line-height:1.4}
+.notice b{font-weight:700}
+.notice.info{background:var(--blue-tint);color:var(--blue-ink)}
+.notice.ok{background:var(--green-tint);color:var(--green-ink)}
+.notice.bad{background:var(--red-tint);color:var(--red)}
+.notice.neutral{background:var(--surface-2);color:var(--fg-2)}
+.notice svg{flex:none;margin-top:1px}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none;color:var(--fg)}
+.av.sm{width:28px;height:28px;font-size:12px}
+.avs{display:flex}.avs .av{border:2px solid var(--surface);margin-left:-8px}.avs .av:first-child{margin-left:0}
+.av-maya,.av-jordan,.av-sam{background:var(--surface-3);color:var(--fg)}
+.av-priya,.av-luis,.av-tess{background:var(--surface-3);color:var(--fg)}.av-ana{background:var(--surface-3);color:var(--fg-2)}
+.row{display:flex;align-items:center;gap:12px;min-height:44px}
+.row .grow{flex:1;min-width:0}
+.facts{display:flex;flex-direction:column}
+.fact{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.fact:last-child{border-bottom:0}
+.fact .ic{width:20px;color:var(--muted);flex:none;margin-top:1px}
+.fact .k{font-size:12.5px;color:var(--muted);margin-bottom:1px}
+.fact .v{font-weight:500}
+.fact .s{font-size:13px;color:var(--muted);margin-top:2px}
+.muted{color:var(--muted)} .small{font-size:13px}
+.h-title{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin:0;text-wrap:balance}
+.lead{color:var(--fg-2);font-weight:300;font-size:15.5px;line-height:1.55;margin:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.field .lbl{font-size:13.5px;font-weight:600}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.input{min-height:48px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);padding:10px 14px;width:100%;font-size:15px}
+textarea.input{min-height:96px;resize:vertical;line-height:1.45}
+.input:focus{outline:2px solid var(--blue);outline-offset:-1px;border-color:transparent}
+.input.err{border-color:var(--red)}
+.ferr{display:flex;gap:6px;align-items:center;color:var(--red);font-size:13px;font-weight:500}
+.radios{display:flex;flex-wrap:wrap;gap:8px}
+.radios label{min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--r-pill);font-size:14px;font-weight:500;cursor:pointer}
+.radios label:has(input:checked){border-color:var(--fg);background:var(--surface-2)}
+.radios input{accent-color:var(--fg);margin:0}
+.check{display:flex;align-items:center;gap:12px;min-height:52px;padding:4px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.check:last-child{border-bottom:0}
+.check input{width:20px;height:20px;accent-color:var(--blue);margin:0}
+.divider{height:1px;background:var(--line)}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:sp .7s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- Map ---------- */
+.mapwrap{position:absolute;inset:0;overflow:hidden;background:var(--map-land);touch-action:none;cursor:grab}
+.mapwrap.dragging{cursor:grabbing}
+.maplayer{position:absolute;left:0;top:0;width:760px;height:1040px;will-change:transform}
+.maplayer svg{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);min-width:44px;height:44px;display:flex;align-items:flex-end;justify-content:center;border:0;background:transparent;padding:0;z-index:2}
+.pin span{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 10px;border-radius:15px;background:var(--surface);color:var(--fg);font-size:12.5px;font-weight:700;box-shadow:0 2px 6px rgba(10,10,11,.22);white-space:nowrap;position:relative;margin-bottom:6px;border:1.5px solid var(--surface)}
+.pin span::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-bottom:0;border-top-color:var(--surface)}
+.pin.saved span{border-color:var(--blue)}
+.pin[aria-pressed="true"]{z-index:4}
+.pin[aria-pressed="true"] span{background:var(--btn);color:var(--btn-fg);border-color:var(--btn);transform:scale(1.12);transform-origin:bottom center}
+.pin[aria-pressed="true"] span::after{border-top-color:var(--btn)}
+.maptop{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;flex-direction:column;gap:10px;padding-top:4px;pointer-events:none}
+.maptop > *{pointer-events:auto}
+.search{margin:0 var(--m);display:flex;align-items:center;gap:10px;min-height:50px;padding:0 6px 0 16px;background:var(--surface);border-radius:var(--r-pill);box-shadow:var(--shadow);border:1px solid var(--line)}
+.search input{flex:1;min-width:0;border:0;background:transparent;font-size:15px;min-height:44px;outline:none}
+.search .ic{color:var(--muted);display:flex}
+.chips .chip{box-shadow:0 1px 3px rgba(10,10,11,.08)}
+.area-pill{position:absolute;left:50%;top:150px;transform:translateX(-50%);z-index:5}
+.area-pill .btn{min-height:44px;font-size:14px;box-shadow:var(--shadow)}
+.mapbottom{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;flex-direction:column;gap:10px;padding:0 var(--m) 14px;pointer-events:none}
+.mapbottom > *{pointer-events:auto}
+.switch-row{display:flex;justify-content:center}
+.toggle{display:flex;background:var(--btn);border-radius:var(--r-pill);padding:4px;box-shadow:var(--shadow)}
+.toggle button{min-height:40px;padding:0 16px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--btn-fg);opacity:.7;font-weight:600;font-size:14px;display:flex;gap:6px;align-items:center}
+.toggle button[aria-pressed="true"]{background:var(--surface);color:var(--fg);opacity:1}
+.preview{display:flex;gap:12px;align-items:stretch;padding:12px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--line);text-align:left;width:100%}
+.thumb{width:84px;border-radius:12px;flex:none;position:relative;overflow:hidden;min-height:84px}
+.thumb .ph-img,.imgbox .ph-img{position:absolute;inset:0}
+.thumb svg.motif{width:56%;right:20%;bottom:20%}
+.meta .mi{display:inline-flex;align-items:center;gap:5px}
+.preview .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.preview h4{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}
+.price{display:inline-flex;align-items:baseline;gap:6px;font-size:13px}
+.price b{font-weight:700;color:var(--fg)}
+.price em{font-style:normal;color:var(--muted);font-size:12px}
+
+/* image placeholders */
+.ph-img{position:relative;overflow:hidden;background:var(--surface-2);border:1px dashed var(--line-strong)}
+.ph-img::before{content:"";position:absolute;inset:0;background:linear-gradient(to top right,transparent calc(50% - .5px),var(--line-strong) 50%,transparent calc(50% + .5px)),linear-gradient(to bottom right,transparent calc(50% - .5px),var(--line-strong) 50%,transparent calc(50% + .5px))}
+.ph-img svg.motif{display:none}
+.cat-art{--c1:#fde68a;--c2:#fcd34d;--c3:#fbbf24;--c4:#78350f}
+.cat-make{--c1:#fed7aa;--c2:#fdba74;--c3:#fb923c;--c4:#7c2d12}
+.cat-out{--c1:#bae6fd;--c2:#7dd3fc;--c3:#86efac;--c4:#0c4a6e}
+.cat-food{--c1:#fecaca;--c2:#fca5a5;--c3:#fde68a;--c4:#7f1d1d}
+.cat-games{--c1:#ddd6fe;--c2:#c4b5fd;--c3:#a5b4fc;--c4:#3730a3}
+.cat-music{--c1:#e9d5ff;--c2:#f0abfc;--c3:#c4b5fd;--c4:#581c87}
+.cat-active{--c1:#bbf7d0;--c2:#86efac;--c3:#bae6fd;--c4:#14532d}
+
+/* list */
+.lcard{display:flex;gap:14px;padding:12px;border-radius:var(--r-card);border:1px solid var(--line);background:var(--surface);text-align:left;width:100%;align-items:stretch}
+.lcard[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.lcard .thumb{width:92px;min-height:92px}
+.lcard h4{margin:0 0 3px;font-size:16px;font-weight:700;line-height:1.25;letter-spacing:-.01em}
+
+/* detail */
+.hero{height:236px;position:relative;flex:none}
+.hero .ph-img{position:absolute;inset:0}
+.hero .navover{position:absolute;top:4px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:2}
+.hero .cap{position:absolute;left:16px;bottom:12px;font-size:12px;font-weight:500;background:var(--surface);color:var(--fg-2);padding:3px 9px;border-radius:999px}
+.actionbar{flex:none;padding:12px var(--m) 14px;border-top:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.actionbar .two{display:flex;gap:8px}
+.actionbar .two .btn{flex:1}
+
+/* group pick */
+.opt{border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad);display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.opt.win{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.opt-h{display:flex;gap:12px;align-items:center}
+.opt-h .thumb{width:52px;min-height:52px;height:52px;border-radius:10px}
+.opt-h h4{margin:0;font-size:16px;font-weight:700;line-height:1.25}
+.vote{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.vote button{min-height:44px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.vote button[aria-pressed="true"][data-v="yes"]{background:var(--green-tint);border-color:var(--green);color:var(--green-ink)}
+.vote button[aria-pressed="true"][data-v="maybe"]{background:var(--orange-tint);border-color:var(--orange);color:var(--orange-ink)}
+.vote button[aria-pressed="true"][data-v="no"]{background:var(--surface-3);border-color:var(--fg-2);color:var(--fg)}
+.bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--surface-2);gap:2px}
+.bar i{display:block;height:100%}
+.bar .y{background:var(--green)} .bar .m{background:var(--orange)} .bar .n{background:var(--faint)}
+.tally{display:flex;gap:12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.tally b{color:var(--fg);font-weight:700}
+.score{margin-left:auto;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums;font-size:15px;white-space:nowrap}
+.clock{display:flex;align-items:center;gap:12px;padding:14px var(--pad);border-radius:var(--r-card);background:var(--orange-tint);color:var(--orange-ink)}
+.clock .t{font-variant-numeric:tabular-nums;font-weight:700;font-size:22px;letter-spacing:-.01em;color:var(--orange-ink)}
+.rule{font-size:13px;color:var(--muted);line-height:1.5}
+.star{border:0;background:transparent;min-width:44px;min-height:44px;display:grid;place-items:center;color:var(--faint);border-radius:22px}
+.star[aria-pressed="true"]{color:var(--orange)}
+
+/* plan */
+.counts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.count{border-radius:14px;padding:10px 8px;background:var(--surface-2);display:flex;flex-direction:column;gap:2px;min-width:0}
+.count b{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.count span{font-size:11.5px;color:var(--fg-2);line-height:1.25;font-weight:500}
+.count.go{background:var(--green-tint)} .count.go b,.count.go span{color:var(--green-ink)}
+.count.att{background:var(--orange-tint)} .count.att b,.count.att span{color:var(--orange-ink)}
+.rsvp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rsvp button{min-height:52px;border-radius:14px;border:1.5px solid var(--line-strong);background:var(--surface);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.rsvp button[aria-pressed="true"].g{background:var(--green-tint);border-color:var(--green);color:var(--green-ink)}
+.rsvp button[aria-pressed="true"].c{background:var(--surface-3);border-color:var(--fg-2)}
+.rsvp button:disabled{opacity:.45;cursor:not-allowed}
+.diff{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px;align-items:baseline}
+.diff .was{text-decoration:line-through;color:var(--muted)}
+.diff .now{font-weight:700}
+.log{display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)}
+.log div{display:flex;gap:10px}
+.log time{font-variant-numeric:tabular-nums;color:var(--faint);flex:none;width:58px}
+
+/* hub */
+.pitem{display:flex;gap:12px;align-items:center;padding:12px;border-radius:var(--r-card);border:1px solid var(--line);background:var(--surface);width:100%;text-align:left}
+.pitem .date{width:48px;flex:none;text-align:center;border-radius:12px;background:var(--surface-2);padding:6px 0;line-height:1.1}
+.pitem .date small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.pitem .date b{font-size:19px;font-weight:700}
+.pitem h4{margin:0;font-size:15.5px;font-weight:700;line-height:1.25}
+.pitem.past{background:transparent;border-style:dashed}
+.pitem.past h4{font-weight:600;color:var(--fg-2)}
+.pitem.cancelled h4{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted)}
+.pitem.attn{border-color:var(--orange);background:var(--orange-tint)}
+.pitem.attn .date{background:var(--surface)}
+
+/* friends/group */
+.gcard{display:flex;flex-direction:column;gap:12px;padding:var(--pad);border-radius:var(--r-card);border:1px solid var(--line);background:var(--surface);text-align:left;width:100%}
+.gcard h4{margin:0;font-size:17px;font-weight:700}
+.code{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:.18em;font-variant-numeric:tabular-nums}
+.code.revoked{text-decoration:line-through;color:var(--faint)}
+.codebox{display:flex;gap:6px}
+.codebox input{font-family:var(--mono);font-size:24px;letter-spacing:.3em;text-transform:uppercase;text-align:center;font-weight:600}
+.minis{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--m) * -1);padding:0 var(--m)}
+.minis::-webkit-scrollbar{display:none}
+.mini{width:148px;flex:none;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:var(--surface);text-align:left;padding:0}
+.mini .ph-img{height:76px}
+.mini div.t{padding:8px 10px 10px;font-size:13.5px;font-weight:600;line-height:1.3}
+
+/* submission */
+.sub{display:flex;flex-direction:column;gap:8px;padding:var(--pad);border-radius:var(--r-card);border:1px solid var(--line)}
+.sub h4{margin:0;font-size:15.5px;font-weight:700}
+.reason{font-size:13.5px;color:var(--fg-2);background:var(--surface-2);border-radius:10px;padding:10px 12px}
+
+/* sheets & toasts */
+.sheet-root{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end}
+.backdrop{position:absolute;inset:0;background:var(--overlay);animation:fd .2s ease}
+.sheet{position:relative;background:var(--surface);border-radius:26px 26px 0 0;padding:10px var(--m) 30px;max-height:88%;overflow-y:auto;display:flex;flex-direction:column;gap:16px;animation:up .26s cubic-bezier(.2,.8,.2,1)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line-strong);margin:0 auto 2px}
+.sheet h3{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.sheet .sub-t{margin:-10px 0 0;color:var(--muted);font-size:14px}
+.opt-list{display:flex;flex-direction:column;gap:6px}
+.opt-list button{min-height:52px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;gap:12px;padding:0 14px;text-align:left;font-weight:500}
+.opt-list button[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.opt-list button .grow{flex:1}
+@keyframes up{from{transform:translateY(40%);opacity:.4}}
+@keyframes fd{from{opacity:0}}
+.toast{position:absolute;left:16px;right:16px;bottom:96px;z-index:50;background:var(--btn);color:var(--btn-fg);border-radius:16px;padding:12px 16px;font-size:14px;font-weight:500;display:flex;gap:10px;align-items:center;animation:up .22s ease;box-shadow:var(--shadow)}
+
+/* states */
+.skel{background:linear-gradient(90deg,var(--surface-2) 0%,var(--surface-3) 50%,var(--surface-2) 100%);background-size:200% 100%;animation:sh 1.2s linear infinite;border-radius:12px}
+@keyframes sh{to{background-position:-200% 0}}
+.state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:40px 32px}
+.state .ico{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--surface-2);color:var(--fg-2)}
+.state.err .ico{background:var(--red-tint);color:var(--red)}
+.state h3{margin:0;font-size:20px;font-weight:700;text-wrap:balance}
+.state p{margin:0;color:var(--muted);max-width:30ch}
+</style>
+
+<div class="stage">
+  <div class="device"><div class="phone" id="phone" aria-label="Sidequest prototype phone"></div></div>
+  <aside class="panel" id="panel" aria-label="Prototype controls"></aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ================= Icons ================= */
+const P={
+ map:'<path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5V4l-6 2.5L9 4Z"/><path d="M9 4v13M15 6.5v13"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>',
+ plans:'<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+ friends:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.8.1 4.5 1.8 5 4.9"/>',
+ search:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>',
+ back:'<path d="M15 5 8 12l7 7"/>',
+ close:'<path d="M6 6l12 12M18 6 6 18"/>',
+ star:'<path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8L12 3.5Z"/>',
+ check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+ x:'<path d="M7 7l10 10M17 7 7 17"/>',
+ clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+ pin:'<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>',
+ tag:'<path d="M3.5 12.6V4.5a1 1 0 0 1 1-1h8.1l8 8a1.4 1.4 0 0 1 0 2l-6.1 6.1a1.4 1.4 0 0 1-2 0l-9-7Z"/><circle cx="8" cy="8" r="1.4"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+ share:'<path d="M12 3.5v12M7.5 8 12 3.5 16.5 8"/><path d="M5 12.5v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
+ copy:'<rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5v-3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ bookmark:'<path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1Z"/>',
+ alert:'<path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 10v4.5M12 17.2v.3"/>',
+ info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.3"/>',
+ lock:'<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+ timer:'<circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.5 1.5M9.5 2.5h5"/>',
+ users:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.7 3.4-5.6 7-5.6s6.3 1.9 7 5.6"/>',
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
+ ban:'<circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/>',
+ filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',
+ chev:'<path d="m9 5 7 7-7 7"/>',
+ down:'<path d="m6 9 6 6 6-6"/>',
+ send:'<path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z"/>',
+ refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+ sparkle:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+ image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5-5 4 4 3-3 4 4"/>',
+ apple:'<path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8s-1.8-.8-3-.8C7 7.3 5.6 8.2 4.8 9.6c-1.6 2.8-.4 6.9 1.2 9.2.8 1.1 1.7 2.3 2.8 2.3 1.1 0 1.6-.7 2.9-.7 1.4 0 1.8.7 3 .7s2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.3-.9-2.2-3.7ZM14.2 5.8c.6-.7 1-1.7.9-2.8-.9 0-2 .6-2.6 1.4-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3Z" fill="currentColor" stroke="none"/>',
+ google:'<path d="M20.5 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.6-3.9 2.6-6.6Z" fill="#4285F4" stroke="none"/><path d="M12 21c2.4 0 4.5-.8 5.9-2.2L15 16.6c-.8.5-1.8.9-3 .9-2.3 0-4.3-1.6-5-3.7H4v2.3A9 9 0 0 0 12 21Z" fill="#34A853" stroke="none"/><path d="M7 13.8a5.4 5.4 0 0 1 0-3.5V8H4a9 9 0 0 0 0 8.1l3-2.3Z" fill="#FBBC05" stroke="none"/><path d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 4 8l3 2.3c.7-2.1 2.7-3.7 5-3.7Z" fill="#EA4335" stroke="none"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 6.5 8.5 6 8.5-6"/>'
+};
+function ic(n,s=20,w=1.8){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||''}</svg>`}
+const MOTIF={
+ art:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M15 80c15-30 35 10 50-20s20-35 25-45"/><path d="M70 20l12 12-40 40H30V60z" stroke-linejoin="round"/></svg>',
+ make:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5"><path d="M30 20h40c0 15-8 15-8 25s14 15 14 30c0 8-10 12-26 12s-26-4-26-12c0-15 14-20 14-30S30 35 30 20z"/></svg>',
+ out:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="70" cy="28" r="12"/><path d="M8 72c14-10 24-10 38 0s26 10 44 0M8 88c14-10 24-10 38 0s26 10 44 0"/></svg>',
+ food:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="10" y="35" width="62" height="38" rx="6"/><path d="M72 48h12l8 12v13H72"/><circle cx="28" cy="78" r="8"/><circle cx="78" cy="78" r="8"/><path d="M22 35l8-14h22l8 14"/></svg>',
+ games:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="15" y="15" width="42" height="42" rx="8"/><rect x="45" y="45" width="42" height="42" rx="8"/><circle cx="28" cy="28" r="2" fill="currentColor"/><circle cx="44" cy="44" r="2" fill="currentColor"/><circle cx="66" cy="66" r="3" fill="currentColor"/></svg>',
+ music:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5"><circle cx="50" cy="50" r="38"/><circle cx="50" cy="50" r="10"/><path d="M50 22a28 28 0 0 1 28 28" stroke-linecap="round"/></svg>',
+ active:'<svg class="motif" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><path d="M10 88 38 30l14 22 10-14 28 50z"/><circle cx="74" cy="22" r="8"/></svg>'
+};
+const CATS={'Art & walks':'art','Make something':'make','Outdoors':'out','Food & drink':'food','Games & trivia':'games','Music & film':'music','Active':'active'};
+function img(e,cls=''){const k=CATS[e.cat];return `<div class="ph-img cat-${k} ${cls}" aria-hidden="true">${MOTIF[k]}</div>`}
+
+/* ================= Data ================= */
+const MEMBERS=['Maya','Jordan','Sam','Priya','Luis','Tess'];
+const EXP=[
+ {id:'sketch',name:'Sketch and stroll',cat:'Art & walks',area:'Shoal Creek',x:318,y:452,
+  desc:'Bring a sketchbook and walk the Shoal Creek trail at an easy pace. Stop at three spots to draw: the stone footbridge, the limestone ledges and the view back toward downtown. No drawing experience needed; pencils are shared.',
+  duration:'1 hr 30 min',where:'Shoal Creek Greenbelt, near W 3rd St',meeting:'Benches at the W 3rd St trailhead',
+  price:{kind:'free'},timing:{kind:'flexible',text:'Trail open daily, 5 AM to 10 PM'},source:'Community listing, submitted by Priya N. on Oct 19',booking:false,dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'2:00 PM',end:'3:30 PM'}},
+ {id:'clay',name:'Clay and conversation',cat:'Make something',area:'East Austin',x:592,y:478,
+  desc:'A beginner wheel-throwing session for small groups. An instructor walks you through centering and pulling one bowl each. Pieces are glazed by the studio and ready to pick up two weeks later.',
+  duration:'1 hr 30 min',where:'Eastside Clay Co-op, E 5th St',meeting:'Studio front desk',
+  price:{kind:'exact',amt:38,text:'$38 per person'},timing:{kind:'fixed',sessions:['Sat 10:00 AM','Sat 1:00 PM','Sun 11:00 AM']},source:'Venue website, checked Nov 2',booking:true,bookWith:'Eastside Clay Co-op',dates:['w1','w2'],
+  when:{date:'Sat, Nov 21',day:21,start:'10:00 AM',end:'11:30 AM'}},
+ {id:'swim',name:'Barton Springs swim',cat:'Outdoors',area:'Zilker',x:244,y:642,
+  desc:'A spring-fed pool that stays cool all year. Cold for the first minute, then perfect. Lifeguards on duty; bring a towel and a card for entry.',
+  duration:'1 to 2 hrs',where:'Barton Springs Pool, Zilker Park',meeting:'Main gate, south side of the lot',
+  price:{kind:'estimated',amt:9,text:'About $5 to $9'},timing:{kind:'flexible',text:'Open most days; hours vary by season'},source:'City parks page, checked Oct 28',booking:false,dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'11:00 AM',end:'12:30 PM'}},
+ {id:'kayak',name:'Sunset kayak on Lady Bird Lake',cat:'Outdoors',area:'Downtown waterfront',x:420,y:560,
+  desc:'Guided paddle at golden hour from the rental dock, past the downtown skyline and back. Tandem boats available. No experience needed.',
+  duration:'1 hr 30 min',where:'Rental dock off W Cesar Chavez St',meeting:'Dock check-in window',
+  price:{kind:'estimated',amt:25,text:'About $25'},timing:{kind:'fixed',sessions:['Fri 5:15 PM','Sat 5:15 PM']},source:'Outfitter listing, checked Oct 30',booking:true,bookWith:'the dock outfitter',dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'5:15 PM',end:'6:45 PM'}},
+ {id:'trucks',name:'Food truck crawl, East Cesar Chavez',cat:'Food & drink',area:'East Cesar Chavez',x:640,y:588,
+  desc:'Walk four blocks of trailers and split plates: tacos, Thai, a dessert stop. Everyone pays at each truck.',
+  duration:'2 hrs',where:'E Cesar Chavez St, between Chicon and Pedernales',meeting:'Corner of E Cesar Chavez and Chicon',
+  price:{kind:'estimated',amt:20,text:'About $15 to $25'},timing:{kind:'flexible',text:'Most trucks open 11 AM to late'},source:'Community listing, submitted by Luis R.',booking:false,dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'6:00 PM',end:'8:00 PM'}},
+ {id:'bonnell',name:'Sunset at Mount Bonnell',cat:'Outdoors',area:'West Austin',x:96,y:250,
+  desc:'A short, steep set of stairs to one of the best views of the river. Go 30 minutes before sunset.',
+  duration:'45 min',where:'Covert Park, Mount Bonnell Rd',meeting:'Base of the stairs',
+  price:{kind:'free'},timing:{kind:'flexible',text:'Park open 5 AM to 10 PM'},source:'City parks page, checked Oct 28',booking:false,dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'5:00 PM',end:'5:45 PM'}},
+ {id:'trivia',name:'Tuesday trivia, Hyde Park',cat:'Games & trivia',area:'Hyde Park',x:408,y:150,
+  desc:'Pub trivia with teams of up to six. Five rounds, one picture round. Food and drinks are ordered at the bar.',
+  duration:'2 hrs',where:'Neighborhood pub on Duval St',meeting:'Back patio',
+  price:{kind:'unknown'},timing:{kind:'fixed',sessions:['Tue 7:30 PM']},source:'Community listing, submitted by Sam K.',booking:false,dates:[],
+  when:{date:'Tue, Nov 17',day:17,start:'7:30 PM',end:'9:30 PM'}},
+ {id:'vinyl',name:'Record dig on South Lamar',cat:'Music & film',area:'South Lamar',x:212,y:820,
+  desc:'Hit three used-record shops in one stretch of South Lamar. Each person picks one record for someone else under $10.',
+  duration:'1 hr 30 min',where:'S Lamar Blvd, near Oltorf St',meeting:'Outside the first shop',
+  price:{kind:'unknown'},timing:{kind:'flexible',text:'Shops open around noon'},source:'Community listing, submitted by Tess M.',booking:false,dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'1:00 PM',end:'2:30 PM'}},
+ {id:'board',name:'Board game café afternoon',cat:'Games & trivia',area:'North Campus',x:520,y:300,
+  desc:'A wall of 600 games and staff who teach rules. Grab a big table for six.',
+  duration:'2 to 3 hrs',where:'Game café on Guadalupe St',meeting:'Host stand',
+  price:{kind:'exact',amt:10,text:'$10 cover per person'},timing:{kind:'flexible',text:'Daily 11 AM to 11 PM'},source:'Venue website, checked Nov 1',booking:false,dates:['w1','w2'],
+  when:{date:'Sun, Nov 15',day:15,start:'2:00 PM',end:'4:30 PM'}},
+ {id:'climb',name:'Intro bouldering session',cat:'Active',area:'South Congress',x:452,y:700,
+  desc:'A one-hour coached intro covering falling safely, reading routes and three beginner problems. Shoes included.',
+  duration:'1 hr',where:'Climbing gym off S Congress Ave',meeting:'Front desk',
+  price:{kind:'exact',amt:28,text:'$28 per person'},timing:{kind:'fixed',sessions:['Sat 9:00 AM','Sun 4:00 PM']},source:'Venue website, checked Nov 3',booking:true,bookWith:'the climbing gym',dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'9:00 AM',end:'10:00 AM'}},
+ {id:'market',name:'Mueller farmers market',cat:'Food & drink',area:'Mueller',x:660,y:196,
+  desc:'Sunday market by the lake with breakfast tacos, coffee and produce. Good for a slow morning walk.',
+  duration:'1 hr',where:'Mueller Lake Park',meeting:'Info tent by the playground',
+  price:{kind:'free'},timing:{kind:'fixed',sessions:['Sun 10:00 AM to 2:00 PM']},source:'Market website, checked Nov 4',booking:false,dates:['w1','w2'],
+  when:{date:'Sun, Nov 15',day:15,start:'10:30 AM',end:'11:30 AM'}},
+ {id:'film',name:'Rooftop film night',cat:'Music & film',area:'Downtown',x:380,y:478,
+  desc:'An outdoor screening on a downtown rooftop with blankets and headphones. This week: a 90s comedy double feature.',
+  duration:'3 hrs',where:'Rooftop on Congress Ave',meeting:'Lobby elevators',
+  price:{kind:'exact',amt:15,text:'$15 per person'},timing:{kind:'fixed',sessions:['Sat 7:30 PM']},source:'Venue website, checked Nov 5',booking:true,bookWith:'the venue',dates:['w1'],
+  when:{date:'Sat, Nov 14',day:14,start:'7:30 PM',end:'10:30 PM'}},
+ {id:'disc',name:'Disc golf at Zilker',cat:'Active',area:'Zilker',x:300,y:690,
+  desc:'An easy, wooded nine-hole loop. Bring your own discs or borrow a starter set from Sam.',
+  duration:'1 hr 30 min',where:'Zilker Park, east lawn',meeting:'Tee 1 near the lawn',
+  price:{kind:'free'},timing:{kind:'flexible',text:'Park open 5 AM to 10 PM'},source:'Community listing, submitted by Sam K.',booking:false,dates:['w1','w2'],
+  when:{date:'Sat, Nov 14',day:14,start:'10:00 AM',end:'11:30 AM'}}
+];
+const E=id=>EXP.find(e=>e.id===id);
+function priceShort(e){const p=e.price;return p.kind==='free'?'Free':p.kind==='exact'?'$'+p.amt:p.kind==='estimated'?'~$'+p.amt:'?'}
+function priceHtml(e){const p=e.price;
+ if(p.kind==='free')return '<span class="price"><b>Free</b></span>';
+ if(p.kind==='exact')return `<span class="price"><b>${esc(p.text)}</b><em>Exact</em></span>`;
+ if(p.kind==='estimated')return `<span class="price"><b>${esc(p.text)}</b><em>Estimated</em></span>`;
+ return '<span class="price"><b>Price unknown</b></span>';}
+function timingShort(e){return e.timing.kind==='fixed'?e.timing.sessions.join(', '):e.timing.text}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function av(n,cls=''){return `<span class="av av-${n.toLowerCase()} ${cls}" aria-hidden="true">${n[0]}</span>`}
+
+/* ================= Fake clock (Austin time) ================= */
+const BASE=Date.UTC(2026,10,8,20,30,0); // Sun Nov 8 2026, 2:30 PM CST
+const LOADED=Date.now(); let skew=0;
+const now=()=>BASE+(Date.now()-LOADED)+skew;
+const fmtT=ms=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(ms);
+const fmtClock=ms=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'}).format(ms).replace(/\s?[AP]M/,'');
+function left(ms){if(ms<=0)return 'Closed';const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return `${h}h ${String(m).padStart(2,'0')}m ${String(x).padStart(2,'0')}s`}
+
+/* ================= State ================= */
+const SEED_VOTES={
+ Maya:{sketch:'yes',clay:'yes',swim:'maybe'},
+ Jordan:{sketch:'yes',clay:'yes',swim:'no'},
+ Sam:{sketch:'yes',clay:'no',swim:'maybe'},
+ Priya:{sketch:'maybe',clay:'yes',swim:'yes'},
+ Luis:{sketch:'maybe',clay:'yes',swim:'maybe'},
+ Tess:{sketch:'no',clay:'no',swim:'no'}
+};
+function freshPick(){return {status:'open',options:['sketch','clay','swim'],starred:null,hours:24,
+  created:Date.UTC(2026,10,8,15,12),deadline:Date.UTC(2026,10,9,15,12),
+  votes:{Maya:{...SEED_VOTES.Maya},Jordan:{...SEED_VOTES.Jordan},Sam:{...SEED_VOTES.Sam},Priya:{...SEED_VOTES.Priya},Luis:{...SEED_VOTES.Luis}},
+  override:null,closedAt:null}}
+function freshPlan(){return {status:'none',exp:null,date:'',day:0,start:'',end:'',meeting:'',note:'',recipients:['Jordan','Sam','Priya','Luis','Tess'],rsvp:{},prev:null,cancelReason:'',log:[],fromPick:false}}
+const S={
+ role:'maya',screen:'map',hist:[],states:{},
+ view:'map',ctx:'explore',q:'',filters:{cat:null,price:'any',date:'any',unknown:true},area:null,
+ selected:'sketch',pan:{x:-170,y:-230},panned:false,searching:false,
+ saves:{me:['swim','kayak','bonnell'],group:['sketch','clay','swim','trucks','board']},
+ sheet:null,toast:null,
+ pick:freshPick(),plan:freshPlan(),draftExp:null,
+ sending:false,failNext:false,sendError:false,
+ join:{step:'code',code:'',name:'',err:'',email:'',via:''},jordanGuest:true,
+ sub:{tab:'form',v:{name:'',desc:'',loc:'',tkind:'',ttext:'',dur:'',pkind:'',amt:'',src:'',img:''},errs:{}},
+ subs:[
+  {name:'Greenbelt swimming hole loop',status:'pending',date:'Nov 6'},
+  {name:'Sketch and stroll',status:'approved',date:'Oct 19'},
+  {name:'Thursday salsa on the plaza',status:'changes',date:'Oct 30',reason:'Add a meeting point and say whether the free lesson needs sign-up. Then resubmit; your text is kept.'},
+  {name:'Warehouse supper club',status:'rejected',date:'Oct 22',reason:'This is a private, invite-only event. Sidequest lists experiences anyone in Austin can join.'}
+ ],
+ groups:[
+  {id:'crew',name:'Saturday crew',members:MEMBERS.slice(),pending:[],code:'SQ7K2M'},
+  {id:'climb',name:'Climbing Tuesdays',members:['Maya','Sam','Luis','Priya'],pending:[],code:'SQ3HV9'},
+  {id:'studio',name:'UT design studio',members:['Maya','Jordan','Tess','Priya','Luis','Sam','Rina','Omar','Kai'],pending:[],code:'SQ9PW4'}
+ ],
+ groupId:'crew',
+ editTmp:null,cancelTmp:{reason:'',other:''},
+ newGroupName:''
+};
+const viewer=()=>S.role==='maya'?'Maya':'Jordan';
+const isOrg=()=>S.role==='maya';
+
+/* ================= Screens meta ================= */
+const SCREENS=[
+ ['map','Map home','map'],['list','Discovery list','map'],['detail','Experience detail','map'],['pick','Group pick','plans'],
+ ['create','Plan creation and review','plans'],['plan','Plan detail','plans'],['plans','Plans hub','plans'],['friends','Friends','friends'],
+ ['group','Group detail','friends'],['join','Join and sign-in','friends'],['submit','Submission and status','map']
+];
+const NOTES={
+ map:['<b>P0-04, P0-05.</b> Reads <code>experiences</code> (all rows; filters run on the phone for P0). Guests can browse.','<b>Context chips:</b> Explore Austin, My saves (accounts only), one chip per group (its saved ideas).','<b>Location</b> is asked only when the person taps locate; denied means centered on downtown Austin.','<b>Search this area</b> limits results to the visible map (Pilot). Pins and list share one result set.'],
+ list:['<b>P0-04.</b> Same results, filters, area and selection as Map; switching scrolls to the selected item.','<b>Unknown prices</b> don\'t match a price cap unless Include unknown prices is on (default on).','<b>Empty:</b> "Nothing matches here" with Clear filters.'],
+ detail:['<b>P0-06.</b> Reads one <code>experiences</code> row: price label (exact, estimated, free, unknown), timing (fixed sessions or flexible hours), source with checked-on date.','<b>Booking notice</b> whenever <code>booking_required</code>: "Booking required. Going here does not reserve a spot." plus provider link.','<b>Save (P0-07)</b> calls <code>toggle_save</code>; guests get a sign-in prompt. <b>Add to group pick</b> needs an account.'],
+ pick:['<b>P0-08, P0-09.</b> Reads <code>picks</code>, <code>pick_options</code>, <code>votes</code> with a Realtime subscription; calls <code>cast_vote</code>.','<b>Rules:</b> 2 to 5 options, one open pick per group, deadline 1 hour to 7 days (default 24h). Members see totals and who has voted, not who voted what.','<b>Close now</b> calls <code>close_pick</code>; the deadline uses <code>close_due_picks()</code> on pg_cron. Score: Yes 2, Maybe 1, No 0; ties go to fewer No, then the star, then first added.','<b>P0-10:</b> Plan this opens a draft from the winner; override is shown to the group (Pilot).'],
+ create:['<b>P0-11, P0-12.</b> Draft fields: group, recipients (members preselected), date, start, end, meeting point, note. Times in America/Chicago.','<b>Send</b> calls <code>send_plan(client_key, ...)</code>. The same <code>client_key</code> returns the same plan, so Retry never double-invites.','<b>Validation:</b> future start, end after start, fixed-session experiences only allow listed sessions. Unknown price or booking needs an acknowledgement (Pilot).'],
+ plan:['<b>P0-13 to P0-15.</b> Reads <code>plans</code>, <code>plan_revisions</code>, <code>rsvps</code> (Realtime). Calls <code>respond(plan_id, revision, status)</code>; a stale revision is rejected.','<b>Material edit</b> (<code>edit_plan</code>): date, time, meeting point, session, higher price, new booking. Going invitees become Needs reconfirmation; the organizer stays Going.','<b>Minor edit:</b> note, typo, lower price. No status change, "Updated" label.','<b>Cancel</b> (<code>cancel_plan</code>) wins over any RSVP sent at the same time (Pilot).'],
+ plans:['<b>P0-16.</b> Sections: Needs your response, Open group picks, Upcoming, Drafts (organizer only), Past (collapsed).','<b>Each plan appears in one section.</b> The tab badge counts Needs your response plus picks you haven\'t voted in.','<b>Group membership never grants plan access:</b> only invitees see a plan.'],
+ friends:['<b>P0-17.</b> Groups with joined-member count, avatars and next item. Create group needs an account (<code>create_group</code>).','<b>Join with code</b> opens the Join screen (<code>join_group</code>).','<b>Guest banner:</b> a guest who never signs in is lost on reinstall or a new phone.'],
+ group:['<b>P0-03, P0-17.</b> Members with guest label and Owner badge; one active join code (14 days); owner can Copy, Share, Revoke, Regenerate.','<b>Revoking</b> stops new joins and never removes members. Removed members are blocked until the owner allows them back.','<b>Plans you can see</b> lists only plans the viewer is invited to.'],
+ join:['<b>P0-01, P0-02.</b> Code check, preview without roster, then guest name (anonymous sign-in + <code>profiles</code>) or Sign in with Apple / email code.','<b>Codes:</b> 6 characters, no 0/O/1/I, case-insensitive, rate-limited. Expired and wrong codes have different messages.','<b>Guest upgrade</b> keeps the same user ID, so votes and RSVPs stay.'],
+ submit:['<b>P0-18 (Pilot).</b> Calls <code>submit_listing(client_key, payload)</code>; resubmitting the same draft never duplicates.','<b>States:</b> Pending review, Approved, Needs changes (reason), Rejected (reason). Editing an approved listing creates a new pending version.','<b>Reviewers</b> use a restricted queue (<code>review_submission</code>).']
+};
+
+/* ================= Navigation ================= */
+function go(s,opts={}){if(s===S.screen&&!opts.force){render();return}
+ if(!opts.noHist)S.hist.push(S.screen);S.screen=s;S.sheet=null;
+ if(s==='create'&&!S.draftExp&&S.plan.status==='none'){S.draftExp=winnerId()}
+ try{history.replaceState(null,'','#'+s)}catch(e){}
+ render(true)}
+function back(){const p=S.hist.pop();if(!p){go(tabRoot(),{noHist:true});return}S.screen=p;S.sheet=null;try{history.replaceState(null,'','#'+p)}catch(e){}render(true)}
+function tabOf(s){const m=SCREENS.find(x=>x[0]===s);return m?m[2]:'map'}
+function tabRoot(){const t=tabOf(S.screen);return t==='map'?'map':t}
+let toastTimer;
+function toast(t){S.toast=t;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{S.toast=null;renderToast()},2600);renderToast()}
+
+/* ================= Results ================= */
+function results(){
+ let list=EXP.slice();
+ if(S.ctx==='me')list=list.filter(e=>S.saves.me.includes(e.id));
+ if(S.ctx==='crew')list=list.filter(e=>S.saves.group.includes(e.id));
+ const f=S.filters;
+ if(f.cat)list=list.filter(e=>e.cat===f.cat);
+ if(f.price!=='any')list=list.filter(e=>{if(e.price.kind==='unknown')return f.unknown;if(f.price==='free')return e.price.kind==='free';return e.price.kind==='free'||e.price.amt<25});
+ else if(!f.unknown)list=list.filter(e=>e.price.kind!=='unknown');
+ if(f.date!=='any')list=list.filter(e=>e.dates.includes(f.date));
+ if(S.q.trim()){const q=S.q.trim().toLowerCase();list=list.filter(e=>(e.name+' '+e.area+' '+e.cat).toLowerCase().includes(q))}
+ if(S.area){const a=S.area;list=list.filter(e=>e.x>=a.x0&&e.x<=a.x1&&e.y>=a.y0&&e.y<=a.y1)}
+ return list}
+
+/* ================= Pick logic ================= */
+function tally(id){let y=0,m=0,n=0;for(const k of MEMBERS){const v=S.pick.votes[k]&&S.pick.votes[k][id];if(v==='yes')y++;else if(v==='maybe')m++;else if(v==='no')n++}return {y,m,n,score:y*2+m}}
+function ranked(){const st=S.pick.starred;return S.pick.options.map((id,i)=>({id,i,...tally(id)})).sort((a,b)=>b.score-a.score||a.n-b.n||((b.id===st)-(a.id===st))||a.i-b.i)}
+function reason(r){const [a,b]=r;if(!a)return '';if(!b)return 'Only one option.';const nm=E(a.id).name;
+ if(a.score>b.score)return `${nm} has the highest score: ${a.score} points to ${b.score}.`;
+ if(a.n<b.n)return `Tied at ${a.score} points. ${nm} wins on fewer No votes (${a.n} vs ${b.n}).`;
+ if(a.id===S.pick.starred)return `Tied on points (${a.score}) and No votes (${a.n}). ${nm} was Maya's starred option.`;
+ return `Tied on points (${a.score}) and No votes (${a.n}), and no star decided it. ${nm} was added first.`}
+function winnerId(){const r=ranked();return S.pick.override||(r[0]&&r[0].id)||'sketch'}
+function voted(){return MEMBERS.filter(m=>S.pick.votes[m]&&S.pick.options.every(o=>S.pick.votes[m][o]))}
+
+/* ================= Plan logic ================= */
+function counts(){const c={going:0,awaiting:0,cant:0,reconfirm:0};if(S.plan.status==='none')return c;c.going++;for(const r of S.plan.recipients)c[S.plan.rsvp[r]||'awaiting']++;return c}
+function logp(t){S.plan.log.unshift({t:fmtClock(now())+(new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',hour:'numeric'}).format(now()).includes('PM')?' PM':' AM'),x:t})}
+function setRsvp(who,v){const p=S.plan;if(p.status!=='sent')return;const was=p.rsvp[who];p.rsvp[who]=v;
+ if(was==='reconfirm'&&v==='going'){logp(`${who} reconfirmed for the new time`)}
+ else logp(v==='going'?`${who} is going`:`${who} can't go`);
+ const c=counts();if(who!==viewer())toast(`${who}: ${v==='going'?(was==='reconfirm'?'reconfirmed':'Going'):'Can\'t go'}. Now ${c.going} Going, ${c.awaiting} Awaiting, ${c.cant} Can't go${c.reconfirm?`, ${c.reconfirm} to reconfirm`:''}.`);
+ else toast(v==='going'?(was==='reconfirm'?'Reconfirmed. You\'re going.':'You\'re going'):'Response sent: Can\'t go');
+ render()}
+function draftFrom(id){const e=E(id);const p=S.plan;p.exp=id;p.date=e.when.date;p.day=e.when.day;p.start=e.when.start;p.end=e.when.end;p.meeting=e.meeting;p.note='';p.status='draft';p.rsvp={};p.prev=null;p.log=[];p.fromPick=S.pick.status==='closed'&&winnerId()===id}
+const TIMES=['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:15 PM','5:30 PM','6:00 PM','6:45 PM','7:30 PM','8:00 PM','9:30 PM','10:30 PM'];
+function addMin(t,mins){const m=t.match(/(\d+):(\d+) (AM|PM)/);let h=+m[1]%12+(m[3]==='PM'?12:0);let tot=h*60+ +m[2]+mins;h=Math.floor(tot/60)%24;const mm=tot%60;const ap=h>=12?'PM':'AM';const hh=h%12||12;return `${hh}:${String(mm).padStart(2,'0')} ${ap}`}
+function toMin(t){const m=t.match(/(\d+):(\d+) (AM|PM)/);return (+m[1]%12+(m[3]==='PM'?12:0))*60+ +m[2]}
+function range(p){return `${p.start.replace(/ (AM|PM)$/,a=>p.end.endsWith(a)?'':a)}–${p.end}`}
+
+/* ================= Shared components ================= */
+function bookingNotice(e){if(!e.booking)return `<div class="notice neutral">${ic('check',18)}<div><b>No booking needed.</b> Just show up at the meeting point.</div></div>`;
+ return `<div class="notice">${ic('alert',18)}<div><b>Booking required. Going here does not reserve a spot.</b><br>Each person books with ${esc(e.bookWith)} on their site.</div></div>`}
+function statusTag(v){return {going:`<span class="tag go">${ic('check',14,2.4)}Going</span>`,awaiting:`<span class="tag wait">${ic('clock',14,2)}Awaiting</span>`,cant:`<span class="tag no">${ic('x',14,2.4)}Can't go</span>`,reconfirm:`<span class="tag att">${ic('refresh',14,2)}Needs reconfirmation</span>`,organizer:`<span class="tag go">${ic('check',14,2.4)}Going, organizer</span>`}[v]}
+function navBar(title,right=''){return `<div class="nav"><button class="iconbtn" data-a="back" aria-label="Back">${ic('back',22)}</button><div class="t">${esc(title)}</div>${right||'<span style="width:44px"></span>'}</div>`}
+function tabs(){const t=tabOf(S.screen);const badge=needsCount();
+ const b=(id,label,icn)=>`<button class="tab" data-a="tab" data-v="${id}" ${t===id?'aria-current="page"':''}>${ic(icn,24)}${label}${id==='plans'&&badge?`<span class="badge" aria-label="${badge} need your response">${badge}</span>`:''}</button>`;
+ return `<nav class="tabs" aria-label="Main">${b('map','Map','map')}${b('plans','Plans','plans')}${b('friends','Friends','friends')}</nav>`}
+function needsCount(){let n=0;const p=S.plan;if(p.status==='sent'&&!isOrg()){const r=p.rsvp.Jordan||'awaiting';if(r==='awaiting'||r==='reconfirm')n++}
+ if(S.pick.status==='open'&&!voted().includes(viewer()))n++;return n}
+
+/* ================= State wrappers ================= */
+const EMPTY={
+ map:['Nothing matches here','Try a wider price range, another date, or clear filters.','Clear filters','clearFilters'],
+ list:['Nothing matches here','Try a wider price range, another date, or clear filters.','Clear filters','clearFilters'],
+ detail:['This listing was removed','The person who listed it took it down. Copies saved to your groups stay in their libraries.','Back to map','tabmap'],
+ pick:['No open group pick','Start one from any experience with Add to group pick.','Browse experiences','tabmap'],
+ create:['Nothing to plan yet','Choose an experience, or close a group pick, to start a draft.','Browse experiences','tabmap'],
+ plan:['This plan was deleted','Maya removed this plan. Your other plans are in the Plans tab.','Go to Plans','tabplans'],
+ plans:['No plans yet','Start one from any experience on the map, or open a group pick with your friends.','Find something to do','tabmap'],
+ friends:['No groups yet','Create a group for the people you already make plans with, or join one with a 6-character code.','Create group','newgroup'],
+ group:['Just you so far','Share the join code so friends can join Saturday crew.','Share code','share'],
+ join:['No invite open','Ask the organizer for a link or a 6-character code.','Enter a code','retry'],
+ submit:['No submissions yet','Suggest a place or activity you think friends in Austin would enjoy.','Suggest a listing','retry']
+};
+const ERR={map:'Couldn\'t load experiences near you.',list:'Couldn\'t load experiences near you.',detail:'Couldn\'t load this experience.',pick:'Couldn\'t load the latest votes.',create:'Couldn\'t load your draft.',plan:'Couldn\'t load this plan.',plans:'Couldn\'t load your plans.',friends:'Couldn\'t load your groups.',group:'Couldn\'t load Saturday crew.',join:'Couldn\'t check that code.',submit:'Couldn\'t load your submissions.'};
+function stateView(kind){const s=S.screen;
+ if(kind==='loading'){return `<div class="wrap" style="padding-top:12px" aria-busy="true" aria-label="Loading">
+  <div class="skel" style="height:34px;width:60%"></div><div class="skel" style="height:18px;width:85%"></div>
+  <div class="skel" style="height:120px"></div><div class="skel" style="height:84px"></div><div class="skel" style="height:84px"></div><div class="skel" style="height:84px"></div></div>`}
+ if(kind==='empty'){const [h,p,b,a]=EMPTY[s];return `<div class="state"><div class="ico">${ic(s==='friends'||s==='group'?'friends':s==='plans'||s==='plan'?'plans':'map',30)}</div><h3>${h}</h3><p>${p}</p><button class="btn" data-a="emptyAct" data-v="${a}">${b}</button></div>`}
+ return `<div class="state err"><div class="ico">${ic('alert',30)}</div><h3>${ERR[s]}</h3><p>Check your connection, then try again. Nothing you entered was lost.</p><button class="btn" data-a="retry">${ic('refresh',18)}Try again</button></div>`}
+
+/* ================= Screen: Map ================= */
+function mapSvg(){return `<svg viewBox="0 0 760 1040" aria-hidden="true">
+<rect width="760" height="1040" fill="var(--map-land)"/>
+<g fill="var(--map-block)">${(()=>{let s='';for(let x=300;x<470;x+=34)for(let y=330;y<520;y+=30)s+=`<rect x="${x}" y="${y}" width="28" height="24" rx="3"/>`;for(let x=480;x<740;x+=40)for(let y=360;y<520;y+=36)s+=`<rect x="${x}" y="${y}" width="33" height="29" rx="3"/>`;for(let x=360;x<520;x+=38)for(let y=620;y<1000;y+=40)s+=`<rect x="${x}" y="${y}" width="31" height="33" rx="3"/>`;for(let x=330;x<560;x+=40)for(let y=60;y<300;y+=40)s+=`<rect x="${x}" y="${y}" width="33" height="33" rx="3"/>`;return s})()}</g>
+<path d="M170 560c40 20 90 50 150 40" fill="none"/>
+<path d="M180 600 C 215 560 300 560 330 610 C 350 650 320 720 260 730 C 200 735 165 670 180 600Z" fill="var(--map-park)"/>
+<path d="M40 200 C 80 180 140 200 150 240 C 160 290 100 300 70 290 C 30 275 20 220 40 200Z" fill="var(--map-park)"/>
+<path d="M600 150 C 650 130 720 150 720 200 C 720 245 660 255 625 240 C 590 225 580 170 600 150Z" fill="var(--map-park)"/>
+<path d="M286 300 C 300 360 300 420 310 470 C 316 500 320 520 318 540" fill="none" stroke="var(--map-park)" stroke-width="16" stroke-linecap="round"/>
+<path d="M-20 330 C 40 380 90 420 140 470 C 190 515 250 540 320 548 C 400 556 470 540 540 560 C 610 580 680 600 780 590" fill="none" stroke="var(--map-water)" stroke-width="30" stroke-linecap="round"/>
+<path d="M286 300 C 300 360 300 420 310 470 C 316 500 320 520 318 540" fill="none" stroke="var(--map-water)" stroke-width="4" stroke-linecap="round"/>
+<path d="M440 260 C 445 330 450 420 448 548" fill="none" stroke="var(--map-water)" stroke-width="4" stroke-linecap="round"/>
+<path d="M-10 720 C 60 690 120 650 170 620 C 200 600 230 585 268 560" fill="none" stroke="var(--map-water)" stroke-width="6" stroke-linecap="round"/>
+<circle cx="250" cy="635" r="11" fill="var(--map-water)"/>
+<rect x="640" y="185" width="44" height="26" rx="13" fill="var(--map-water)"/>
+<g stroke="var(--map-road)" stroke-linecap="round" fill="none">
+ <path d="M372 0 C 372 200 370 400 378 600 C 382 760 380 900 384 1040" stroke-width="7"/>
+ <path d="M262 0 C 268 200 280 380 286 560 C 260 700 230 860 220 1040" stroke-width="7"/>
+ <path d="M300 520 C 400 528 500 536 760 570" stroke-width="7"/>
+ <path d="M300 580 C 420 590 540 610 760 640" stroke-width="5"/>
+ <path d="M0 470 C 120 460 240 440 760 430" stroke-width="5"/>
+ <path d="M300 300 C 450 300 600 300 760 290" stroke-width="5"/>
+ <path d="M0 860 C 200 850 400 850 760 870" stroke-width="5"/>
+ <path d="M560 0 C 560 300 580 600 600 1040" stroke-width="5"/>
+</g>
+<path d="M156 0 C 160 250 150 420 175 560 C 190 700 170 880 160 1040" fill="none" stroke="var(--map-hwy-edge)" stroke-width="13" stroke-linecap="round"/>
+<path d="M156 0 C 160 250 150 420 175 560 C 190 700 170 880 160 1040" fill="none" stroke="var(--map-hwy)" stroke-width="9" stroke-linecap="round"/>
+<path d="M500 0 C 498 200 488 400 500 560 C 510 720 520 880 528 1040" fill="none" stroke="var(--map-hwy-edge)" stroke-width="15" stroke-linecap="round"/>
+<path d="M500 0 C 498 200 488 400 500 560 C 510 720 520 880 528 1040" fill="none" stroke="var(--map-hwy)" stroke-width="11" stroke-linecap="round"/>
+<g font-family="system-ui, sans-serif" font-weight="600" fill="var(--map-label)" font-size="13" letter-spacing=".04em">
+ <text x="350" y="410">Downtown</text><text x="610" y="400">East Austin</text><text x="400" y="890">South Congress</text>
+ <text x="190" y="690" fill="var(--map-label)">Zilker Park</text><text x="380" y="110">Hyde Park</text><text x="620" y="130">Mueller</text>
+ <text x="190" y="380">Clarksville</text><text x="560" y="760">Travis Heights</text><text x="50" y="330">Mount Bonnell</text>
+</g>
+<g font-family="system-ui, sans-serif" font-style="italic" font-weight="500" fill="var(--map-water-label)" font-size="12.5"><text x="440" y="565">Lady Bird Lake</text></g>
+<g font-family="system-ui, sans-serif" font-weight="700" fill="var(--map-label)" font-size="10.5"><text x="166" y="140" transform="rotate(-88 166 140)">MoPac</text><text x="510" y="210" transform="rotate(88 510 210)">I-35</text><text x="378" y="760" transform="rotate(89 378 760)">Congress Ave</text></g>
+</svg>`}
+function vMap(){
+ const rs=results();const sel=rs.find(e=>e.id===S.selected);
+ const pins=rs.map(e=>`<button class="pin ${S.saves.group.includes(e.id)&&S.ctx!=='explore'?'saved':''}" style="left:${e.x}px;top:${e.y}px" data-a="pin" data-v="${e.id}" aria-pressed="${e.id===S.selected}" aria-label="${esc(e.name)}, ${priceShort(e)==='?'?'price unknown':priceShort(e)}"><span>${priceShort(e)==='?'?ic('info',13,2.4)+'?':priceShort(e)}</span></button>`).join('');
+ const st=S.states.map||'ready';
+ return `<div class="screen">
+ <div class="mapwrap" id="mapwrap" aria-label="Map of Austin. Drag to pan."><div class="maplayer" id="maplayer" style="transform:translate(${S.pan.x}px,${S.pan.y}px)">${mapSvg()}${st==='ready'?pins:''}</div></div>
+ ${topControls()}
+ ${S.panned&&st==='ready'?`<div class="area-pill"><button class="btn" data-a="searchArea" ${S.searching?'disabled':''}>${S.searching?'<span class="spin"></span>Searching this area':ic('search',18)+'Search this area'}</button></div>`:''}
+ ${st!=='ready'?`<div style="position:absolute;inset:150px 16px 90px;display:flex;z-index:4"><div class="card" style="flex:1;display:flex;box-shadow:var(--shadow)">${st==='loading'?`<div style="flex:1;display:flex;flex-direction:column;gap:12px;justify-content:center;align-items:center" aria-busy="true"><span class="spin" style="width:28px;height:28px"></span><span class="muted">Finding things to do near you</span></div>`:stateView(st)}</div></div>`:''}
+ <div class="mapbottom">
+  ${st==='ready'&&sel?`<button class="preview" data-a="open" data-v="${sel.id}" aria-label="Open ${esc(sel.name)}">
+   <div class="thumb">${img(sel,'')}</div>
+   <div class="grow"><span class="muted small">${esc(sel.cat)}, ${esc(sel.area)}</span><h4>${esc(sel.name)}</h4>${priceHtml(sel)}<span class="meta"><span class="mi">${ic('clock',14)}${esc(timingShort(sel))}</span></span>${sel.booking?'<span class="tag att" style="align-self:flex-start;margin-top:2px">Booking required</span>':''}</div>
+   <span style="align-self:center;color:var(--muted)">${ic('chev',20)}</span></button>`:''}
+  <div class="switch-row">${viewToggle()}</div>
+ </div>
+</div>`}
+function topControls(){const f=S.filters;
+ const pl={any:'Price',free:'Free',u25:'Under $25'}[f.price];const dl={any:'Date',w1:'This weekend',w2:'Next weekend'}[f.date];
+ return `<div class="maptop" ${S.screen==='list'?'style="position:static;padding-bottom:10px"':''}>
+ <label class="search"><span class="ic">${ic('search',20)}</span><input id="q" type="search" placeholder="Search Austin experiences" value="${esc(S.q)}" data-bind="q" aria-label="Search experiences"><button class="iconbtn" data-a="go" data-v="submit" aria-label="Suggest a listing" title="Suggest a listing">${ic('plus',20)}</button></label>
+ <div class="chips" role="group" aria-label="Context">
+  <button class="chip" data-a="ctx" data-v="explore" aria-pressed="${S.ctx==='explore'}">Explore Austin</button>
+  <button class="chip" data-a="ctx" data-v="me" aria-pressed="${S.ctx==='me'}">${ic('bookmark',15)}My saves</button>
+  <button class="chip friend" data-a="ctx" data-v="crew" aria-pressed="${S.ctx==='crew'}">${ic('friends',15)}Saturday crew</button>
+ </div>
+ <div class="chips" role="group" aria-label="Filters">
+  <button class="chip ${f.cat?'on':''}" data-a="sheet" data-v="cat">${esc(f.cat||'Activity')}${ic('down',14)}</button>
+  <button class="chip ${f.price!=='any'||!f.unknown?'on':''}" data-a="sheet" data-v="price">${pl}${ic('down',14)}</button>
+  <button class="chip ${f.date!=='any'?'on':''}" data-a="sheet" data-v="date">${dl}${ic('down',14)}</button>
+  ${S.area?`<button class="chip on" data-a="clearArea">In this area ${ic('x',14,2.2)}</button>`:''}
+ </div></div>`}
+function viewToggle(){return `<div class="toggle" role="group" aria-label="View"><button data-a="view" data-v="map" aria-pressed="${S.screen==='map'}">${ic('map',16)}Map</button><button data-a="view" data-v="list" aria-pressed="${S.screen==='list'}">${ic('list',16)}List</button></div>`}
+
+/* ================= Screen: List ================= */
+function vList(){const rs=results();const st=S.states.list||'ready';
+ return `<div class="screen" style="background:var(--surface)">${topControls()}
+ <div class="scroll" id="sc">${st!=='ready'?stateView(st):rs.length?`<div class="wrap" style="gap:10px;padding-bottom:96px"><div class="muted small">${rs.length} experience${rs.length===1?'':'s'}${S.area?' in this area':' in Austin'}</div>
+ ${rs.map(e=>`<button class="lcard" data-a="lsel" data-v="${e.id}" id="l-${e.id}" aria-pressed="${e.id===S.selected}">
+  <div class="thumb">${img(e)}</div>
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span class="muted small">${esc(e.cat)}, ${esc(e.area)}</span><h4>${esc(e.name)}</h4>${priceHtml(e)}
+  <span class="meta"><span class="mi">${ic('clock',14)}${esc(e.duration)}</span></span>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">${e.booking?'<span class="tag att">Booking required</span>':''}${S.saves.group.includes(e.id)?`<span class="tag blue">${ic('friends',13)}Saved by Saturday crew</span>`:''}</div></div></button>`).join('')}</div>`:stateView('empty')}</div>
+ <div style="position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;z-index:5">${viewToggle()}</div></div>`}
+
+/* ================= Screen: Detail ================= */
+function vDetail(){const e=E(S.selected)||EXP[0];const st=S.states.detail||'ready';
+ if(st!=='ready')return `<div class="screen">${navBar('Experience')}<div class="scroll">${stateView(st)}</div></div>`;
+ const saved=S.saves.me.includes(e.id),gsaved=S.saves.group.includes(e.id);
+ const pk={free:['Free','No cost to join.'],exact:[e.price.text,'Exact price, from the venue.'],estimated:[e.price.text,'Estimated. Actual cost may differ.'],unknown:['Price unknown','Nobody has confirmed a price yet. Check the source.']}[e.price.kind];
+ return `<div class="screen"><div class="scroll" id="sc">
+ <div class="hero">${img(e)}<div class="navover"><button class="iconbtn solid" data-a="back" aria-label="Back">${ic('back',22)}</button><button class="iconbtn solid" data-a="sheet" data-v="save" aria-label="Save">${ic('bookmark',20)}</button></div><span class="cap">Image (or category placeholder)</span></div>
+ <div class="wrap" style="padding-top:18px">
+  <div style="display:flex;flex-direction:column;gap:8px">
+   <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag wait">${esc(e.cat)}</span>${saved?`<span class="tag wait">${ic('bookmark',13)}Saved for you</span>`:''}${gsaved?`<span class="tag blue">${ic('friends',13)}In Saturday crew's ideas</span>`:''}</div>
+   <h1 class="h-title">${esc(e.name)}</h1>
+   <p class="lead">${esc(e.desc)}</p>
+  </div>
+  <div class="facts">
+   <div class="fact"><span class="ic">${ic('timer',20)}</span><div><div class="k">Duration</div><div class="v">${esc(e.duration)}</div></div></div>
+   <div class="fact"><span class="ic">${ic('pin',20)}</span><div><div class="k">Location</div><div class="v">${esc(e.where)}</div><div class="s">Meet at: ${esc(e.meeting)}</div></div></div>
+   <div class="fact"><span class="ic">${ic('tag',20)}</span><div><div class="k">Price, ${({free:'free',exact:'exact',estimated:'estimated',unknown:'unknown'})[e.price.kind]}</div><div class="v">${esc(pk[0])}</div><div class="s">${pk[1]}</div></div></div>
+   <div class="fact"><span class="ic">${ic('clock',20)}</span><div><div class="k">${e.timing.kind==='fixed'?'Fixed sessions':'Flexible hours'}</div>${e.timing.kind==='fixed'?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${e.timing.sessions.map(s=>`<span class="tag wait">${esc(s)}</span>`).join('')}</div><div class="s">Your plan must match one of these sessions.</div>`:`<div class="v">${esc(e.timing.text)}</div><div class="s">Pick any time that fits.</div>`}</div></div>
+   <div class="fact"><span class="ic">${ic('link',20)}</span><div><div class="k">Source</div><div class="v">${esc(e.source)}</div></div></div>
+  </div>
+  ${bookingNotice(e)}
+ </div></div>
+ <div class="actionbar"><button class="btn full" data-a="startPlan" data-v="${e.id}">${ic('plans',18)}Start a plan</button>
+ <div class="two"><button class="btn sec2 sm" data-a="sheet" data-v="addpick">${ic('users',18)}Add to group pick</button><button class="btn sec2 sm" data-a="sheet" data-v="save">${ic('bookmark',18)}Save</button></div></div></div>`}
+
+/* ================= Screen: Group pick ================= */
+function vPick(){const pk=S.pick;const st=S.states.pick||'ready';
+ const head=navBar('Group pick');
+ if(st!=='ready')return `<div class="screen">${head}<div class="scroll">${stateView(st)}</div></div>${tabs()}`;
+ if(pk.status==='draft')return pickDraft();
+ const r=ranked();const closed=pk.status==='closed';const me=viewer();const vs=voted();
+ const win=closed?winnerId():null;const vote0=r[0];
+ const optCard=(id,i)=>{const e=E(id);const t=tally(id);const mv=(pk.votes[me]||{})[id];const tot=Math.max(1,t.y+t.m+t.n);const isW=closed&&id===win;
+  return `<div class="opt ${isW?'win':''}">
+  <div class="opt-h"><div class="thumb">${img(e)}</div><div style="flex:1;min-width:0"><h4>${esc(e.name)}</h4><div class="meta">${priceHtml(e)}<span>${esc(e.when.date)}</span></div></div>
+  ${isOrg()&&!closed?`<button class="star" data-a="star" data-v="${id}" aria-pressed="${pk.starred===id}" aria-label="${pk.starred===id?'Starred as tie-breaker':'Star as tie-breaker'}">${ic('star',20,pk.starred===id?2.4:1.8)}</button>`:''}</div>
+  ${pk.starred===id?`<span class="tag att" style="align-self:flex-start">${ic('star',13,2.2)}Maya's tie-breaker star</span>`:''}
+  ${isW?`<span class="tag go" style="align-self:flex-start">${ic('check',14,2.4)}${pk.override?'Chosen by Maya':'Winner'}</span>`:''}
+  ${!closed?`<div class="vote" role="group" aria-label="Your vote for ${esc(e.name)}">${['yes','maybe','no'].map(v=>`<button data-a="vote" data-v="${v}" data-o="${id}" aria-pressed="${mv===v}">${v==='yes'?ic('check',16,2.4)+'Yes':v==='maybe'?'Maybe':ic('x',16,2.4)+'No'}</button>`).join('')}</div>`:''}
+  <div class="bar" aria-hidden="true"><i class="y" style="width:${t.y/tot*100}%"></i><i class="m" style="width:${t.m/tot*100}%"></i><i class="n" style="width:${t.n/tot*100}%"></i></div>
+  <div class="tally"><span><b>${t.y}</b> Yes</span><span><b>${t.m}</b> Maybe</span><span><b>${t.n}</b> No</span><span class="score">${t.score} pts</span></div>
+  ${e.booking?`<div class="small" style="color:var(--orange-ink)">Booking required. Going here does not reserve a spot.</div>`:''}
+  </div>`};
+ const order=closed?r.map(x=>x.id):pk.options;
+ return `<div class="screen">${head}<div class="scroll" id="sc"><div class="wrap">
+ <div style="display:flex;flex-direction:column;gap:6px"><span class="tag blue" style="align-self:flex-start">${ic('friends',13)}Saturday crew</span><h1 class="h-title">What should we do this weekend?</h1><p class="muted" style="margin:0">Started by Maya. ${pk.options.length} options.</p></div>
+ ${closed?`<div class="card" style="border-color:var(--green);display:flex;flex-direction:column;gap:8px">
+   <span class="tag go" style="align-self:flex-start">Voting closed ${esc(fmtT(pk.closedAt))}</span>
+   <h3 style="margin:0;font-size:20px;font-weight:700">${esc(E(win).name)}</h3>
+   <p style="margin:0" class="small">${pk.override?`Maya chose this over the vote winner, ${esc(E(vote0.id).name)}. Everyone in the group can see this change.`:esc(reason(r))}</p>
+   ${pk.override?`<p class="small muted" style="margin:0">Vote result: ${esc(reason(r))}</p>`:''}
+   ${isOrg()?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"><button class="btn sm" data-a="draftWinner">${ic('plans',18)}Draft plan</button><button class="btn line sm" data-a="sheet" data-v="override">${pk.override?'Change choice':'Override winner'}</button></div>`:`<p class="small muted" style="margin:0">Maya will send a plan from this result.</p>`}
+  </div>`:`<div class="clock">${ic('timer',24)}<div style="flex:1"><div class="small" style="font-weight:600">Closes ${esc(fmtT(pk.deadline))}</div><div class="t" data-countdown>${left(pk.deadline-now())}</div></div><div style="text-align:right" class="small"><b style="font-size:18px">${vs.length}/${MEMBERS.length}</b><br>voted</div></div>`}
+ <div class="sec">${order.map(optCard).join('')}</div>
+ <div class="card flat rule"><b style="color:var(--fg)">How the winner is chosen.</b> Yes = 2 points, Maybe = 1, No = 0. If points tie, fewer No votes wins, then Maya's starred option, then the option added first.</div>
+ <div class="sec"><div class="sec-h"><h3>Who has voted</h3><span>${vs.length} of ${MEMBERS.length}</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">${MEMBERS.map(m=>`<span class="tag ${vs.includes(m)?'go':'wait'}">${vs.includes(m)?ic('check',13,2.4):ic('clock',13)}${m}${m===me?' (you)':''}</span>`).join('')}</div></div>
+ ${isOrg()&&!closed?`<button class="btn line full" data-a="closeNow">Close voting now</button>`:''}
+ </div></div>${tabs()}</div>`}
+function pickDraft(){const pk=S.pick;const n=pk.options.length;const ok=n>=2&&n<=5;
+ if(!isOrg())return `<div class="screen">${navBar('Group pick')}<div class="state"><div class="ico">${ic('users',30)}</div><h3>Maya is setting up a pick</h3><p>You can vote once she opens it. You'll get a notification.</p></div>${tabs()}</div>`;
+ const avail=S.saves.group.filter(id=>!pk.options.includes(id));
+ return `<div class="screen">${navBar('New group pick')}<div class="scroll" id="sc"><div class="wrap">
+ <div><span class="tag blue">${ic('friends',13)}Saturday crew, 6 people</span><h1 class="h-title" style="margin-top:8px">Pick 2 to 5 options</h1><p class="muted" style="margin:6px 0 0">Everyone votes Yes, Maybe or No on each.</p></div>
+ <div class="sec"><div class="sec-h"><h3>Options</h3><span>${n} of 5</span></div>
+  ${n?pk.options.map((id,i)=>{const e=E(id);return `<div class="row card" style="padding:10px 12px"><div class="thumb" style="width:44px;min-height:44px;height:44px;border-radius:10px">${img(e)}</div><div class="grow"><b>${esc(e.name)}</b><div class="small muted">Added ${i===0?'first':'#'+(i+1)}${pk.starred===id?', starred tie-breaker':''}</div></div>
+   <button class="star" data-a="star" data-v="${id}" aria-pressed="${pk.starred===id}" aria-label="Star as tie-breaker">${ic('star',20)}</button><button class="iconbtn" data-a="rmOpt" data-v="${id}" aria-label="Remove ${esc(e.name)}">${ic('x',18)}</button></div>`}).join(''):'<div class="card flat small muted">No options yet. Add from your group\'s saved ideas below.</div>'}
+  ${n>5?'<div class="ferr">'+ic('alert',16)+'Remove options until there are 5 or fewer.</div>':''}
+ </div>
+ ${avail.length&&n<5?`<div class="sec"><div class="sec-h"><h3>Add from saved ideas</h3></div>${avail.map(id=>`<button class="row card" style="padding:8px 12px;text-align:left" data-a="addOpt" data-v="${id}"><span class="grow"><b>${esc(E(id).name)}</b><br><span class="small muted">${esc(E(id).area)}</span></span>${ic('plus',20)}</button>`).join('')}</div>`:''}
+ <div class="sec"><div class="sec-h"><h3>Voting closes in</h3></div><div class="seg" role="group" aria-label="Deadline">${[6,12,24,48,168].map(h=>`<button data-a="hours" data-v="${h}" aria-pressed="${pk.hours===h}">${h===168?'7 days':h+'h'}</button>`).join('')}</div>
+  <div class="small muted">Closes ${esc(fmtT(now()+pk.hours*3600e3))} Austin time. 24 hours is the default.</div></div>
+ <div class="card flat rule"><b style="color:var(--fg)">Tie-breaker, shown to everyone:</b> more points, then fewer No votes, then your starred option, then the option added first.</div>
+ </div></div><div class="actionbar"><button class="btn full" data-a="openVoting" ${ok?'':'disabled'}>Open voting for ${n} option${n===1?'':'s'}</button>${ok?'':'<div class="small muted" style="text-align:center">Add at least 2 options to open voting.</div>'}</div></div>`}
+
+/* ================= Screen: Create ================= */
+function vCreate(){const st=S.states.create||'ready';const p=S.plan;
+ if(st!=='ready')return `<div class="screen">${navBar('Review plan')}<div class="scroll">${stateView(st)}</div></div>`;
+ if(!isOrg())return `<div class="screen">${navBar('Review plan')}<div class="state"><div class="ico">${ic('lock',30)}</div><h3>Only the organizer drafts this plan</h3><p>You're viewing as Jordan. Switch to Maya in the panel to draft and send.</p></div></div>`;
+ if(p.status==='sent'||p.status==='cancelled')return `<div class="screen">${navBar('Review plan')}<div class="state"><div class="ico">${ic('check',30)}</div><h3>This plan was already sent</h3><p>Edits now happen from the plan itself, so invitees see what changed.</p><button class="btn" data-a="go" data-v="plan">Open plan</button></div></div>`;
+ if(p.status==='none'){draftFrom(S.draftExp||winnerId())}
+ const e=E(p.exp);const sending=S.sending;
+ const rec=p.recipients;const dates=[['Sat, Nov 14',14],['Sun, Nov 15',15],['Sat, Nov 21',21],['Sun, Nov 22',22]];
+ return `<div class="screen">${navBar('Review plan')}<div class="scroll" id="sc"><div class="wrap">
+ <div style="display:flex;flex-direction:column;gap:6px">${p.fromPick?`<span class="tag go" style="align-self:flex-start">${ic('check',13,2.4)}Winner of the group pick</span>`:'<span class="tag wait" style="align-self:flex-start">Draft</span>'}<h1 class="h-title">${esc(e.name)}</h1><p class="muted" style="margin:0">Draft saved automatically. Nobody sees it until you send.</p></div>
+ ${S.sendError?`<div class="notice bad" role="alert">${ic('alert',18)}<div><b>Invitation not sent.</b> The connection dropped before the server confirmed. Your draft is saved, and Retry won't send it twice.<div style="margin-top:8px"><button class="btn danger sm" data-a="send">${ic('refresh',16)}Retry</button></div></div></div>`:''}
+ <div class="sec"><div class="sec-h"><h3>Group</h3></div><div class="row card"><span class="tag blue">${ic('friends',13)}Saturday crew</span><span class="grow small muted">6 joined members</span></div></div>
+ <div class="sec"><div class="sec-h"><h3>Who gets the invitation</h3><span>${rec.length} of 5</span></div><div class="card" style="padding:4px 16px">
+  <div class="check" style="cursor:default">${av('Maya','sm')}<span class="grow" style="flex:1">Maya (you)</span>${statusTag('organizer')}</div>
+  ${['Jordan','Sam','Priya','Luis','Tess'].map(m=>`<label class="check">${av(m,'sm')}<span style="flex:1">${m}${m==='Jordan'?' <span class="small muted">guest</span>':''}</span><input type="checkbox" data-a="rec" data-v="${m}" ${rec.includes(m)?'checked':''} ${sending?'disabled':''} aria-label="Invite ${m}"></label>`).join('')}</div></div>
+ <div class="sec"><div class="sec-h"><h3>When</h3><span>Austin time</span></div><div class="card" style="display:flex;flex-direction:column;gap:12px">
+  <div class="field"><label for="pdate">Date</label><select class="input" id="pdate" data-a="pdate" ${sending?'disabled':''}>${dates.map(([d])=>`<option ${p.date===d?'selected':''}>${d}</option>`).join('')}</select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="field"><label for="pstart">Starts</label><select class="input" id="pstart" data-a="pstart" ${sending?'disabled':''}>${TIMES.map(t=>`<option ${p.start===t?'selected':''}>${t}</option>`).join('')}</select></div>
+  <div class="field"><label for="pend">Ends</label><select class="input" id="pend" data-a="pend" ${sending?'disabled':''}>${TIMES.map(t=>`<option ${p.end===t?'selected':''}>${t}</option>`).join('')}</select></div></div>
+  <div class="small muted">${ic('clock',14)} America/Chicago (CST, UTC−6). Invitees in other time zones see Austin time with their local time beside it.</div>
+  ${toMin(p.end)<=toMin(p.start)?`<div class="ferr">${ic('alert',16)}End time must be after the start time.</div>`:''}
+  ${e.timing.kind==='fixed'&&!e.timing.sessions.some(s=>s.includes(p.start))?`<div class="notice">${ic('alert',18)}<div>This experience runs fixed sessions (${esc(e.timing.sessions.join(', '))}). ${esc(p.start)} isn't one of them.</div></div>`:''}
+ </div></div>
+ <div class="sec"><div class="sec-h"><h3>Meeting point</h3></div><div class="field"><input class="input" id="pmeet" data-bind="plan.meeting" value="${esc(p.meeting)}" ${sending?'disabled':''} aria-label="Meeting point"><span class="hint">${esc(e.where)}</span></div></div>
+ <div class="sec"><div class="sec-h"><h3>Price and booking</h3></div>${priceHtml(e)}${bookingNotice(e)}</div>
+ <div class="sec"><div class="sec-h"><h3>Summary</h3><span>What invitees will see</span></div>
+  <div class="card"><div class="facts">
+   ${[['What',e.name],['When',`${p.date}, ${range(p)}`],['Where',p.meeting],['Who',`Saturday crew: Maya${rec.length?', '+rec.join(', '):''}`],['Cost',e.price.kind==='free'?'Free':e.price.kind==='unknown'?'Price unknown':`${e.price.text} (${e.price.kind})`],['Booking',e.booking?'Required. Going here does not reserve a spot.':'Not needed']].map(([k,v])=>`<div class="fact" style="padding:9px 0"><div style="width:72px;flex:none" class="k">${k}</div><div class="v" style="min-width:0">${esc(v)}</div></div>`).join('')}
+  </div></div></div>
+ </div></div>
+ <div class="actionbar"><button class="btn full" data-a="send" ${sending||!rec.length||toMin(p.end)<=toMin(p.start)?'disabled':''} aria-live="polite">${sending?'<span class="spin"></span>Sending invitation…':ic('send',18)+`Send invitation to ${rec.length}`}</button></div></div>`}
+
+/* ================= Screen: Plan detail ================= */
+function vPlan(){const st=S.states.plan||'ready';const p=S.plan;
+ if(st!=='ready')return `<div class="screen">${navBar('Plan')}<div class="scroll">${stateView(st)}</div>${tabs()}</div>`;
+ if(p.status==='none'||p.status==='draft'){return `<div class="screen">${navBar('Plan')}<div class="state"><div class="ico">${ic('plans',30)}</div>${isOrg()?`<h3>This plan hasn't been sent</h3><p>${p.status==='draft'?'Your draft is waiting for review.':'Close the group pick or start a plan from an experience.'}</p><button class="btn" data-a="go" data-v="${p.status==='draft'?'create':'pick'}">${p.status==='draft'?'Review and send':'Open group pick'}</button>`:`<h3>Maya hasn't sent this plan yet</h3><p>You'll get the invitation here as soon as she does.</p><button class="btn" data-a="go" data-v="pick">See the group pick</button>`}</div>${tabs()}</div>`}
+ const e=E(p.exp);const c=counts();const me=viewer();const my=isOrg()?'going':(p.rsvp[me]||'awaiting');const cancelled=p.status==='cancelled';
+ const orgMenu=isOrg()&&!cancelled?`<button class="iconbtn" data-a="sheet" data-v="edit" aria-label="Edit plan">${ic('edit',20)}</button>`:'';
+ return `<div class="screen">${navBar('Plan',orgMenu)}<div class="scroll" id="sc"><div class="wrap">
+ <div class="row" style="align-items:flex-start;gap:14px"><div class="thumb" style="width:72px;min-height:72px;height:72px;border-radius:14px">${img(e)}</div><div class="grow"><span class="tag blue">${ic('friends',13)}Saturday crew</span><h1 class="h-title" style="font-size:24px;margin-top:6px">${esc(e.name)}</h1><div class="small muted">Organized by Maya</div></div></div>
+ ${cancelled?`<div class="notice bad" role="status">${ic('ban',18)}<div><b>Maya cancelled this plan.</b><br>${esc(p.cancelReason)}<br><span class="small">Responses are closed. The plan stays here so nobody misses the change.</span></div></div>`:''}
+ ${!isOrg()&&my==='reconfirm'&&!cancelled?`<div class="card" style="border-color:var(--orange);background:var(--orange-tint);display:flex;flex-direction:column;gap:12px" role="alert">
+   <div style="display:flex;gap:8px;align-items:center;color:var(--orange-ink);font-weight:700">${ic('refresh',18)}The time changed. Are you still going?</div>
+   <div class="diff">${p.prev.date!==p.date?`<span class="k small muted">Date</span><span><span class="was">${esc(p.prev.date)}</span> → <span class="now">${esc(p.date)}</span></span>`:''}${p.prev.time!==range(p)?`<span class="k small muted">Time</span><span><span class="was">${esc(p.prev.time)}</span> → <span class="now">${esc(range(p))}</span></span>`:''}${p.prev.meeting!==p.meeting?`<span class="k small muted">Meet</span><span><span class="was">${esc(p.prev.meeting)}</span> → <span class="now">${esc(p.meeting)}</span></span>`:''}</div>
+   <div class="rsvp"><button class="g" data-a="rsvp" data-v="going" aria-pressed="false">${ic('check',18,2.4)}Still going</button><button class="c" data-a="rsvp" data-v="cant" aria-pressed="false">${ic('x',18,2.4)}Can't go</button></div></div>`:''}
+ <div class="facts">
+  <div class="fact"><span class="ic">${ic('clock',20)}</span><div><div class="k">When, Austin time</div><div class="v">${esc(p.date)}, ${esc(range(p))}</div>${p.prev?`<div class="s">Changed from ${esc(p.prev.time)}</div>`:''}</div></div>
+  <div class="fact"><span class="ic">${ic('pin',20)}</span><div><div class="k">Meeting point</div><div class="v">${esc(p.meeting)}</div><div class="s">${esc(e.where)}</div></div></div>
+  <div class="fact"><span class="ic">${ic('tag',20)}</span><div><div class="k">Cost</div><div class="v">${priceHtml(e)}</div></div></div>
+ </div>
+ ${bookingNotice(e)}
+ ${!isOrg()&&my!=='reconfirm'?`<div class="sec"><div class="sec-h"><h3>Your response</h3>${statusTag(my)}</div><div class="rsvp"><button class="g" data-a="rsvp" data-v="going" aria-pressed="${my==='going'}" ${cancelled?'disabled':''}>${ic('check',18,2.4)}Going</button><button class="c" data-a="rsvp" data-v="cant" aria-pressed="${my==='cant'}" ${cancelled?'disabled':''}>${ic('x',18,2.4)}Can't go</button></div>${cancelled?'<div class="small muted">Responses closed because the plan was cancelled.</div>':'<div class="small muted">You can change this until the plan starts.</div>'}</div>`:''}
+ <div class="sec"><div class="sec-h"><h3>Responses</h3><span>${p.recipients.length+1} invited</span></div>
+  <div class="counts">
+   <div class="count go"><b>${c.going}</b><span>Going</span></div>
+   <div class="count"><b>${c.awaiting}</b><span>Awaiting</span></div>
+   <div class="count"><b>${c.cant}</b><span>Can't go</span></div>
+   <div class="count ${c.reconfirm?'att':''}"><b>${c.reconfirm}</b><span>Needs reconfirm</span></div>
+  </div>
+  <div class="card" style="padding:4px 16px">
+   <div class="row" style="min-height:52px">${av('Maya','sm')}<span class="grow">Maya</span>${statusTag('organizer')}</div>
+   ${p.recipients.map(m=>`<div class="row" style="min-height:52px;border-top:1px solid var(--line)">${av(m,'sm')}<span class="grow">${m}${m===me?' (you)':''}</span>${statusTag(p.rsvp[m]||'awaiting')}</div>`).join('')}
+  </div></div>
+ ${isOrg()&&!cancelled?`<div class="two" style="display:flex;gap:8px"><button class="btn line sm" style="flex:1" data-a="sheet" data-v="edit">${ic('edit',18)}Edit plan</button><button class="btn line sm" style="flex:1;color:var(--red)" data-a="sheet" data-v="cancel">${ic('ban',18)}Cancel plan</button></div>`:''}
+ ${p.log.length?`<div class="sec"><div class="sec-h"><h3>Activity</h3></div><div class="log">${p.log.slice(0,8).map(l=>`<div><time>${esc(l.t)}</time><span>${esc(l.x)}</span></div>`).join('')}</div></div>`:''}
+ </div></div>${tabs()}</div>`}
+
+/* ================= Screen: Plans hub ================= */
+function vPlans(){const st=S.states.plans||'ready';
+ const head=`<div class="big" style="padding-top:8px;padding-bottom:16px"><h2>Plans</h2></div>`;
+ if(st!=='ready')return `<div class="screen">${head}<div class="scroll">${stateView(st)}</div>${tabs()}</div>`;
+ const p=S.plan;const e=p.exp?E(p.exp):null;const me=viewer();
+ const item=(o)=>`<button class="pitem ${o.cls||''}" data-a="${o.a}" data-v="${o.v||''}"><div class="date"><small>${o.dow}</small><b>${o.d}</b></div><div style="flex:1;min-width:0"><h4>${esc(o.title)}</h4><div class="small muted" style="margin:2px 0 4px">${esc(o.sub)}</div>${o.tag||''}</div><span class="muted">${ic('chev',18)}</span></button>`;
+ const need=[],picks=[],up=[],drafts=[],past=[];
+ if(p.status==='sent'){const my=isOrg()?'going':(p.rsvp[me]||'awaiting');const c=counts();
+  const o={a:'go',v:'plan',dow:p.date.slice(0,3),d:p.day,title:e.name,sub:`${range(p)}, Saturday crew`};
+  if(!isOrg()&&my==='reconfirm')need.push({...o,cls:'attn',tag:statusTag('reconfirm')});
+  else if(!isOrg()&&my==='awaiting')need.push({...o,cls:'attn',tag:`<span class="tag att">${ic('clock',13)}Awaiting your response</span>`});
+  else up.push({...o,tag:`<span class="tag go">${c.going} Going</span> ${c.reconfirm?`<span class="tag att">${c.reconfirm} to reconfirm</span>`:''} ${statusTag(my)}`})}
+ if(p.status==='cancelled')up.push({a:'go',v:'plan',cls:'cancelled',dow:p.date.slice(0,3),d:p.day,title:e.name,sub:`${range(p)}, Saturday crew`,tag:`<span class="tag bad">${ic('ban',13)}Cancelled</span>`});
+ if(p.status==='draft'&&isOrg())drafts.push({a:'go',v:'create',dow:p.date.slice(0,3),d:p.day,title:e.name,sub:'Not sent. Only you can see this.',tag:'<span class="tag wait">Draft</span>'});
+ if(isOrg())drafts.push({a:'noop',dow:'Sat',d:28,title:'Rooftop film night',sub:'Not sent. Only you can see this.',tag:'<span class="tag wait">Draft</span>'});
+ if(S.pick.status==='open'||S.pick.status==='closed'&&p.status==='none'){const vd=voted().includes(me);
+  picks.push({a:'go',v:'pick',cls:S.pick.status==='open'&&!vd?'attn':'',dow:'Pick',d:S.pick.options.length,title:'What should we do this weekend?',sub:S.pick.status==='open'?`Closes ${fmtT(S.pick.deadline)}`:`Closed. ${E(winnerId()).name} won.`,tag:S.pick.status==='open'?(vd?`<span class="tag go">${ic('check',13,2.4)}You voted</span>`:`<span class="tag att">Vote needed</span>`):`<span class="tag go">Winner picked</span>`})}
+ if(S.pick.status==='draft'&&isOrg())picks.push({a:'go',v:'pick',dow:'Pick',d:S.pick.options.length,title:'New group pick',sub:'Not open yet',tag:'<span class="tag wait">Draft</span>'});
+ up.push({a:'noop',dow:'Sat',d:21,title:'Clay and conversation',sub:'10:00–11:30 AM, UT design studio, organized by Priya',tag:`<span class="tag go">4 Going</span> <span class="tag att">Booking required</span> ${statusTag('going')}`});
+ past.push({a:'noop',cls:'past',dow:'Sat',d:31,title:'Food truck crawl, East Cesar Chavez',sub:'Oct 31, 5 went',tag:''});
+ past.push({a:'noop',cls:'past cancelled',dow:'Sat',d:7,title:'Sunset kayak on Lady Bird Lake',sub:'Nov 7, cancelled by Sam: wind advisory on the lake',tag:'<span class="tag bad">Cancelled</span>'});
+ const sec=(t,arr,extra='',quiet)=>arr.length?`<div class="sec ${quiet?'quiet':''}"><div class="sec-h"><h3>${t}</h3><span>${extra||arr.length}</span></div>${arr.map(item).join('')}</div>`:'';
+ return `<div class="screen">${head}<div class="scroll" id="sc"><div class="wrap">
+ ${need.length?sec('Needs your response',need):(!isOrg()?`<div class="notice ok">${ic('check',18)}<div>You're all caught up. Nothing needs your response.</div></div>`:'')}
+ ${sec('Open group picks',picks)}
+ ${isOrg()&&S.pick.status!=='draft'?`<button class="btn line sm" data-a="newPick" style="align-self:flex-start">${ic('plus',18)}Start a group pick</button>`:''}
+ ${sec('Upcoming',up)}
+ ${sec('Drafts',drafts,'Only you')}
+ ${sec('Past',past,'',true)}
+ </div></div>${tabs()}</div>`}
+
+/* ================= Screen: Friends ================= */
+function vFriends(){const st=S.states.friends||'ready';
+ const head=`<div class="big" style="padding-top:8px;padding-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end"><h2>Friends</h2></div>`;
+ if(st!=='ready')return `<div class="screen">${head}<div class="scroll">${stateView(st)}</div>${tabs()}</div>`;
+ const p=S.plan;
+ const next=g=>g.id==='crew'?(p.status==='sent'?`${E(p.exp).name}, ${p.date}`:p.status==='cancelled'?'No upcoming plan':S.pick.status==='open'?'Group pick open, closes '+fmtT(S.pick.deadline):'No plan yet'):g.id==='studio'?'Clay and conversation, Sat, Nov 21':'No upcoming plan';
+ return `<div class="screen">${head}<div class="scroll" id="sc"><div class="wrap">
+ ${!isOrg()&&S.jordanGuest?`<div class="notice info">${ic('info',18)}<div><b>You're a guest on this device.</b> Sign in to keep your groups and plans if you switch phones.<div><button class="link" style="padding:0" data-a="toSignin">Sign in</button></div></div></div>`:''}
+ <div style="display:flex;gap:8px"><button class="btn sm" style="flex:1" data-a="sheet" data-v="newgroup">${ic('plus',18)}Create group</button><button class="btn line sm" style="flex:1" data-a="joinCode">${ic('link',18)}Join with code</button></div>
+ <div class="sec"><div class="sec-h"><h3>Your groups</h3><span>${S.groups.length}</span></div>
+ ${S.groups.map(g=>`<button class="gcard" data-a="group" data-v="${g.id}">
+  <div class="row" style="min-height:0"><div class="grow"><h4>${esc(g.name)}</h4><div class="small muted">${g.members.length} joined${g.pending.length?`, ${g.pending.length} invited`:''}</div></div><div class="avs">${g.members.slice(0,4).map(m=>av(m,'sm')).join('')}</div></div>
+  <div class="row" style="min-height:0;gap:8px;font-size:13.5px"><span style="color:var(--blue)">${ic('plans',16)}</span><span class="grow" style="color:var(--fg-2)">${esc(next(g))}</span>${ic('chev',16)}</div></button>`).join('')}</div>
+ </div></div>${tabs()}</div>`}
+
+/* ================= Screen: Group ================= */
+function vGroup(){const st=S.states.group||'ready';const g=S.groups.find(x=>x.id===S.groupId)||S.groups[0];
+ if(st!=='ready')return `<div class="screen">${navBar(g.name)}<div class="scroll">${stateView(st)}</div>${tabs()}</div>`;
+ const p=S.plan;const me=viewer();
+ return `<div class="screen">${navBar(g.name)}<div class="scroll" id="sc"><div class="wrap">
+ <div><h1 class="h-title">${esc(g.name)}</h1><div class="muted small" style="margin-top:4px">${g.members.length} joined${g.pending.length?`, ${g.pending.length} invited`:''}. Organizer: Maya.</div></div>
+ <div class="card" style="display:flex;flex-direction:column;gap:10px">
+  <div class="sec-h"><h3 style="font-size:15px;margin:0">Join code</h3><span>${g.revoked?'Revoked':'Anyone with it can join'}</span></div>
+  <div class="code ${g.revoked?'revoked':''}" aria-label="Join code ${g.code.split('').join(' ')}">${g.code}</div>
+  ${g.revoked?`<div class="small muted">Old code ${esc(g.revoked)} no longer works.</div>`:''}
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec2 sm" data-a="copy" data-v="${g.code}">${ic('copy',16)}Copy</button><button class="btn sec2 sm" data-a="sheet" data-v="share">${ic('share',16)}Share</button>${isOrg()?`<button class="btn sm line" style="color:var(--red)" data-a="sheet" data-v="revoke">Revoke</button>`:''}</div>
+ </div>
+ <div class="sec"><div class="sec-h"><h3>Members</h3><span>${g.members.length} joined</span></div><div class="card" style="padding:4px 16px">
+  ${g.members.map((m,i)=>`<div class="row" style="min-height:52px;${i?'border-top:1px solid var(--line)':''}">${av(m in {}?'Ana':(['Maya','Jordan','Sam','Priya','Luis','Tess'].includes(m)?m:'Ana'),'sm')}<span class="grow">${m}${m===me?' (you)':''}${m==='Jordan'&&S.jordanGuest?' <span class="small muted">guest</span>':''}</span>${m==='Maya'?'<span class="tag plain">Organizer</span>':''}</div>`).join('')}
+ </div></div>
+ ${g.pending.length?`<div class="sec"><div class="sec-h"><h3>Invited, not joined</h3><span>${g.pending.length}</span></div><div class="card flat" style="padding:4px 16px">${g.pending.map(m=>`<div class="row" style="min-height:52px">${av('Ana','sm')}<span class="grow">${m} <span class="small muted">invite link sent Nov 6</span></span><span class="tag wait">Pending</span></div>`).join('')}</div><div class="small muted">Pending people can't see plans or vote until they join.</div></div>`:''}
+ <div class="sec"><div class="sec-h"><h3>Saved ideas</h3><span>${S.saves.group.length}</span></div>
+  <div class="minis">${S.saves.group.map(id=>{const e=E(id);return `<button class="mini" data-a="open" data-v="${id}">${img(e)}<div class="t">${esc(e.name)}<div class="small muted" style="font-weight:400">${priceShort(e)==='?'?'Price unknown':priceShort(e)}</div></div></button>`}).join('')}</div></div>
+ <div class="sec"><div class="sec-h"><h3>Plans you can see</h3></div>
+  ${S.pick.status!=='draft'?`<button class="pitem" data-a="go" data-v="pick"><div class="date"><small>Pick</small><b>${S.pick.options.length}</b></div><div style="flex:1"><h4>What should we do this weekend?</h4><div class="small muted">${S.pick.status==='open'?'Voting open':'Voting closed'}</div></div>${ic('chev',18)}</button>`:''}
+  ${p.status==='sent'||p.status==='cancelled'?`<button class="pitem ${p.status==='cancelled'?'cancelled':''}" data-a="go" data-v="plan"><div class="date"><small>${p.date.slice(0,3)}</small><b>${p.day}</b></div><div style="flex:1"><h4>${esc(E(p.exp).name)}</h4><div class="small muted">${p.status==='cancelled'?'Cancelled':range(p)}</div></div>${ic('chev',18)}</button>`:''}
+  <div class="small muted">Plans you weren't invited to stay hidden.</div></div>
+ </div></div>${tabs()}</div>`}
+
+/* ================= Screen: Join ================= */
+function vJoin(){const st=S.states.join||'ready';const j=S.join;
+ const head=navBar(j.step==='code'||j.step==='invalid'?'Join':j.step==='preview'?'Invitation':'Continue');
+ if(st==='loading'||st==='empty')return `<div class="screen">${head}<div class="scroll">${stateView(st)}</div></div>`;
+ if(st==='error'||j.step==='invalid'||j.step==='code'){const bad=st==='error'||j.step==='invalid';
+  return `<div class="screen">${head}<div class="scroll" id="sc"><div class="wrap" style="padding-top:12px">
+  <div><h1 class="h-title">Enter your invite code</h1><p class="lead" style="margin-top:6px">It's 6 letters and numbers, from a friend's link or message.</p></div>
+  <div class="field"><label for="jcode">Invite code</label><input class="input ${bad?'err':''}" id="jcode" data-bind="join.code" maxlength="6" autocomplete="one-time-code" placeholder="SQ7K2M" value="${esc(j.code)}" style="font-family:var(--mono);font-size:24px;letter-spacing:.3em;text-transform:uppercase;text-align:center;font-weight:600;min-height:60px">
+   ${bad?`<div class="notice bad" role="alert">${ic('alert',18)}<div><b>${j.err==='expired'?'This code has expired.':'That code doesn\'t match an invite.'}</b><br>${j.err==='expired'?'Maya revoked or replaced it. Ask her for a new link or code.':'Check for mix-ups like 0 and O, or ask for a new link.'}</div></div>`:''}</div>
+  <button class="btn full" data-a="checkCode">Continue</button>
+  <div style="display:flex;align-items:center;gap:12px" class="muted small"><span class="divider" style="flex:1"></span>or<span class="divider" style="flex:1"></span></div>
+  <button class="btn line full" data-a="openLink">${ic('link',18)}Open invite link from Maya</button>
+  <div class="small muted" style="text-align:center">Try ${S.groups[0].code} for a working invite, or ${S.groups[0].revoked||'SQ4XPL'} for an expired one.</div>
+  </div></div></div>`}
+ const p=S.plan;const e=E(p.status!=='none'&&p.exp?p.exp:winnerId());const when=p.status==='sent'||p.status==='draft'?`${p.date}, ${range(p)}`:`${e.when.date}, ${e.when.start.replace(' PM','')}–${e.when.end}`;
+ if(j.step==='preview')return `<div class="screen">${head}<div class="scroll" id="sc">
+  <div class="imgbox" style="height:150px;position:relative">${img(e)}</div><div class="wrap" style="padding-top:18px">
+  <div class="row" style="min-height:0">${av('Maya')}<div class="grow"><b>Maya</b> invited you to a plan with <span style="color:var(--blue);font-weight:600">Saturday crew</span></div></div>
+  <h1 class="h-title">${esc(e.name)}</h1>
+  <div class="facts">
+   <div class="fact"><span class="ic">${ic('clock',20)}</span><div><div class="k">When, Austin time</div><div class="v">${esc(when)}</div></div></div>
+   <div class="fact"><span class="ic">${ic('tag',20)}</span><div><div class="k">Cost</div><div class="v">${priceHtml(e)}</div></div></div>
+   <div class="fact"><span class="ic">${ic('pin',20)}</span><div><div class="k">Area</div><div class="v">${esc(e.area)}</div><div class="s">Exact meeting point shows after you join.</div></div></div>
+  </div>
+  ${bookingNotice(e)}
+  <div class="notice neutral">${ic('lock',18)}<div>Who's invited and who's going is visible once you join.</div></div>
+  </div></div><div class="actionbar"><button class="btn full" data-a="jstep" data-v="identity">Continue</button></div></div>`;
+ if(j.step==='identity')return `<div class="screen">${head}<div class="scroll" id="sc"><div class="wrap" style="padding-top:8px">
+  <div><h1 class="h-title">How should we show you?</h1><p class="lead" style="margin-top:6px">You'll go straight back to ${esc(e.name)}.</p></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="field"><label for="gname">Continue as guest</label><input class="input ${j.err==='name'?'err':''}" id="gname" data-bind="join.name" placeholder="Your first name" value="${esc(j.name)}" autocomplete="given-name">${j.err==='name'?`<div class="ferr">${ic('alert',16)}Add a name so friends know who's responding.</div>`:'<span class="hint">Saved on this device only. You can sign in later without losing your responses.</span>'}</div>
+  <button class="btn full" data-a="guest">Continue as guest</button></div>
+  <div style="display:flex;align-items:center;gap:12px" class="muted small"><span class="divider" style="flex:1"></span>or sign in<span class="divider" style="flex:1"></span></div>
+  <button class="btn line full" data-a="signin" data-v="Apple">${ic('apple',18)}Sign in with Apple</button>
+  <button class="btn line full" data-a="jstep" data-v="email">${ic('mail',18)}Email me a code</button>
+  </div></div></div>`;
+ if(j.step==='email')return `<div class="screen">${head}<div class="scroll" id="sc"><div class="wrap" style="padding-top:8px">
+  <div><h1 class="h-title">Sign in with email</h1><p class="lead" style="margin-top:6px">We'll send a 6-digit code. No password.</p></div>
+  <div class="field"><label for="jemail">Email</label><input class="input" id="jemail" type="email" data-bind="join.email" value="${esc(j.email||'jordan@utexas.edu')}"></div>
+  <div class="field"><label for="jotp">Code from your email</label><input class="input" id="jotp" inputmode="numeric" value="482 913" style="letter-spacing:.2em;font-weight:600"><span class="hint">Sent to ${esc(j.email||'jordan@utexas.edu')} just now.</span></div>
+  <button class="btn full" data-a="signin" data-v="email">Verify and continue</button></div></div></div>`;
+ if(j.step==='working')return `<div class="screen">${head}<div class="state"><span class="spin" style="width:30px;height:30px"></span><h3>Signing you in with ${esc(j.via)}</h3><p>Returning you to ${esc(e.name)}.</p></div></div>`;
+ return ''}
+
+/* ================= Screen: Submit ================= */
+function vSubmit(){const st=S.states.submit||'ready';const sb=S.sub;const v=sb.v,er=sb.errs;
+ const head=navBar('Suggest a listing');
+ const seg=`<div style="padding:0 var(--m) 12px"><div class="seg" role="tablist"><button role="tab" data-a="subtab" data-v="form" aria-pressed="${sb.tab==='form'}">Suggest</button><button role="tab" data-a="subtab" data-v="status" aria-pressed="${sb.tab==='status'}">Your submissions (${S.subs.length})</button></div></div>`;
+ if(st!=='ready')return `<div class="screen">${head}${seg}<div class="scroll">${stateView(st)}</div>${tabs()}</div>`;
+ const E2=k=>er[k]?`<div class="ferr" id="err-${k}">${ic('alert',15)}${esc(er[k])}</div>`:'';
+ if(sb.tab==='status'){const lab={pending:['wait','clock','Pending review'],approved:['go','check','Approved'],changes:['att','edit','Needs changes'],rejected:['bad','ban','Rejected']};
+  return `<div class="screen">${head}${seg}<div class="scroll" id="sc"><div class="wrap" style="gap:10px">${S.subs.map(s=>{const l=lab[s.status];return `<div class="sub"><div class="row" style="min-height:0;align-items:flex-start"><div class="grow"><h4>${esc(s.name)}</h4><div class="small muted">Submitted ${esc(s.date)}</div></div><span class="tag ${l[0]}">${ic(l[1],13,2.2)}${l[2]}</span></div>${s.reason?`<div class="reason"><b>Reason:</b> ${esc(s.reason)}</div>`:''}${s.status==='changes'?'<button class="btn line sm" style="align-self:flex-start" data-a="noop">Edit and resubmit</button>':''}${s.status==='approved'?'<div class="small muted">Live on the map.</div>':''}${s.status==='pending'?'<div class="small muted">Reviews usually take a day. You\'ll get a notification.</div>':''}</div>`}).join('')}</div></div>${tabs()}</div>`}
+ const rad=(name,opts,key)=>`<div class="radios" role="radiogroup">${opts.map(([val,lbl])=>`<label><input type="radio" name="${name}" value="${val}" data-a="radio" data-k="${key}" ${v[key]===val?'checked':''}>${lbl}</label>`).join('')}</div>`;
+ return `<div class="screen">${head}${seg}<div class="scroll" id="sc"><form class="wrap" id="subform" novalidate style="gap:18px">
+ ${Object.keys(er).length?`<div class="notice bad" role="alert">${ic('alert',18)}<div><b>${Object.keys(er).length} field${Object.keys(er).length>1?'s need':' needs'} attention.</b> Everything you typed is kept.</div></div>`:''}
+ <div class="field"><label for="s-name">Name</label><input class="input ${er.name?'err':''}" id="s-name" data-bind="sub.v.name" value="${esc(v.name)}" placeholder="Pottery night at a co-op">${E2('name')}</div>
+ <div class="field"><label for="s-desc">Description</label><textarea class="input ${er.desc?'err':''}" id="s-desc" data-bind="sub.v.desc" placeholder="What you'll do and who it suits">${esc(v.desc)}</textarea>${E2('desc')||'<span class="hint">At least 20 characters.</span>'}</div>
+ <div class="field"><label for="s-loc">Location or meeting point</label><input class="input ${er.loc?'err':''}" id="s-loc" data-bind="sub.v.loc" value="${esc(v.loc)}" placeholder="Address, park or landmark in Austin">${E2('loc')}</div>
+ <div class="field"><span class="lbl">Timing</span>${rad('tk',[['fixed','Fixed sessions'],['flexible','Flexible hours']],'tkind')}<input class="input ${er.ttext?'err':''}" id="s-tt" data-bind="sub.v.ttext" value="${esc(v.ttext)}" placeholder="${v.tkind==='fixed'?'Sat 10:00 AM, Sun 1:00 PM':'Daily 9 AM to 6 PM'}" aria-label="Sessions or hours">${E2('tkind')}${E2('ttext')}</div>
+ <div class="field"><label for="s-dur">Duration</label><input class="input ${er.dur?'err':''}" id="s-dur" data-bind="sub.v.dur" value="${esc(v.dur)}" placeholder="About 2 hours">${E2('dur')}</div>
+ <div class="field"><span class="lbl">Price</span>${rad('pk',[['exact','Exact'],['estimated','Estimated'],['free','Free'],['unknown','Unknown']],'pkind')}
+  ${v.pkind==='exact'||v.pkind==='estimated'?`<input class="input ${er.amt?'err':''}" id="s-amt" data-bind="sub.v.amt" value="${esc(v.amt)}" inputmode="decimal" placeholder="$ per person" aria-label="Price per person">`:''}${E2('pkind')}${E2('amt')}</div>
+ <div class="field"><label for="s-src">Source link</label><input class="input ${er.src?'err':''}" id="s-src" data-bind="sub.v.src" value="${esc(v.src)}" inputmode="url" placeholder="https://">${E2('src')||'<span class="hint">Where you found it, so reviewers can check details.</span>'}</div>
+ <div class="field"><label for="s-img">Image <span class="muted" style="font-weight:400">(optional)</span></label><label class="btn line sm" style="align-self:flex-start;cursor:pointer">${ic('image',18)}${v.img?esc(v.img):'Add a photo'}<input type="file" id="s-img" accept="image/*" data-a="file" hidden></label></div>
+ <button class="btn full" type="submit">Submit for review</button>
+ <div class="small muted" style="text-align:center;margin-top:-6px">A person reviews every listing before it appears on the map.</div>
+ </form></div>${tabs()}</div>`}
+
+/* ================= Sheets ================= */
+function sheetHtml(){const sh=S.sheet;if(!sh)return '';let body='';const f=S.filters;
+ const opt=(a,v,lbl,on,extra='')=>`<button data-a="${a}" data-v="${v}" aria-pressed="${on}"><span class="grow">${lbl}</span>${extra}${on?ic('check',18,2.4):''}</button>`;
+ if(sh==='cat')body=`<h3>Activity</h3><div class="opt-list">${opt('fcat','','Any activity',!f.cat)}${Object.keys(CATS).map(c=>opt('fcat',c,c,f.cat===c,`<span class="small muted">${EXP.filter(e=>e.cat===c).length}</span>`)).join('')}</div>`;
+ if(sh==='price')body=`<h3>Price</h3><div class="opt-list">${opt('fprice','any','Any price',f.price==='any')}${opt('fprice','free','Free only',f.price==='free')}${opt('fprice','u25','Under $25',f.price==='u25','<span class="small muted">exact or estimated</span>')}</div>
+  <label class="check" style="border:0"><input type="checkbox" data-a="funknown" ${f.unknown?'checked':''}><span style="flex:1">Include places with unknown prices<br><span class="small muted">${EXP.filter(e=>e.price.kind==='unknown').length} listings don't have a confirmed price yet</span></span></label>`;
+ if(sh==='date')body=`<h3>Date</h3><div class="opt-list">${opt('fdate','any','Any date',f.date==='any')}${opt('fdate','w1','This weekend',f.date==='w1','<span class="small muted">Nov 14–15</span>')}${opt('fdate','w2','Next weekend',f.date==='w2','<span class="small muted">Nov 21–22</span>')}</div>`;
+ if(sh==='save'){const e=E(S.selected);const me=S.saves.me.includes(e.id),gr=S.saves.group.includes(e.id);
+  body=`<h3>Save ${esc(e.name)}</h3><div class="opt-list">
+  <button data-a="saveMe" aria-pressed="${me}">${ic('bookmark',20)}<span class="grow">Save for me<br><span class="small muted">Only you see it, in My saves</span></span>${me?ic('check',18,2.4):''}</button>
+  <button data-a="saveGroup" aria-pressed="${gr}" style="color:var(--fg)"><span style="color:var(--blue)">${ic('friends',20)}</span><span class="grow">Save to Saturday crew<br><span class="small muted">Adds to the group's saved ideas. All 6 members see it.</span></span>${gr?ic('check',18,2.4):''}</button></div>`}
+ if(sh==='addpick'){const e=E(S.selected);const pk=S.pick;const inP=pk.options.includes(e.id);
+  body=pk.status==='closed'?`<h3>Add to group pick</h3><p class="sub-t">Saturday crew's last pick has closed.</p><button class="btn full" data-a="pickWith" data-v="${e.id}">Start a new pick with ${esc(e.name)}</button>`:
+  `<h3>Add to group pick</h3><p class="sub-t">Saturday crew: "What should we do this weekend?"</p><div class="card flat small">${pk.options.map(id=>esc(E(id).name)).join(', ')||'No options yet'} <b>(${pk.options.length} of 5)</b></div>
+  ${inP?`<div class="notice ok">${ic('check',18)}<div>Already in this pick.</div></div>`:pk.options.length>=5?`<div class="notice">${ic('alert',18)}<div>This pick has 5 options, the maximum. Remove one first.</div></div>`:`${pk.status==='open'?`<div class="notice neutral">${ic('info',18)}<div>Voting is open. Members who already voted will see a new option to vote on.</div></div>`:''}<button class="btn full" data-a="addToPick" data-v="${e.id}">Add ${esc(e.name)}</button>`}`}
+ if(sh==='override'){const r=ranked();body=`<h3>Override the winner</h3><p class="sub-t">Your choice and the vote result are both shown to the group.</p><div class="opt-list">${r.map(x=>opt('override',x.id,`${esc(E(x.id).name)} <span class="small muted">${x.score} pts</span>`,winnerId()===x.id)).join('')}</div>${S.pick.override?'<button class="btn line full" data-a="override" data-v="">Use the vote result</button>':''}`}
+ if(sh==='edit'){const p=S.plan;const t=S.editTmp;const goingInv=p.recipients.filter(m=>p.rsvp[m]==='going').length;
+  const material=t.start!==p.start||t.date!==p.date||t.meeting!==p.meeting;const dur=toMin(p.end)-toMin(p.start);
+  body=`<h3>Edit plan</h3><div class="field"><label for="e-date">Date</label><select class="input" id="e-date" data-a="etmp" data-k="date">${['Sat, Nov 14','Sun, Nov 15','Sat, Nov 21'].map(d=>`<option ${t.date===d?'selected':''}>${d}</option>`).join('')}</select></div>
+  <div class="field"><label for="e-start">Start time</label><select class="input" id="e-start" data-a="etmp" data-k="start">${TIMES.map(x=>`<option ${t.start===x?'selected':''}>${x}</option>`).join('')}</select><span class="hint">Ends ${addMin(t.start,dur)}, keeping the same length.</span></div>
+  <div class="field"><label for="e-meet">Meeting point</label><input class="input" id="e-meet" data-a="etmpi" data-k="meeting" value="${esc(t.meeting)}"></div>
+  <div class="field"><label for="e-note">Note to the group <span class="muted" style="font-weight:400">(doesn't need reconfirmation)</span></label><input class="input" id="e-note" data-a="etmpi" data-k="note" value="${esc(t.note)}" placeholder="Bring a sketchbook"></div>
+  ${material&&goingInv?`<div class="notice" role="alert">${ic('refresh',18)}<div><b>${goingInv} Going invitee${goingInv>1?'s':''} will need to reconfirm.</b><br>They'll see the old and new ${t.start!==p.start||t.date!==p.date?'time':'details'} and confirm again. Until then they count as Needs reconfirmation.</div></div>`:material?`<div class="notice neutral">${ic('info',18)}<div>Everyone invited will be notified of the change.</div></div>`:''}
+  <div style="display:flex;gap:8px"><button class="btn line" style="flex:1" data-a="closeSheet">Keep as is</button><button class="btn" style="flex:1" data-a="saveEdit" ${material||t.note!==p.note?'':'disabled'}>Save changes</button></div>`}
+ if(sh==='cancel'){const t=S.cancelTmp;const reasons=['Weather','Not enough people can make it','Venue closed','Other'];
+  body=`<h3>Cancel this plan?</h3><p class="sub-t">Everyone invited is notified. The plan stays visible as cancelled, and responses close.</p>
+  <div class="opt-list">${reasons.map(r=>opt('creason',r,r,t.reason===r)).join('')}</div>
+  ${t.reason==='Other'?`<input class="input" id="c-other" data-a="cother" value="${esc(t.other)}" placeholder="Tell the group why" aria-label="Reason">`:''}
+  <div style="display:flex;gap:8px"><button class="btn line" style="flex:1" data-a="closeSheet">Keep plan</button><button class="btn danger" style="flex:1" data-a="doCancel" ${t.reason&&(t.reason!=='Other'||t.other.trim())?'':'disabled'}>Cancel plan</button></div>`}
+ if(sh==='newgroup')body=`<h3>Create a group</h3><p class="sub-t">For people you already make plans with.</p><div class="field"><label for="ng">Group name</label><input class="input" id="ng" data-bind="newGroupName" value="${esc(S.newGroupName)}" placeholder="Sunday brunch club" maxlength="40"></div><button class="btn full" data-a="createGroup">Create and get a join code</button>`;
+ if(sh==='share'){const g=S.groups.find(x=>x.id===S.groupId);body=`<h3>Share join code</h3><div class="card flat" style="display:flex;flex-direction:column;gap:6px"><div class="small muted">Message preview</div><div>Join ${esc(g.name)} on Sidequest with code <b style="font-family:var(--mono)">${g.code}</b> or sidequest.app/j/${g.code}</div></div><button class="btn full" data-a="copy" data-v="Join ${esc(g.name)} on Sidequest with code ${g.code}: sidequest.app/j/${g.code}">${ic('copy',18)}Copy message</button><div class="small muted">The system share sheet opens here in the real app.</div>`}
+ if(sh==='revoke'){const g=S.groups.find(x=>x.id===S.groupId);body=`<h3>Revoke ${g.code}?</h3><p class="sub-t">The code and its link stop working right away. Current members stay. You'll get a new code to share.</p><div style="display:flex;gap:8px"><button class="btn line" style="flex:1" data-a="closeSheet">Keep code</button><button class="btn danger" style="flex:1" data-a="revoke">Revoke and replace</button></div>`}
+ return `<div class="sheet-root"><div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${body}</div></div>`}
+
+/* ================= Render ================= */
+const VIEWS={map:vMap,list:vList,detail:vDetail,pick:vPick,create:vCreate,plan:vPlan,plans:vPlans,friends:vFriends,group:vGroup,join:vJoin,submit:vSubmit};
+const scrollMem={};
+function render(newScreen){
+ const ph=document.getElementById('phone');
+ const sc=document.getElementById('sc');if(sc&&!newScreen)scrollMem[S.screen]=sc.scrollTop;
+ const ae=document.activeElement;const fid=ae&&ae.id&&ph.contains(ae)?ae.id:null;let sel=null;try{sel=fid?[ae.selectionStart,ae.selectionEnd]:null}catch(e){}
+ let v=VIEWS[S.screen]();
+ const noTabs=['map','list','detail'].includes(S.screen);
+ ph.innerHTML=`<div class="sbar"><span>${fmtClock(now())}</span><span class="isl" aria-hidden="true"></span><span class="sic" aria-hidden="true"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg><svg width="26" height="13" viewBox="0 0 26 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2.5" y="2.5" width="16" height="8" rx="2" fill="currentColor"/><rect x="24" y="4.5" width="1.5" height="4" rx=".75" fill="currentColor" opacity=".4"/></svg></span></div>`+v+(noTabs?tabs():'')+sheetHtml()+`<div id="toastSlot"></div>`;
+ renderToast();
+ const sc2=document.getElementById('sc');if(sc2){sc2.scrollTop=newScreen?0:(scrollMem[S.screen]||0);
+  if(S.screen==='list'&&newScreen){const el=document.getElementById('l-'+S.selected);if(el)sc2.scrollTop=Math.max(0,el.offsetTop-sc2.offsetTop-12)}}
+ if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});try{if(sel&&el.setSelectionRange)el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+ renderPanel();
+}
+function renderToast(){const t=document.getElementById('toastSlot');if(t)t.innerHTML=S.toast?`<div class="toast" role="status">${ic('check',18,2.4)}<span>${esc(S.toast)}</span></div>`:''}
+
+/* ================= Panel ================= */
+function renderPanel(){const s=S.screen;const st=S.states[s]||'ready';const p=S.plan;const c=counts();
+ const idx=SCREENS.map(([id,n],i)=>`<li><button data-a="jump" data-v="${id}" aria-current="${id===s}"><span class="n">${i+1}</span>${n}</button></li>`).join('');
+ let demo='';
+ if(s==='pick'){const tv=voted().includes('Tess');demo=`<button data-a="d-tess" ${tv||S.pick.status!=='open'?'disabled':''} class="${tv?'done':''}">Tess votes (No, No, No)</button><button data-a="d-fill" ${S.pick.status!=='open'?'disabled':''}>Fill everyone's seeded votes</button><button data-a="d-deadline" ${S.pick.status!=='open'?'disabled':''}>Simulate deadline</button><button data-a="d-resetpick">Reset pick</button><button data-a="d-newpick">Create a pick from scratch</button>`}
+ if(s==='plan'||s==='plans'){const r=p.rsvp;const can=p.status==='sent';
+  const st1=(who,v,cond)=>`<button data-a="d-rsvp" data-v="${who}:${v}" ${can&&cond?'':'disabled'}>${who} ${v==='going'?(r[who]==='reconfirm'?'reconfirms':'accepts'):'declines'}</button>`;
+  demo=(p.status==='none'||p.status==='draft')?`<button data-a="d-quicksend">Send the plan as Maya</button>`:
+   `${st1('Jordan','going',r.Jordan!=='going'&&r.Jordan!=='cant')}${st1('Sam','going',r.Sam!=='going'&&r.Sam!=='cant')}${st1('Priya','cant',(r.Priya||'awaiting')==='awaiting')}${st1('Sam','cant',r.Sam==='reconfirm'||r.Sam==='going')}<button data-a="d-timechange" ${can&&!p.prev?'':'disabled'}>Maya moves time to 3:00 PM</button><button data-a="d-resetplan">Reset plan</button>`;
+ }
+ if(s==='create')demo=`<button data-a="d-fail" class="${S.failNext?'done':''}">${S.failNext?'Next send will fail':'Make next send fail'}</button>`;
+ if(s==='join')demo=`<button data-a="d-code" data-v="SQ7K2M">Fill valid code</button><button data-a="d-code" data-v="SQ4XPL">Fill expired code</button><button data-a="d-jreset">Restart join</button>`;
+ if(s==='map'||s==='list')demo=`<button data-a="d-pan">Simulate a pan</button>`;
+ if(s==='submit')demo=`<button data-a="d-badsub">Fill with mistakes</button>`;
+ const panel=document.getElementById('panel');
+ panel.innerHTML=`<div class="pcard"><div class="brand"><div class="brand-mark">${ic('map',18,2)}</div><div><h1>Sidequest P0 wireframe</h1><p>Flow and data reference for engineers. Not the visual design. Demo due Nov 22.</p></div></div></div>
+ <div class="pcard"><p class="ph">Screens</p><ol class="idx">${idx}</ol></div>
+ <div class="pcard"><p class="ph">View as</p><div class="seg" role="group" aria-label="Role"><button data-a="role" data-v="maya" aria-pressed="${S.role==='maya'}">Maya, organizer</button><button data-a="role" data-v="jordan" aria-pressed="${S.role==='jordan'}">Jordan, guest invitee</button></div></div>
+ <div class="pcard"><p class="ph">Screen state</p><div class="seg" role="group" aria-label="Screen state">${['ready','loading','empty','error'].map(x=>`<button data-a="sstate" data-v="${x}" aria-pressed="${st===x}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
+ <div class="pcard"><p class="ph">Spec notes <small>for ${esc(SCREENS.find(x=>x[0]===s)[1])}</small></p><ul class="notes">${NOTES[s].map(n=>`<li>${n}</li>`).join('')}</ul></div>
+ ${demo?`<div class="pcard"><p class="ph">Simulate</p><div class="demo">${demo}</div>${(s==='plan'||s==='plans')&&p.status!=='none'&&p.status!=='draft'?`<div class="tally-log">Now: ${c.going} Going, ${c.awaiting} Awaiting, ${c.cant} Can't go, ${c.reconfirm} Needs reconfirmation</div>`:''}</div>`:''}
+ <div class="pcard" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="small muted">State is in memory only.</span><button class="link" data-a="d-resetall">Reset everything</button></div>`}
+
+/* ================= Actions ================= */
+function send(){const p=S.plan;if(S.sending)return;S.sending=true;S.sendError=false;render();
+ setTimeout(()=>{S.sending=false;if(S.failNext){S.failNext=false;S.sendError=true;render();return}
+  p.status='sent';p.rsvp={};p.recipients.forEach(m=>p.rsvp[m]='awaiting');p.log=[];logp(`Maya sent the invitation to ${p.recipients.length}`);S.sendError=false;
+  S.hist=S.hist.filter(x=>x!=='create');go('plan',{noHist:true});toast(`Invitation sent. 1 Going, ${p.recipients.length} Awaiting.`)},1300)}
+function materialEdit(start,date,meeting,note){const p=S.plan;const old={time:range(p),date:p.date,meeting:p.meeting};const dur=toMin(p.end)-toMin(p.start);
+ const mat=start!==p.start||date!==p.date||meeting!==p.meeting;
+ p.start=start;p.end=addMin(start,dur);p.date=date;p.day=+date.match(/\d+/)[0];p.meeting=meeting;p.note=note;
+ if(mat){p.prev=old;let n=0;p.recipients.forEach(m=>{if(p.rsvp[m]==='going'){p.rsvp[m]='reconfirm';n++}});logp(`Maya changed the ${old.time!==range(p)||old.date!==p.date?'time to '+p.date+', '+range(p):'meeting point'}${n?`; ${n} need to reconfirm`:''}`);toast(n?`Saved. ${n} invitee${n>1?'s':''} asked to reconfirm.`:'Saved. Everyone was notified.')}
+ else{logp('Maya updated the note');toast('Saved.')}}
+const A={
+ back, tab:v=>{S.hist=[];go(v==='map'?(S.view==='list'?'list':'map'):v,{noHist:true})},
+ go:v=>go(v), jump:v=>{S.hist=[];go(v,{noHist:true})},
+ view:v=>{S.view=v;go(v,{noHist:true})},
+ ctx:v=>{S.ctx=v;render()},
+ pin:v=>{S.selected=v;render()}, lsel:v=>{if(S.selected===v){go('detail')}else{S.selected=v;render()}},
+ open:v=>{S.selected=v;go('detail')},
+ sheet:v=>{if(v==='edit'){const p=S.plan;S.editTmp={start:p.start,date:p.date,meeting:p.meeting,note:p.note}}if(v==='cancel')S.cancelTmp={reason:'',other:''};S.sheet=v;render()},
+ closeSheet:()=>{S.sheet=null;render()},
+ fcat:v=>{S.filters.cat=v||null;S.sheet=null;render()}, fprice:v=>{S.filters.price=v;S.sheet=null;render()}, fdate:v=>{S.filters.date=v;S.sheet=null;render()},
+ funknown:(v,el)=>{S.filters.unknown=el.checked;render()},
+ clearFilters:()=>{S.filters={cat:null,price:'any',date:'any',unknown:true};S.ctx='explore';S.q='';S.area=null;S.states[S.screen]='ready';render()},
+ clearArea:()=>{S.area=null;render()},
+ searchArea:()=>{S.searching=true;render();setTimeout(()=>{const w=document.getElementById('mapwrap');const W=w?w.clientWidth:390,H=w?w.clientHeight:700;
+  S.area={x0:-S.pan.x,x1:-S.pan.x+W,y0:-S.pan.y+150,y1:-S.pan.y+H-60};S.searching=false;S.panned=false;const n=results().length;
+  if(n&&!results().some(e=>e.id===S.selected))S.selected=results()[0].id;render();toast(`${n} experience${n===1?'':'s'} in this area`)},700)},
+ saveMe:()=>{if(!isOrg()){S.sheet=null;render();toast('Saving needs an account. Sign in to save.');return}const e=S.selected;const a=S.saves.me;const i=a.indexOf(e);i>=0?a.splice(i,1):a.push(e);S.sheet=null;render();toast(i>=0?'Removed from My saves':'Saved for you')},
+ saveGroup:()=>{if(!isOrg()){S.sheet=null;render();toast('Saving needs an account. Sign in to save.');return}const e=S.selected;const a=S.saves.group;const i=a.indexOf(e);i>=0?a.splice(i,1):a.push(e);S.sheet=null;render();toast(i>=0?'Removed from Saturday crew\'s ideas':'Saved to Saturday crew. All 6 members can see it.')},
+ startPlan:v=>{if(!isOrg()){toast('Switch to Maya to start a plan as organizer');return}if(S.plan.status==='sent'){S.plan=freshPlan()}S.draftExp=v;draftFrom(v);S.plan.fromPick=false;go('create')},
+ addToPick:v=>{if(!isOrg()){S.sheet=null;render();toast('Starting or editing a pick needs an account.');return}S.pick.options.push(v);S.sheet=null;render();toast(`Added to the group pick (${S.pick.options.length} of 5)`)},
+ pickWith:v=>{S.pick={...freshPick(),status:'draft',options:[v],votes:{}};S.sheet=null;go('pick')},
+ vote:(v,el)=>{const o=el.dataset.o;const me=viewer();S.pick.votes[me]=S.pick.votes[me]||{};S.pick.votes[me][o]=v;render()},
+ star:v=>{S.pick.starred=S.pick.starred===v?null:v;render()},
+ rmOpt:v=>{S.pick.options=S.pick.options.filter(x=>x!==v);if(S.pick.starred===v)S.pick.starred=null;render()},
+ addOpt:v=>{if(S.pick.options.length<5)S.pick.options.push(v);render()},
+ hours:v=>{S.pick.hours=+v;render()},
+ openVoting:()=>{const pk=S.pick;pk.status='open';pk.created=now();pk.deadline=now()+pk.hours*3600e3;pk.votes={};render();toast(`Voting open until ${fmtT(pk.deadline)}`)},
+ closeNow:()=>A['d-deadline'](),
+ draftWinner:()=>{S.plan=freshPlan();S.draftExp=winnerId();draftFrom(winnerId());go('create')},
+ override:v=>{S.pick.override=v||null;S.sheet=null;render();toast(v?`Override shown to the group: ${E(v).name}`:'Back to the vote result')},
+ rec:(v,el)=>{const r=S.plan.recipients;if(el.checked&&!r.includes(v))r.push(v);if(!el.checked)S.plan.recipients=r.filter(x=>x!==v);S.plan.recipients.sort((a,b)=>MEMBERS.indexOf(a)-MEMBERS.indexOf(b));render()},
+ pdate:(v,el)=>{S.plan.date=el.value;S.plan.day=+el.value.match(/\d+/)[0];render()},
+ pstart:(v,el)=>{const dur=toMin(S.plan.end)-toMin(S.plan.start);S.plan.start=el.value;if(dur>0)S.plan.end=addMin(el.value,dur);render()},
+ pend:(v,el)=>{S.plan.end=el.value;render()},
+ send,
+ rsvp:v=>{if(isOrg())return;setRsvp('Jordan',v)},
+ etmp:(v,el)=>{S.editTmp[el.dataset.k]=el.value;render()},
+ saveEdit:()=>{const t=S.editTmp;materialEdit(t.start,t.date,t.meeting,t.note);S.sheet=null;render()},
+ creason:v=>{S.cancelTmp.reason=v;render()},
+ doCancel:()=>{const t=S.cancelTmp;S.plan.status='cancelled';S.plan.cancelReason=t.reason==='Other'?t.other.trim():t.reason;logp('Maya cancelled the plan: '+S.plan.cancelReason);S.sheet=null;render();toast('Plan cancelled. Everyone invited was notified.')},
+ group:v=>{S.groupId=v;go('group')},
+ copy:v=>{const done=()=>toast('Copied');try{navigator.clipboard.writeText(v).then(done,done)}catch(e){done()}if(S.sheet){S.sheet=null;render()}},
+ revoke:()=>{const g=S.groups.find(x=>x.id===S.groupId);const AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='SQ';for(let i=0;i<4;i++)c+=AL[Math.floor(Math.random()*AL.length)];g.revoked=g.code;g.code=c;S.sheet=null;render();toast(`${g.revoked} revoked. New code: ${c}`)},
+ createGroup:()=>{const n=S.newGroupName.trim()||'New group';const AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='SQ';for(let i=0;i<4;i++)c+=AL[Math.floor(Math.random()*AL.length)];
+  const id='g'+Date.now();S.groups.push({id,name:n,members:[viewer()],pending:[],code:c});S.newGroupName='';S.sheet=null;S.groupId=id;go('group');toast(`${n} created. Share code ${c}.`)},
+ joinCode:()=>{S.join={step:'code',code:'',name:'',err:'',email:'',via:''};go('join')},
+ toSignin:()=>{S.join={step:'identity',code:'SQ7K2M',name:'Jordan',err:'',email:'',via:''};go('join')},
+ checkCode:()=>{const c=S.join.code.trim().toUpperCase();S.states.join='ready';if(S.groups.some(g=>g.code===c)){S.join.step='preview';S.join.err=''}else{S.join.step='invalid';S.join.err=c==='SQ4XPL'||S.groups.some(g=>g.revoked===c)?'expired':'nomatch'}render()},
+ openLink:()=>{S.join.code=S.groups[0].code;S.join.step='preview';S.states.join='ready';render()},
+ jstep:v=>{S.join.step=v;S.join.err='';render()},
+ guest:()=>{if(!S.join.name.trim()){S.join.err='name';render();return}S.role='jordan';S.jordanGuest=true;finishJoin(`Joined as ${S.join.name.trim()} (guest)`)},
+ signin:v=>{S.join.via=v;S.join.step='working';render();setTimeout(()=>{S.role='jordan';S.jordanGuest=false;finishJoin(`Signed in with ${v}. Your responses carried over.`)},900)},
+ subtab:v=>{S.sub.tab=v;render()},
+ radio:(v,el)=>{S.sub.v[el.dataset.k]=el.value;delete S.sub.errs[el.dataset.k];render()},
+ file:(v,el)=>{},
+ retry:()=>{S.states[S.screen]='ready';if(S.screen==='join'){S.join.step='code';S.join.err=''}render()},
+ emptyAct:v=>{S.states[S.screen]='ready';if(v==='clearFilters')return A.clearFilters();if(v==='tabmap'){S.hist=[];return go('map',{noHist:true})}if(v==='tabplans'){S.hist=[];return go('plans',{noHist:true})}if(v==='newgroup')return A.sheet('newgroup');if(v==='share')return A.sheet('share');render()},
+ role:v=>{S.role=v;if(S.sheet)S.sheet=null;render()},
+ sstate:v=>{S.states[S.screen]=v;render()},
+ newPick:()=>{if(S.pick.status==='open'){go('pick');toast('A pick is already open. Close it before starting another.');return}S.pick={...freshPick(),status:'draft',options:[],votes:{}};go('pick')},
+ noop:()=>toast('Sample item for layout. Not wired up in this prototype.'),
+ cother:()=>{},
+ etmpi:()=>{},
+ /* demo */
+ 'd-tess':()=>{S.pick.votes.Tess={};S.pick.options.forEach(o=>S.pick.votes.Tess[o]=SEED_VOTES.Tess[o]||'no');render();toast('Tess voted. Tallies updated live.')},
+ 'd-fill':()=>{const alt=['yes','maybe','no'];MEMBERS.forEach((m,mi)=>{if(m===viewer()&&S.pick.votes[m])return;S.pick.votes[m]=S.pick.votes[m]||{};S.pick.options.forEach((o,oi)=>{if(!S.pick.votes[m][o])S.pick.votes[m][o]=(SEED_VOTES[m]&&SEED_VOTES[m][o])||alt[(mi+oi)%3]})});render()},
+ 'd-deadline':()=>{const pk=S.pick;if(pk.status!=='open')return;pk.status='closed';pk.closedAt=Math.min(now(),pk.deadline);if(pk.deadline>now())pk.closedAt=now();render();toast('Voting closed. '+E(winnerId()).name+' wins.')},
+ 'd-resetpick':()=>{S.pick=freshPick();render()},
+ 'd-newpick':()=>{S.role='maya';S.pick={...freshPick(),status:'draft',options:[],votes:{}};go('pick',{force:true})},
+ 'd-rsvp':v=>{const [w,r]=v.split(':');setRsvp(w,r)},
+ 'd-timechange':()=>{const p=S.plan;materialEdit('3:00 PM',p.date,p.meeting,p.note);render()},
+ 'd-resetplan':()=>{S.plan=freshPlan();S.draftExp=null;render()},
+ 'd-quicksend':()=>{S.plan=freshPlan();draftFrom(S.pick.status==='closed'?winnerId():'sketch');S.plan.status='sent';S.plan.recipients.forEach(m=>S.plan.rsvp[m]='awaiting');logp('Maya sent the invitation to 5');render();toast('Sent as Maya. 1 Going, 5 Awaiting.')},
+ 'd-fail':()=>{S.failNext=!S.failNext;render()},
+ 'd-code':v=>{if(v==='SQ7K2M')v=S.groups[0].code;else if(S.groups[0].revoked)v=S.groups[0].revoked;S.join={step:'code',code:v,name:'',err:'',email:'',via:''};S.states.join='ready';render()},
+ 'd-jreset':()=>{S.join={step:'code',code:'',name:'',err:'',email:'',via:''};S.states.join='ready';render()},
+ 'd-pan':()=>{S.pan.x-=90;S.pan.y+=60;S.panned=true;render()},
+ 'd-badsub':()=>{S.sub.tab='form';S.sub.v={name:'Lady Bird Lake loop walk',desc:'Nice walk',loc:'',tkind:'flexible',ttext:'',dur:'1 hr',pkind:'estimated',amt:'',src:'laketrail.org',img:''};S.sub.errs={};render()},
+ 'd-resetall':()=>{location.hash='';location.reload()}
+};
+function finishJoin(msg){S.hist=[];S.screen='plan';try{history.replaceState(null,'','#plan')}catch(e){}render(true);toast(msg)}
+function validateSub(){const v=S.sub.v,e={};
+ if(!v.name.trim())e.name='Add a name people will recognize.';
+ if(v.desc.trim().length<20)e.desc=`Describe it in at least 20 characters (now ${v.desc.trim().length}).`;
+ if(!v.loc.trim())e.loc='Add an address or meeting point in Austin.';
+ if(!v.tkind)e.tkind='Choose fixed sessions or flexible hours.';
+ else if(!v.ttext.trim())e.ttext=v.tkind==='fixed'?'List at least one session, like Sat 10:00 AM.':'Add the opening hours.';
+ if(!v.dur.trim())e.dur='Add roughly how long it takes.';
+ if(!v.pkind)e.pkind='Choose a price status. Pick Unknown if you aren\'t sure.';
+ else if((v.pkind==='exact'||v.pkind==='estimated')&&!/\d/.test(v.amt))e.amt='Add the price per person, or choose Unknown.';
+ if(!/^https?:\/\/[^\s.]+\.[^\s]+/.test(v.src.trim()))e.src='Use a full link that starts with https://';
+ return e}
+
+/* ================= Events ================= */
+let suppressClick=false;
+document.addEventListener('click',e=>{
+ if(suppressClick){suppressClick=false;e.preventDefault();e.stopPropagation();return}
+ const t=e.target.closest('[data-a]');if(!t)return;
+ if(t.tagName==='INPUT'&&(t.type==='checkbox'||t.type==='radio'))return; // handled on change
+ if(t.tagName==='SELECT'||t.tagName==='INPUT')return;
+ const a=A[t.dataset.a];if(a){e.preventDefault();a(t.dataset.v,t)}},true);
+document.addEventListener('change',e=>{const t=e.target.closest('[data-a]');if(!t)return;
+ if(t.dataset.a==='file'){S.sub.v.img=t.files&&t.files[0]?t.files[0].name:'';render();return}
+ const a=A[t.dataset.a];if(a)a(t.dataset.v,t)});
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.dataset.bind){const path=t.dataset.bind.split('.');let o=S;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=t.value;
+  if(t.dataset.bind==='q'){S.area=null;render()}
+  if(t.dataset.bind.startsWith('sub.v.')){const k=path[2];if(S.sub.errs[k]){delete S.sub.errs[k];if(k==='tkind'||k==='ttext')delete S.sub.errs.ttext}}}
+ if(t.dataset.a==='etmpi'){S.editTmp[t.dataset.k]=t.value;clearTimeout(t._d);t._d=setTimeout(render,350)}
+ if(t.dataset.a==='cother'){S.cancelTmp.other=t.value;const b=document.querySelector('[data-a="doCancel"]');if(b)b.disabled=!t.value.trim()}
+ if(t.id==='ng'){}});
+document.addEventListener('submit',e=>{if(e.target.id!=='subform')return;e.preventDefault();const er=validateSub();S.sub.errs=er;
+ if(Object.keys(er).length){render();const k=Object.keys(er)[0];const map={name:'s-name',desc:'s-desc',loc:'s-loc',ttext:'s-tt',dur:'s-dur',amt:'s-amt',src:'s-src'};const el=document.getElementById(map[k]);if(el)el.focus();else{const x=document.getElementById('err-'+k);if(x)x.scrollIntoView({block:'center'})}return}
+ S.subs.unshift({name:S.sub.v.name.trim(),status:'pending',date:'Nov 8'});S.sub.v={name:'',desc:'',loc:'',tkind:'',ttext:'',dur:'',pkind:'',amt:'',src:'',img:''};S.sub.tab='status';render();toast('Submitted for review')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sheet){S.sheet=null;render()}});
+
+/* map drag */
+let drag=null;
+document.addEventListener('pointerdown',e=>{const w=e.target.closest('#mapwrap');if(!w||e.button!==0)return;drag={x:e.clientX,y:e.clientY,px:S.pan.x,py:S.pan.y,moved:false,w}});
+window.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+ if(!drag.moved&&Math.hypot(dx,dy)<6)return;drag.moved=true;drag.w.classList.add('dragging');
+ const W=drag.w.clientWidth,H=drag.w.clientHeight;S.pan.x=Math.min(0,Math.max(W-760,drag.px+dx));S.pan.y=Math.min(60,Math.max(H-1040,drag.py+dy));
+ const l=document.getElementById('maplayer');if(l)l.style.transform=`translate(${S.pan.x}px,${S.pan.y}px)`});
+window.addEventListener('pointerup',()=>{if(!drag)return;const m=drag.moved;drag.w.classList.remove('dragging');drag=null;
+ if(m){suppressClick=true;setTimeout(()=>suppressClick=false,0);if(!S.panned){S.panned=true;render()}}});
+
+/* tick */
+setInterval(()=>{const el=document.querySelector('[data-countdown]');if(el&&S.pick.status==='open'){const ms=S.pick.deadline-now();el.textContent=left(ms);if(ms<=0)A['d-deadline']()}
+ const sb=document.querySelector('.sbar span');if(sb)sb.textContent=fmtClock(now())},1000);
+
+/* boot */
+const h=(location.hash||'').slice(1);if(VIEWS[h])S.screen=h;
+render(true);
+})();
+</script>
+
+</body></html>
