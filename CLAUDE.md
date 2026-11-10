@@ -1,0 +1,35 @@
+# Sidequest: working conventions
+
+Mobile app for a group of friends in Austin to pick something to do and turn it into a plan with RSVPs.
+**Source of truth:** `docs/spec.md` (P0–P2 spec; requirement IDs like P0-01). `docs/wireframe.html` is a grayscale
+flow/copy/state reference, not a visual design. If they disagree, the spec wins; report the conflict.
+Current scope: the **Nov 22 demo subset** only (spec "P0 demo subset", "In the demo" column). See `docs/progress.md`.
+
+## Layout
+- `app/` Expo (React Native) + TypeScript + Expo Router. Routes in `app/src/app`, alias `@/*` -> `app/src/*`.
+  - `src/features/<auth|groups|discovery|picks|plans>/` screens, hooks and components per feature
+  - `src/shared/{ui,lib,hooks}` design tokens, primitives, supabase client, time helpers
+- `supabase/` migrations (`migrations/`), pgTAP tests (`tests/`), seed data (`seed.sql`), `config.toml`
+- `docs/` spec, wireframe, progress, milestone plans
+
+## Commands
+- `npm install` (repo root: Supabase CLI) and `cd app && npm install`
+- `npm run db:start | db:stop | db:reset | db:test` (root; need Docker)
+- `cd app && npm run typecheck`; `npm start` (dev client; Expo Go is NOT supported: Sign in with Apple)
+- Install Expo-pinned deps with `npx expo install`; if that is blocked, take versions from `node_modules/expo/bundledNativeModules.json`.
+
+## Non-negotiable rules
+1. Clients never write tables directly. Every write is an RPC named in the spec "Functions" table. RLS on every table.
+2. Spec tables and function signatures are a team contract. Do not change them silently: stop and ask.
+3. Create-type writes carry a client-generated request ID / `client_key`; retries never duplicate.
+4. Times: UTC + `time_zone` (America/Chicago). Show in that zone, name it on Review and Plan. Reject nonexistent DST local times.
+5. Every data screen has Loading (skeleton), Empty, Error (Try again keeps what was on screen), Ready. Form errors go under the field, never clear input. Slow-action buttons show progress and cannot be double-tapped.
+6. Device permissions are requested only at moment of use; every flow works when denied.
+7. Accessibility: 44x44 pt targets, 200% text, screen-reader labels, status in words (never color alone).
+8. Permissions are enforced server-side (RLS + functions); hiding a button is never the only protection.
+9. Never log notes, contacts, calendar contents, budgets, photos or raw invite codes.
+
+## Process
+Milestones M0..M6 (see `docs/progress.md`): stop after each, summarize, wait. Commit after each coherent step.
+Placeholder content must have a clearly fake `source` (starts with `PLACEHOLDER:`).
+Sandbox note: cloud sessions cannot run simulators or Docker; verify there with typecheck, SQL tests on Postgres, unit tests.

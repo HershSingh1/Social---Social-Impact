@@ -1,0 +1,15 @@
+{
+  "name": "sidequest",
+  "private": true,
+  "scripts": {
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:new": "supabase migration new",
+    "app": "npm --prefix app run start"
+  },
+  "devDependencies": {
+    "supabase": "^2.0.0"
+  }
+}
