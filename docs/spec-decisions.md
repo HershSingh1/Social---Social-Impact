@@ -10,7 +10,24 @@ Status: **Open** (default in use, decision pending) · **Decided** · **Changed*
 | --- | --- | --- | --- |
 | D1 | **No guests.** Every user has an account and signs in before using the app. Nothing (Map included) works signed-out. A join code or link opened before sign-in is kept and applied right after sign-in. | P0-01 becomes "Join by code" for signed-in users. P0-02 drops guest upgrade and the "already has an account" guest case. The Guest column of the permissions table goes away. P0-13 plan links require sign-in. P0-17 drops the guest banner. No anonymous auth, no `profiles.is_guest`, no "guest" label. Demo D2: Jordan and Sam sign in, then join by code. | Decided Nov 10 |
 | D2 | **Google sign-in moves to P0.** Sign-in methods are Apple, Google and email code. | P1-08 is pulled into P0-02. Android users get one-tap sign-in. | Decided Nov 10 |
-| D3 | **The demo covers all of P0, then P1, then P2 group memory.** Each feature works for real along the demo path. Phases are built in order and each passes a check on real phones first. P2 revenue (P2-06 to P2-10) is on hold. | The spec's entry gates for P1 and P2 (pilot results) no longer apply to the demo. "Before the pilot" items become Phase 1b. Server drafts (C2) and session times (G6) are now required in Phase 1b. The Nov 22 date is dropped; proposed target is the week of Dec 14. | Decided Nov 10 |
+| D3 | **The demo covers all of P0, then P1, then P2 group memory.** Each feature works for real along the demo path. Phases are built in order and each passes a check on real phones first. P2 revenue (P2-06 to P2-10) is on hold. | The spec's entry gates for P1 and P2 (pilot results) no longer apply to the demo. "Before the pilot" items become Phase 1b. Server drafts (C2) and session times (G6) are now required in Phase 1b. The Nov 22 date is dropped. | Decided Nov 10 |
+| D7 | **The team designs the demo.** Its script, cast, staging and date are decided by the team closer to the time. AI agents don't plan or schedule it. | None in the spec. The three-act script in the Decision Register is a starting sketch, not a commitment. Phone checks test each phase's features, whatever the final demo looks like. | Decided Nov 10 |
+| D8 | **Niche spots are a P2 feature.** Members of the local community can upload lesser-known spots that offer a more unusual experience than the venues in the catalog. It came from the revenue plan. | Not in the spec yet. Needs its own requirement (how uploads are reviewed, how niche spots differ from P0-18 suggested listings, whether it's free or paid). Not scheduled; tracked in Linear for definition. | Noted Nov 10 |
+
+D4–D6 (fresh start from Figma, the `v2-figma` branch, Linear as tracker) are process decisions recorded in the Decision Register only.
+
+## Agreed working rules (Decision Register verdicts, Nov 10)
+
+| # | Rule | Verdict |
+| --- | --- | --- |
+| S2 | Code for each phase starts only after the previous phase passes on phones; design and decisions can start early. | Agree |
+| W1 | Agents only start an issue once every decision it depends on is agreed. | Agree |
+| W2 | Only `agent-ready` issues go to agents; setup tasks and judgement calls stay with people. | Agree |
+| W3 | A person reviews and merges every PR. | Agree |
+| W4 | Every issue opens with a plain-language summary. | Agree |
+| W7 | The team assigns owners, not Claude. | Agree |
+
+Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P and T row (no verdict yet). The demo rows (S1, S3–S7) are now the team's call under D7.
 
 ## Conflicts
 
