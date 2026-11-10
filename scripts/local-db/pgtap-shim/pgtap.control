@@ -1,3 +1,0 @@
-comment = 'Minimal pgTAP-compatible shim for local test runs (NOT real pgTAP)'
-default_version = '1.0'
-relocatable = true
