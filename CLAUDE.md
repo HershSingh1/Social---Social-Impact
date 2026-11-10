@@ -9,6 +9,9 @@ Mobile app for a group of friends in Austin to pick something to do and turn it 
 - `docs/wireframe.html`: grayscale flow, copy and states only. Not a visual reference.
 - Precedence: spec > spec-decisions > Figma > wireframe. If two disagree, follow the higher one and add a row to `docs/spec-decisions.md`.
 
+## Accounts
+**No guests.** Every user signs in (Apple, Google or email code) before anything works. The spec's guest rules are superseded; see `docs/spec-decisions.md` D1 and D2. Never add anonymous auth, `is_guest`, or guest UI.
+
 ## Scope now
 Demo subset for **Nov 22, 2026** (spec "P0 demo subset", column "In the demo"), then Pilot P0. P1 and P2 are planned in Linear only; don't build them.
 

@@ -4,6 +4,13 @@ Conflicts and gaps found while reviewing `docs/spec.md` (Nov 10, 2026). Each ent
 
 Status: **Open** (default in use, decision pending) · **Decided** · **Changed** (the decision differs from the default).
 
+## Team decisions that override the spec
+
+| # | Decision | What changes in the spec | Status |
+| --- | --- | --- | --- |
+| D1 | **No guests.** Every user has an account and signs in before using the app. Nothing (Map included) works signed-out. A join code or link opened before sign-in is kept and applied right after sign-in. | P0-01 becomes "Join by code" for signed-in users. P0-02 drops guest upgrade and the "already has an account" guest case. The Guest column of the permissions table goes away. P0-13 plan links require sign-in. P0-17 drops the guest banner. No anonymous auth, no `profiles.is_guest`, no "guest" label. Demo D2: Jordan and Sam sign in, then join by code. | Decided Nov 10 |
+| D2 | **Google sign-in moves to P0.** Sign-in methods are Apple, Google and email code. | P1-08 is pulled into P0-02. Android users get one-tap sign-in. | Decided Nov 10 |
+
 ## Conflicts
 
 | # | Topic | Conflict | Default we build with | Status |
@@ -29,7 +36,7 @@ Status: **Open** (default in use, decision pending) · **Decided** · **Changed*
 | G7 | A removed listing loses what the plan showed. | Snapshot experience name and category on `plans`. | Open |
 | G8 | Account deletion and ownership transfer don't say who becomes owner. | Longest-standing account-holding member; never a guest. Archive if none. | Open |
 | G9 | Realtime list covers only `votes` and `rsvps`, but the roster (5 s), hub and revision banner need live data. | Also publish `group_members`, `picks`, `pick_options`, `plans`, `plan_revisions`. | Open |
-| G10 | Sign in with Apple exists only on iOS; the demo uses an Android phone. | Maya (organizer) demos on the iPhone; Android uses email code or stays a guest. | Open |
+| G10 | Sign in with Apple exists only on iOS; the demo uses an Android phone. | Maya (organizer) demos on the iPhone with Apple; the Android phone signs in with Google (D2). | Decided by D2 |
 | G11 | T01 and T04 are named but defined in the product spec. | Copy definitions into `spec.md` "Demo acceptance". | Open |
 | G12 | Table names differ between sections: `sponsor_impressions`/`sponsor_clicks` vs `sponsor_stats_daily`; `partner_stats_monthly` and `referral_programs` missing from the tables list; `availability.updated_at` missing. | Use the section names (P2-08, P2-06, P2-09, P1-01) and add them to the table list. | Open |
 
