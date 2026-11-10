@@ -1,5 +1,7 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { Button, MIN_TAP, Text, radius, space, useColors } from '@/shared/ui';
+import { Button } from './Button';
+import { MIN_TAP, radius, space, useColors } from './theme';
+import { Text } from './Text';
 
 export type SheetOption<T extends string> = { id: T; label: string; hint?: string };
 

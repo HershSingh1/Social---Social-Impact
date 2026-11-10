@@ -52,3 +52,34 @@ export type Experience = {
   status: 'active' | 'removed';
   version: number;
 };
+
+// ---------------------------------------------------------------- group pick (P0-08..10)
+export type VoteValue = 'yes' | 'maybe' | 'no';
+export type PickState = 'open' | 'closed' | 'planned' | 'cancelled';
+
+export type PickRow = {
+  id: string;
+  group_id: string;
+  organizer_id: string;
+  deadline: string;
+  starred_option_id: string | null;
+  state: PickState;
+  winner_option_id: string | null;
+  tie_rule: string | null;
+  override_option_id: string | null;
+};
+
+export type PickExperience = Pick<
+  Experience,
+  'id' | 'name' | 'category' | 'area' | 'price_kind' | 'price_min' | 'price_max' | 'booking_required' | 'timing_kind' | 'meeting_point'
+>;
+
+export type PickOptionRow = {
+  id: string;
+  position: number;
+  proposed_start: string | null;
+  experience_id: string;
+  experiences: PickExperience;
+};
+
+export type Tally = { yes: number; maybe: number; no: number };

@@ -7,3 +7,6 @@ export { Notice } from './Notice';
 export { Avatar } from './Avatar';
 export { Screen } from './Screen';
 export { Skeleton, SkeletonList, EmptyState, ErrorState, StaleBanner, AsyncView } from './States';
+export { OptionSheet, type SheetOption } from './OptionSheet';
+export { ConfirmSheet } from './ConfirmSheet';
+export { WhenPicker } from './WhenPicker';

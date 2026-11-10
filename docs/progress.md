@@ -8,7 +8,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | M1 Database | Done (pushed `8168a9d`) |
 | M2 Accounts and groups (D1, D2) | Done in code, not yet run on a device (see below) |
 | M3 Discovery (D3) | Done in code, not yet run on a device (see below) |
-| M4 Group pick (D3-D5) | Not started |
+| M4 Group pick (D3-D5) | Done in code, not yet run on a device (see below) |
 | M5 Plans (D6-D8) | Not started |
 | M6 Hubs and polish | Not started |
 
@@ -158,3 +158,28 @@ Decisions and gaps
 - **No image column** on `experiences`: every experience shows a category placeholder block.
 - The **Location** fact shows `area` plus "Meet at: {meeting_point}" (the table has no street-address column).
 - Analytics `experience_viewed` is not recorded (the event-log table is still undefined in the spec).
+
+## M4 Group pick (done in code; D3-D5 not yet run on devices)
+
+Built: pick builder (`/pick/new`), live pick screen (`/pick/[id]`), "Add to group pick" on Experience detail, Chicago
+wall-clock time helpers (`shared/lib/time.ts`), shared `ConfirmSheet`, `OptionSheet` (moved to `shared/ui`), `WhenPicker`.
+
+- **Builder:** the pick is assembled in memory (`PickBuilderProvider`) while the person browses; nothing is sent until
+  "Open voting" (`create_pick`). 2-5 options, optional tie-break star, optional proposed time per option, deadline 6/12/24
+  (default)/48 hours or custom (1 hour to 7 days, validated under the field). One open pick per group: the screen says so and
+  links to it; the server refuses too. The same experience can be used twice at different times.
+- **Voting:** Yes/Maybe/No radio buttons, tapping the selected one clears it, optimistic with Retry on failure ("Voting closed"
+  when late). Bars and counts, points, "X of Y voted", a "Who has voted" list (names, never how they voted), "New option" tag,
+  the tie-breaker rule from the start. Live via Realtime on `option_tallies` / `pick_voter_status` / `picks` / `pick_options`
+  with a 3 s poll while open.
+- **Close now** and **Cancel** ask for confirmation. **Result:** winner highlighted, the server's `tie_rule` sentence, options in
+  final order, "Plan this" for the organizer, "{organizer} will send a plan" for members, "Planned" with a link to the plan, and a
+  "Nobody voted" path where the organizer chooses an option (`override_pick`).
+- Add to group pick: account required (returns to the experience); one group = automatic, several = choose; if the group has an open
+  pick its organizer adds to it (`add_option`), anyone else is pointed to it.
+
+Verified here: `tsc`; 50 new Jest tests (ranking incl. the P0-09 worked example, builder state, builder screen, pick screen in every
+state, add-to-pick, Chicago/DST time helpers). **Not verified:** real-time updates between phones, the 2 s criterion, device layout.
+
+Assumptions: the pick title is the fixed question "What should we do this weekend?" (no title column); "New option" is inferred
+from vote positions (no per-option timestamp); the organizer's star cannot be changed after opening (no function for it).

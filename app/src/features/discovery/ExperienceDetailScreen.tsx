@@ -5,12 +5,13 @@ import { AsyncView, Button, EmptyState, Notice, Screen, SkeletonList, Tag, Text,
 import { href } from '@/shared/lib/nav';
 import { formatDateOnly } from '@/shared/lib/time';
 import type { Experience } from '@/types/database';
+import { AddToPickSection } from '@/features/picks/AddToPickSection';
 import { categoryLabel } from './categories';
 import { CategoryArt } from './CategoryArt';
 import { BOOKING_NOTICE, durationLabel, priceKindWord, priceLabel, providerName } from './format';
 import { useExperience } from './hooks';
 
-/** P0-06: every fact about an experience, with no empty labels. Actions (plan, pick) arrive in M4 and M5. */
+/** P0-06: every fact about an experience, with no empty labels. Actions: Add to group pick (M4); Start a plan arrives in M5. */
 export function ExperienceDetailScreen({ id }: { id: string }) {
   const router = useRouter();
   const query = useExperience(id);
@@ -89,6 +90,8 @@ function Detail({ e }: { e: Experience }) {
         )}
         <Fact label="Source">{`${e.source}. Checked on ${formatDateOnly(e.checked_on)}.`}</Fact>
       </View>
+
+      <AddToPickSection experience={e} />
 
       {e.booking_required ? (
         <View style={[styles.booking, { backgroundColor: c.warnSoft }]}>

@@ -8,6 +8,7 @@ let mockQuery: Record<string, unknown>;
 
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, Stack: { Screen: () => null } }));
 jest.mock('./hooks', () => ({ useExperience: () => mockQuery }));
+jest.mock('@/features/picks/AddToPickSection', () => ({ AddToPickSection: () => null }));
 
 const ready = (data: unknown) => ({ data, isPending: false, isError: false, isRefetching: false, refetch: jest.fn() });
 

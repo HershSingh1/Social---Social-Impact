@@ -11,7 +11,7 @@ import { useExperiences } from './hooks';
 import { locateOnce } from './locate';
 import { ExperienceList } from './ExperienceList';
 import { ExperienceMap, type MapFocus } from './ExperienceMap';
-import { OptionSheet } from './OptionSheet';
+import { OptionSheet } from '@/shared/ui';
 import { PreviewCard } from './PreviewCard';
 
 type ViewMode = 'map' | 'list';
