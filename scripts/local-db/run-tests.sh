@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Run supabase/migrations + supabase/tests on the local Postgres (no Docker needed).
-# Usage: scripts/local-db/run-tests.sh [test-file-glob]   e.g. "02_*"
+# Usage: [LOAD_SEED=1] scripts/local-db/run-tests.sh [test-file-glob]   e.g. "02_*"
+#   LOAD_SEED=1 loads supabase/seed.sql first, like `supabase db reset` does (tests must pass either way).
 # On a machine with Docker use `npm run db:test` instead (real Supabase stack + real pgTAP).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -28,6 +29,8 @@ for f in $(ls "$ROOT"/supabase/migrations/*.sql | sort); do
   echo "migrate: $(basename "$f")"
   "${PSQL[@]}" -f "$f"
 done
+
+if [ "${LOAD_SEED:-0}" = 1 ]; then echo "seed: supabase/seed.sql"; "${PSQL[@]}" -f "$ROOT/supabase/seed.sql"; fi
 
 fail=0
 for f in $(ls "$ROOT"/supabase/tests/$FILTER.test.sql 2>/dev/null | sort); do

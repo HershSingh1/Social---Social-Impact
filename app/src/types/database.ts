@@ -22,3 +22,33 @@ export type PreviewResult =
 export type JoinResult =
   | { ok: true; status: 'joined' | 'already_member'; group_id: string; group_name: string }
   | CodeFailure;
+
+// ---------------------------------------------------------------- catalog (P0-04..06)
+export type Category = 'art_walks' | 'make' | 'outdoors' | 'food_drink' | 'games_trivia' | 'music_film' | 'active';
+export type PriceKind = 'exact' | 'estimated' | 'free' | 'unknown';
+export type TimingKind = 'fixed' | 'flexible' | 'unknown';
+
+export type Experience = {
+  id: string;
+  name: string;
+  category: Category;
+  description: string;
+  lat: number;
+  lng: number;
+  area: string;
+  price_kind: PriceKind;
+  price_min: number | null;
+  price_max: number | null;
+  timing_kind: TimingKind;
+  /** fixed-time experiences: [{label: "Sat 10:00 AM"}, ...] */
+  sessions: { label: string }[] | null;
+  hours_text: string | null;
+  duration_min: number | null;
+  meeting_point: string;
+  booking_required: boolean;
+  booking_url: string | null;
+  source: string;
+  checked_on: string; // YYYY-MM-DD
+  status: 'active' | 'removed';
+  version: number;
+};

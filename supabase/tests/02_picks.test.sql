@@ -29,6 +29,8 @@ create function pg_temp.eid(p text) returns uuid language sql stable security de
   $$ select id from public.experiences where name = p $$;
 create function pg_temp.world() returns void language plpgsql as $$
 begin
+  -- tests build their own catalog; this also clears the seed data (rolled back at the end)
+  delete from public.experiences;
   perform pg_temp.mk('maya'); perform pg_temp.mk('jordan', true); perform pg_temp.mk('sam', true);
   perform pg_temp.mk('priya'); perform pg_temp.mk('luis'); perform pg_temp.mk('tess');
   insert into public.experiences (name, category, description, lat, lng, area, price_kind, price_min, price_max,

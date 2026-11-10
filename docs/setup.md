@@ -22,8 +22,14 @@ npm start               # afterwards, Metro for the installed dev client
 Sign in with Apple needs a real iOS device or a simulator signed in to an Apple ID, plus the "Sign in with Apple"
 capability on the app id `app.sidequest.mobile`. It is iOS only; Android uses the email code.
 
+## Seed data and the Android map key
+- `supabase db reset` loads `supabase/seed.sql` (42 placeholder experiences). On a hosted project use
+  `supabase db push --include-seed`. Replace the placeholders with checked listings before the pilot.
+- Android map: put a Google Maps SDK for Android key in `app/.env` as `GOOGLE_MAPS_ANDROID_API_KEY`, then rebuild the
+  dev client (`npx expo run:android`). iOS needs nothing.
+
 ## Without Docker (cloud sessions, CI)
-`npm run db:test:local` and `npm run db:stress:local` run the migrations and tests on plain Postgres 16.
+`npm run db:test:local`, `npm run db:stress:local` and `npm run db:seed:check` run the migrations and tests on plain Postgres 16.
 `cd app && npm test` runs the app unit and component tests; `npm run typecheck` checks types.
 
 ## Hosted project (needed for the demo on real phones)

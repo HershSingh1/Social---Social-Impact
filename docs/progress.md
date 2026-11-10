@@ -7,7 +7,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | M0 Plan and scaffold | Done (see `docs/m0-plan.md`) |
 | M1 Database | Done (pushed `8168a9d`) |
 | M2 Accounts and groups (D1, D2) | Done in code, not yet run on a device (see below) |
-| M3 Discovery (D3) | Not started |
+| M3 Discovery (D3) | Done in code, not yet run on a device (see below) |
 | M4 Group pick (D3-D5) | Not started |
 | M5 Plans (D6-D8) | Not started |
 | M6 Hubs and polish | Not started |
@@ -18,7 +18,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | P0-02 | Apple, email code, guest upgrade | M2 done (component-tested; Apple/email upgrade need a real backend to verify) | Account deletion, avatar |
 | P0-03 | Create, join, member list | M2 done (live roster via Realtime + 5 s poll) | Revoke, regenerate, remove, transfer |
 | P0-04/05 | Map+list, 40 experiences, activity+price filters | - | Date filter, Search this area, unknown-price toggle |
-| P0-06 | Full | - | |
+| P0-06 | Full | M3 done (actions Start a plan / Add to group pick arrive with M5 / M4) | |
 | P0-07 | Not shown | - | Full |
 | P0-08/09 | Full, Close now | - | |
 | P0-10 | Draft from winner | - | Organizer override |
@@ -118,3 +118,43 @@ Decisions and assumptions to confirm
 - Avatar upload (P0-02) and sign out are not built (profile defaults and account deletion are pilot scope; the spec has no sign-out).
 - `react-dom@19.3.0` is now an explicit dependency: a clean `npm install` failed (npm picked `react-dom@19.3.1`, which needs
   `react@19.3.1`; SDK 58 pins 19.3.0). `jest-expo` and Testing Library 14 are now installed.
+
+## M3 Discovery (done in code; D3 browsing not yet run on a device)
+
+Built: Map tab as home with price pins, preview card, List view sharing the same results, search (300 ms debounce),
+Activity and Price filters, locate button, Experience detail, 42-row seed.
+
+- **Map and List are two views of one state** (search, filters, selection), in `DiscoveryScreen`. Switching keeps the
+  selection and the list opens scrolled to it. A selection hidden by the current filters is not shown and comes back if
+  the filter is relaxed. Every pin is also a list row.
+- **Price rules** are implemented as the spec says: a cap matches when the *known maximum* is at or under it (estimated
+  uses the top of the range); unknown prices match a cap only when "include unknown prices" is on. That toggle ships in
+  the pilot, so the demo uses the spec default (on): unknown-price experiences stay visible with "Price unknown".
+  Price options: Any, Free, Under $25, Under $50.
+- **Location** is requested only when "Locate me" is tapped. Denied (or failing) shows a notice, the map stays on
+  downtown Austin, and search, filters and the list all keep working.
+- **Seed:** `supabase/seed.sql`, 42 experiences, 6 per category, all four price kinds, all three timing kinds, some
+  booking-required. **Every row is placeholder content** (`source` starts with `PLACEHOLDER:`), including the 13 from the
+  wireframe, because I cannot verify any listing. Coordinates are approximate. Stable ids, safe to re-run. Local: loaded by
+  `supabase db reset`. Hosted: `supabase db push --include-seed`. `npm run db:seed:check` validates it (13 checks).
+- M1 database tests now clear the catalog inside their transaction, so they pass with the seed loaded (verified: 238 pass
+  with `LOAD_SEED=1`).
+
+Verified here: `tsc` clean; both platforms bundle; 82 Jest tests pass (15 suites): price/search/filter rules, label
+formatting, Map/List shared state and selection, empty/loading/error/stale states, location denied and granted,
+Detail for every price and timing kind, booking notice and provider link, removed listing.
+**Not verified (needs a device):** the map actually rendering, pin taps and camera moves, the locate permission prompt,
+list scroll-to-selected on real layouts, screen-reader and 200 % text behaviour.
+
+Decisions and gaps
+- **Android needs a Google Maps key** (`GOOGLE_MAPS_ANDROID_API_KEY` in `app/.env`, wired by `app/app.config.ts`); without it
+  the Android map is blank. iOS uses Apple Maps. Both need a development build rebuild after adding the key.
+- **Context chips** (Explore Austin / My saves / group chips) are not shown: saves are not in the demo, so there is nothing
+  to switch between. Add them with P0-07.
+- **No actions on Detail yet.** "Start a plan" and "Add to group pick" arrive with M5 and M4; the demo step that adds three
+  experiences to a pick (D3) therefore completes in M4.
+- **`sessions` shape** for fixed-time experiences is `[{"label": "Sat 10:00 AM"}]` (display only). Still open: structured
+  day/time fields needed to validate plans against sessions (pilot).
+- **No image column** on `experiences`: every experience shows a category placeholder block.
+- The **Location** fact shows `area` plus "Meet at: {meeting_point}" (the table has no street-address column).
+- Analytics `experience_viewed` is not recorded (the event-log table is still undefined in the spec).

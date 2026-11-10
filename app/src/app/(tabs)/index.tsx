@@ -1,9 +1,3 @@
-import { Text, View } from 'react-native';
+import { DiscoveryScreen } from '@/features/discovery/DiscoveryScreen';
 
-export default function MapScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Map (placeholder, built in a later milestone)</Text>
-    </View>
-  );
-}
+export default DiscoveryScreen;

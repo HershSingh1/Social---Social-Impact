@@ -16,6 +16,7 @@ Current scope: the **Nov 22 demo subset** only (spec "P0 demo subset", "In the d
 - `npm install` (repo root: Supabase CLI) and `cd app && npm install`
 - `npm run db:start | db:stop | db:reset | db:test` (root; need Docker, real stack + real pgTAP)
 - `npm run db:test:local` / `db:stress:local`: same migrations and tests on plain Postgres 16, no Docker (`scripts/local-db/`)
+- `npm run db:seed:check` loads `supabase/seed.sql` locally and validates the catalog rules; `LOAD_SEED=1 npm run db:test:local` runs the tests with the seed present
 - `npm run db:types` regenerates `app/src/types/database.ts` (needs Docker)
 - `cd app && npm run typecheck`; `npm start` (dev client; Expo Go is NOT supported: Sign in with Apple)
 - Install Expo-pinned deps with `npx expo install`; if that is blocked, take versions from `node_modules/expo/bundledNativeModules.json`.

@@ -58,6 +58,7 @@ export default function RootLayout() {
                 <Stack.Screen name="join/index" options={{ title: 'Join a group' }} />
                 <Stack.Screen name="join/[code]" options={{ title: 'Join a group' }} />
                 <Stack.Screen name="group/[id]" options={{ title: 'Group' }} />
+                <Stack.Screen name="experience/[id]" options={{ title: 'Experience' }} />
                 <Stack.Screen name="sign-in" options={{ presentation: 'modal', title: 'Sign in' }} />
                 <Stack.Screen name="create-group" options={{ presentation: 'modal', title: 'Create a group' }} />
               </Stack>
