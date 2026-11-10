@@ -9,7 +9,7 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | M2 Accounts and groups (D1, D2) | Done in code, not yet run on a device (see below) |
 | M3 Discovery (D3) | Done in code, not yet run on a device (see below) |
 | M4 Group pick (D3-D5) | Done in code, not yet run on a device (see below) |
-| M5 Plans (D6-D8) | Not started |
+| M5 Plans (D6-D8) | Done in code, not yet run on a device (see below) |
 | M6 Hubs and polish | Not started |
 
 | Req | Demo scope | Status | Deferred to pilot |
@@ -21,9 +21,9 @@ Scope: Nov 22 demo subset only. Status per requirement ID. Deferred = "Before th
 | P0-06 | Full | M3 done (actions Start a plan / Add to group pick arrive with M5 / M4) | |
 | P0-07 | Not shown | - | Full |
 | P0-08/09 | Full, Close now | - | |
-| P0-10 | Draft from winner | - | Organizer override |
+| P0-10 | Draft from winner | M5 done ("Plan this"; the organizer's choice when nobody voted) | Organizer override UI |
 | P0-11/12 | Flexible-time experiences | - | Fixed sessions, unknown-fact acknowledgement |
-| P0-13 | RSVP | - | Plan links, adding invitees |
+| P0-13 | RSVP | M5 done | Plan links, adding invitees |
 | P0-14 | Time change + reconfirm | - | All material fields, minor edits |
 | P0-15 | Booking notice | - | Cancellation |
 | P0-16/17 | Needs response, Open picks, Upcoming; groups, group detail | P0-17: Friends tab, group detail, guest banner done in M2 (next-item line says "No plan yet" until M4/M5); P0-16 not started | Drafts, Past, profile defaults |
@@ -183,3 +183,39 @@ state, add-to-pick, Chicago/DST time helpers). **Not verified:** real-time updat
 
 Assumptions: the pick title is the fixed question "What should we do this weekend?" (no title column); "New option" is inferred
 from vote positions (no per-option timestamp); the organizer's star cannot be changed after opening (no function for it).
+
+## M5 Plans (done in code; D6-D8 not yet run on devices)
+
+Built: plan draft + review (`/plan/new`), plan detail (`/plan/[id]`), organizer edit sheet, "Start a plan" on Experience detail,
+shared `BookingNotice` (Detail, Review, Plan), an on-phone draft store.
+
+- **Draft and review:** one scrolling screen. Group, recipients (everyone preselected, each can be unticked; none is allowed:
+  "No other invitees yet"), Austin-time date/start/end, meeting point (prefilled, 1-200), note (500, counter), cost and booking
+  notice, then a Review card (What, When with the zone named, Where, Who, Cost, Booking) and **Send invitation**.
+  Messages sit under their own field: start in the past, end before start, a time that does not exist on a DST day,
+  meeting point length, note length. Untouched fields are not scolded until Send is tapped.
+- **Sending (T04):** the draft gets its request id (`client_key`) once; Send shows progress and cannot be double-tapped;
+  "Invitations sent" appears only after the server confirms; a failure keeps the draft and shows "Invitation not sent. Your
+  draft is saved, and Retry won't send it twice." Retry reuses the SAME key. Tested at the UI level (two calls, same key).
+- **Plan detail:** live via Realtime on `rsvps` / `plan_revisions` / `plans` (+4 s poll). Counts (Going, Awaiting, Can't go, Needs
+  reconfirm) always add up to the invitees; every invitee's status is in words. **RSVP is not optimistic**: the tapped button
+  shows "saving", the previous answer stays until the server confirms, failure offers Retry, and an answer sent from a stale
+  screen is rejected (`stale_revision`) with "answer again". Locked after the start time and when cancelled.
+- **Material change:** the organizer's edit sheet says "N Going invitees will need to reconfirm" before saving (not counting the
+  organizer or Can't go); after saving, invitees see a banner with the old and new time/meeting point and Still going / Can't go,
+  answered against the new revision.
+- **Access:** a member who was not invited sees "This plan isn't available to you" (RLS returns nothing).
+- **Unknown hours** show "Hours unverified" and can be planned; **fixed-session** experiences are explained and cannot be sent yet.
+
+Verified here: `tsc`; 56 new Jest tests (RSVP count sequence from P0-13, draft validation incl. the DST gap, store persistence
+and request-id reuse, draft screen, retry with the same key, plan screen, edit sheet, Start a plan); both platforms bundle.
+Two bugs found by the tests and fixed: a sent draft was immediately re-created, and an overnight plan could not take a note edit.
+**Not verified:** two phones seeing each other's RSVPs live, the real DST/time-zone behaviour on device, layout at 200 % text.
+
+Decisions and gaps
+- **Drafts live on the phone only** (the spec says the server keeps them, but there is no draft function; the Drafts hub is pilot
+  scope). They survive restarts and are labelled "Saved on this phone". Offline editing therefore always works; Send needs a connection.
+- **End time is on the same day as the start** (11:30 PM at the latest), so plans created in the app cannot run past midnight yet.
+  The server allows it; editing the note or meeting point of such a plan works.
+- Cancellation, adding invitees, plan links and minor-edit "Updated" labels are pilot scope and not built (the plan screen already
+  renders the cancelled state if the server sends one).

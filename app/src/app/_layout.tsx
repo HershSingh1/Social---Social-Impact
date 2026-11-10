@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { PickBuilderProvider } from '@/features/picks/PickBuilder';
+import { PlanDraftProvider } from '@/features/plans/PlanDraftStore';
 import { isBackendConfigured } from '@/shared/lib/env';
 import { ErrorState, Screen, SkeletonList, Text, space, useColors } from '@/shared/ui';
 
@@ -55,6 +56,7 @@ export default function RootLayout() {
           <AuthProvider>
             <AuthGate>
               <PickBuilderProvider>
+              <PlanDraftProvider>
               <Stack screenOptions={{ headerStyle: { backgroundColor: c.bg }, headerTintColor: c.text, contentStyle: { backgroundColor: c.bg } }}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="join/index" options={{ title: 'Join a group' }} />
@@ -63,9 +65,12 @@ export default function RootLayout() {
                 <Stack.Screen name="experience/[id]" options={{ title: 'Experience' }} />
                 <Stack.Screen name="pick/new" options={{ title: 'New group pick' }} />
                 <Stack.Screen name="pick/[id]" options={{ title: 'Group pick' }} />
+                <Stack.Screen name="plan/new" options={{ title: 'Review plan' }} />
+                <Stack.Screen name="plan/[id]" options={{ title: 'Plan' }} />
                 <Stack.Screen name="sign-in" options={{ presentation: 'modal', title: 'Sign in' }} />
                 <Stack.Screen name="create-group" options={{ presentation: 'modal', title: 'Create a group' }} />
               </Stack>
+              </PlanDraftProvider>
               </PickBuilderProvider>
             </AuthGate>
           </AuthProvider>

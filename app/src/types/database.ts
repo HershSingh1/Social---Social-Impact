@@ -83,3 +83,18 @@ export type PickOptionRow = {
 };
 
 export type Tally = { yes: number; maybe: number; no: number };
+
+// ---------------------------------------------------------------- plans (P0-10..15)
+export type RsvpStatus = 'going' | 'awaiting' | 'cant_go' | 'needs_reconfirm';
+export type PlanState = 'draft' | 'sent' | 'cancelled';
+
+export type PlanRevision = {
+  revision: number;
+  start_at: string; // UTC
+  end_at: string;
+  time_zone: string;
+  meeting_point: string;
+  note: string | null;
+  price_snapshot: { price_kind: PriceKind; price_min: number | null; price_max: number | null };
+  booking_required: boolean;
+};
