@@ -35,4 +35,8 @@ Demo subset for **Nov 22, 2026** (spec "P0 demo subset", column "In the demo"), 
 - One PR per issue where possible; keep PRs reviewable (under ~400 lines of non-generated code).
 
 ## Commands
-Filled in as the scaffold lands (M0).
+- `cd app && npm install`; copy `app/.env.example` to `app/.env` with the Supabase dev project's URL and anon key.
+- `cd app && npx expo start` (needs a development build for Sign in with Apple; Expo Go is not enough).
+- `cd app && npm run typecheck`
+- Add native packages with `npx expo install <pkg>`, never `npm install`, so versions match the Expo SDK.
+- Expo SDK 58: check the versioned docs before using any Expo API (see `app/AGENTS.md`).
