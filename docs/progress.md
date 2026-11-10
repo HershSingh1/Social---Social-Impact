@@ -252,7 +252,7 @@ script, and `docs/demo-runbook.md` for the three-phone run.
 | T04 network cut during send, retry = one plan | pass (+ concurrency script) | pass (same request id on Retry) | not run |
 
 **I could not run D1-D8, T01 or T04 on an iPhone and an Android phone from this environment.** Everything that can be checked without a
-device passes (`tsc`; 225 Jest tests in 31 suites; 5 pgTAP files, 267 assertions; concurrency, seed and bundle checks). The remaining risk is
+device passes (`tsc`; 223 Jest tests in 31 suites; 5 pgTAP files, 267 assertions; concurrency, seed and bundle checks). The remaining risk is
 the real-device behaviour listed under each milestone's "Not verified" (Realtime latency, Apple/email upgrade against a real Auth server,
 maps, accessibility at 200 % text). `docs/demo-runbook.md` is the script to run.
 
