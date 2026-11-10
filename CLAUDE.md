@@ -14,7 +14,7 @@ Mobile app for a group of friends in Austin to pick something to do and turn it 
 **No guests.** Every user signs in (Apple, Google or email code) before anything works. The spec's guest rules are superseded; see `docs/spec-decisions.md` D1 and D2. Never add anonymous auth, `is_guest`, or guest UI.
 
 ## Scope now
-Demo subset for **Nov 22, 2026** (spec "P0 demo subset", column "In the demo"), then Pilot P0. P1 and P2 are planned in Linear only; don't build them.
+One demo, built in phases (team decision D3, Nov 10): **Phase 1 = all of P0** (1a core path, 1b the rest), **Phase 2 = P1** coordination, **Phase 3 = P2 group memory** (P2-01 to P2-05). Each phase passes a check on real phones before the next phase's code starts; design can run ahead. **P2 revenue (P2-06 to P2-10) is on hold**: don't build it. Target demo: week of Dec 14 (proposal, not confirmed). The demo script (three acts) is in the Decision Register: https://claude.ai/artifact/5RqNeJLkWgALx3AzjdRdbK
 
 ## Stack and layout
 - `app/`: Expo (React Native) + TypeScript + Expo Router. Routes in `app/src/app` are thin re-exports of screens in `app/src/features/<feature>/`. Shared code: `app/src/ui` (theme, components), `app/src/lib` (supabase client, time, errors).
@@ -34,7 +34,7 @@ Demo subset for **Nov 22, 2026** (spec "P0 demo subset", column "In the demo"), 
 
 ## Workflow (Linear + GitHub)
 - Every change starts from a Linear issue. Branch name: the one Linear gives you (e.g. `npajibo/tec-12-p0-06-experience-detail`). PR body includes `Fixes TEC-12` so Linear moves the issue.
-- Issues labeled `agent-ready` have what an agent needs: spec section, acceptance criteria, Figma node, files/area, out of scope. An agent working one should: read the issue, work on its branch, open a PR, and comment on the issue with what was verified and what wasn't.
+- Every issue starts with an **In plain words** summary; keep it accurate if you change scope. Issues labeled `agent-ready` have what an agent needs: spec section, acceptance criteria, Figma node, files/area, out of scope. An agent working one should: read the issue, work on its branch, open a PR, and comment on the issue with what was verified and what wasn't.
 - `needs-device` issues are closed only after someone runs them on real phones.
 - One PR per issue where possible; keep PRs reviewable (under ~400 lines of non-generated code).
 

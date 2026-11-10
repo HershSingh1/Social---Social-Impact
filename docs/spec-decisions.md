@@ -10,6 +10,7 @@ Status: **Open** (default in use, decision pending) · **Decided** · **Changed*
 | --- | --- | --- | --- |
 | D1 | **No guests.** Every user has an account and signs in before using the app. Nothing (Map included) works signed-out. A join code or link opened before sign-in is kept and applied right after sign-in. | P0-01 becomes "Join by code" for signed-in users. P0-02 drops guest upgrade and the "already has an account" guest case. The Guest column of the permissions table goes away. P0-13 plan links require sign-in. P0-17 drops the guest banner. No anonymous auth, no `profiles.is_guest`, no "guest" label. Demo D2: Jordan and Sam sign in, then join by code. | Decided Nov 10 |
 | D2 | **Google sign-in moves to P0.** Sign-in methods are Apple, Google and email code. | P1-08 is pulled into P0-02. Android users get one-tap sign-in. | Decided Nov 10 |
+| D3 | **The demo covers all of P0, then P1, then P2 group memory.** Each feature works for real along the demo path. Phases are built in order and each passes a check on real phones first. P2 revenue (P2-06 to P2-10) is on hold. | The spec's entry gates for P1 and P2 (pilot results) no longer apply to the demo. "Before the pilot" items become Phase 1b. Server drafts (C2) and session times (G6) are now required in Phase 1b. The Nov 22 date is dropped; proposed target is the week of Dec 14. | Decided Nov 10 |
 
 ## Conflicts
 
