@@ -33,7 +33,7 @@ Demo subset for **Nov 22, 2026** (spec "P0 demo subset", column "In the demo"), 
 9. Placeholder catalog rows have `source` starting with `PLACEHOLDER:`.
 
 ## Workflow (Linear + GitHub)
-- Every change starts from a Linear issue. Branch name: the one Linear gives you (`noah/sq-12-group-pick`). PR body includes `Fixes SQ-12` so Linear moves the issue.
+- Every change starts from a Linear issue. Branch name: the one Linear gives you (e.g. `npajibo/tec-12-p0-06-experience-detail`). PR body includes `Fixes TEC-12` so Linear moves the issue.
 - Issues labeled `agent-ready` have what an agent needs: spec section, acceptance criteria, Figma node, files/area, out of scope. An agent working one should: read the issue, work on its branch, open a PR, and comment on the issue with what was verified and what wasn't.
 - `needs-device` issues are closed only after someone runs them on real phones.
 - One PR per issue where possible; keep PRs reviewable (under ~400 lines of non-generated code).
