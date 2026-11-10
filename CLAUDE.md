@@ -7,6 +7,7 @@ Mobile app for a group of friends in Austin to pick something to do and turn it 
 - `docs/spec-decisions.md`: conflicts and gaps in the spec, with the default we build with. Read before touching the data model.
 - **Figma** (visual design): https://www.figma.com/design/CUXYzgoB8YBvoorBUj1Oly/Event-Planning-App?node-id=28-2943 Build every screen from its frame. Tokens live in `app/src/ui/theme.ts`; never hard-code a color, size or font in a screen.
 - `docs/wireframe.html`: grayscale flow, copy and states only. Not a visual reference.
+- `docs/linear.md`: where each requirement lives in Linear (TEC-/PRO- issue IDs) and the demo critical path.
 - Precedence: spec > spec-decisions > Figma > wireframe. If two disagree, follow the higher one and add a row to `docs/spec-decisions.md`.
 
 ## Accounts

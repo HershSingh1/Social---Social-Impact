@@ -40,6 +40,20 @@ Status: **Open** (default in use, decision pending) · **Decided** · **Changed*
 | G11 | T01 and T04 are named but defined in the product spec. | Copy definitions into `spec.md` "Demo acceptance". | Open |
 | G12 | Table names differ between sections: `sponsor_impressions`/`sponsor_clicks` vs `sponsor_stats_daily`; `partner_stats_monthly` and `referral_programs` missing from the tables list; `availability.updated_at` missing. | Use the section names (P2-08, P2-06, P2-09, P1-01) and add them to the table list. | Open |
 
+## Figma vs spec (Linear PRO-9)
+
+| # | Difference | Default | Status |
+| --- | --- | --- | --- |
+| F1 | Profile setup asks for full name, username, age and city; the spec has display name + optional avatar. | Demo collects display name only. | Open |
+| F2 | "What are you into?" onboarding step (interests, typical spend) is P1-06 / P1-05 material. | Not in the demo. | Open |
+| F3 | "Meet People & Safety" section: meeting strangers is outside P0–P2. | Not built. | Open |
+| F4 | Join screen "Your name" field and "No account needed" copy. | Obsolete with D1; design to remove. | Open |
+| F5 | Activity, Memories & Profile section is mostly P2. | Only profile basics in P0. | Open |
+
+## Linear
+
+Every entry above is tracked in Linear project "Sidequest P0–P2" (team Product & Design): D1/D2 → PRO-1 (done), C1 → PRO-2, C2 → PRO-3, C3 → PRO-4, C4 → PRO-5, C5 → PRO-6, C6 → PRO-7, C7 → PRO-8, F1–F5 → PRO-9, G1–G12 → PRO-10.
+
 ## Checked, no conflict
 
 - P0-09 worked example: Sketch and stroll 3·2 + 2·1 = 8, Clay and conversation 4·2 = 8, fewer No votes (1 vs 2) wins; Barton Springs 5 is third.
