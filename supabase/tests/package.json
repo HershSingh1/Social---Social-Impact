@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@electric-sql/pglite-pgtap": "0.0.17"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node run.mjs"
+  }
+}

@@ -478,16 +478,19 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 
 | Table | Key columns | Phase |
 | --- | --- | --- |
-| `profiles` | `id` (auth user ID), `display_name`, `avatar_path`, `is_guest`, `budget_cap`, `transport` | P0 |
-| `groups` | `id`, `name`, `owner_id`, `archived_at` | P0 |
-| `group_members` | `group_id`, `user_id`, `joined_at`, `removed_at`, `blocked`; unique (group, user) | P0 |
+| `profiles` | `id` (auth user ID), `display_name`, `avatar_path`, `budget_cap`, `transport` | P0 |
+| `groups` | `id`, `name`, `owner_id`, `archived_at`, `client_key` (unique) | P0 |
+| `group_members` | `group_id`, `user_id`, `role` (owner, member), `joined_at`, `removed_at`, `blocked`; unique (group, user) | P0 |
 | `join_codes` | `code` (6 chars, no 0/O/1/I), `group_id`, `expires_at`, `revoked_at` | P0 |
-| `experiences` | `id`, `name`, `category`, `description`, `lat`, `lng`, `area`, `price_kind`, `price_min`, `price_max`, `timing_kind`, `sessions` (JSON), `hours_text`, `duration_min`, `meeting_point`, `booking_required`, `booking_url`, `booking_url_referral`, `source`, `checked_on`, `status`, `version` | P0 (referral P2) |
+| `experiences` | `id`, `name`, `category`, `description`, `lat`, `lng`, `area`, `image_url`, `address`, `provider_name`, `price_kind`, `price_min`, `price_max`, `timing_kind`, `sessions` (JSON), `hours_text`, `duration_min`, `meeting_point`, `booking_required`, `booking_url`, `booking_url_referral`, `source`, `checked_on`, `status`, `version` | P0 (referral P2) |
 | `saves` | `experience_id`, `user_id`, `group_id` (null = personal); unique (experience, user, group) | P0 |
-| `picks` | `id`, `group_id`, `organizer_id`, `deadline`, `starred_option_id`, `state` (open, closed, planned, cancelled), `winner_option_id`, `tie_rule`, `override_option_id` | P0 |
+| `picks` | `id`, `group_id`, `organizer_id`, `client_key` (unique), `title`, `created_at`, `closed_at`, `deadline`, `starred_option_id`, `state` (open, closed, planned, cancelled), `winner_option_id`, `tie_rule`, `override_option_id` | P0 |
 | `pick_options` | `id`, `pick_id`, `experience_id`, `proposed_start`, `position` | P0 |
 | `votes` | `option_id`, `user_id`, `value` (yes, maybe, no); unique (option, user) | P0 |
-| `plans` | `id`, `group_id`, `organizer_id`, `experience_id`, `pick_id`, `state` (draft, sent, cancelled), `current_revision`, `client_key` (unique), `cancel_reason`, `repeat_rule` | P0 (repeat P2) |
+| `option_tallies` | `option_id` (primary key), `yes`, `maybe`, `no`; server-maintained counts | P0 |
+| `pick_voter_status` | `pick_id`, `user_id`, `complete`; unique (pick, user), server-maintained | P0 |
+| `join_attempts` | `user_id` (primary key), `window_start`, `attempts`, `blocked_until`; server-only counters, no raw codes | P0 |
+| `plans` | `id`, `group_id`, `organizer_id`, `experience_id`, `pick_id`, `state` (draft, sent, cancelled), `current_revision`, `client_key` (unique), `cancel_reason`, `experience_name`, `experience_category` (snapshots), `updated_at`, `repeat_rule` | P0 (repeat P2) |
 | `plan_revisions` | `plan_id`, `revision`, `start_at`, `end_at` (UTC), `time_zone`, `meeting_point`, `note`, `price_snapshot`, `booking_required`; unique (plan, revision) | P0 |
 | `rsvps` | `plan_id`, `user_id`, `status` (going, cant\_go, awaiting, needs\_reconfirm), `revision`, `removed_at`; unique (plan, user) | P0 |
 | `plan_links` | `token`, `plan_id`, `expires_at`, `revoked_at` | P0 |
@@ -525,9 +528,9 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | `issue_offer_code(plan_id, offer_id)`, `redeem_code(code)` | Offers | Going count ≥ minimum; offer active; partner for redeem | P2 |
 | `stripe_webhook` (Edge Function) | Updates partner and sponsorship status | Verifies Stripe signature; idempotent on event ID | P2 |
 
-**Realtime subscriptions:** `votes` filtered by the pick's options (for tallies) and `rsvps` filtered by plan (for counts). Clients recompute totals from rows; the server stays the source of truth.
+**Realtime subscriptions:** `group_members`, `picks`, `pick_options`, `option_tallies`, `pick_voter_status`, `plans`, `plan_revisions`, `rsvps`. Clients invalidate queries and refetch under RLS. Raw `votes` are never published; only each voter can read their own rows (C1/G9, approved Nov 10).
 
-**Row-level security in one line each:** members read their group, its picks and votes; invitees read their plans, revisions and RSVPs; nobody writes tables directly, only through the functions above; `experiences` is readable by everyone signed in, including guests. Partners (P2) read only their own partner, offer and sponsorship rows and aggregated stats; they can never read users, groups, plans or RSVPs.
+**Row-level security in one line each:** members read their group, its picks, aggregate tallies and voter completion; voters read only their own votes; invitees read their plans, revisions and RSVPs; nobody writes tables directly, only through the functions above; `experiences` publishes catalog rows to signed-in accounts only (D1); profile rows are self-only because budget and transport are private. Roster RPCs must return only display name/avatar projections. Plans are visible only to the organizer or active invitees, never through group membership. Partners (P2) read only their own partner, offer and sponsorship rows and aggregated stats; they can never read users, groups, plans or RSVPs.
 
 ## Demo acceptance (Nov 22)
 
