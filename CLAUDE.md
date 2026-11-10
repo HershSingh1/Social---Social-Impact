@@ -14,7 +14,9 @@ Current scope: the **Nov 22 demo subset** only (spec "P0 demo subset", "In the d
 
 ## Commands
 - `npm install` (repo root: Supabase CLI) and `cd app && npm install`
-- `npm run db:start | db:stop | db:reset | db:test` (root; need Docker)
+- `npm run db:start | db:stop | db:reset | db:test` (root; need Docker, real stack + real pgTAP)
+- `npm run db:test:local` / `db:stress:local`: same migrations and tests on plain Postgres 16, no Docker (`scripts/local-db/`)
+- `npm run db:types` regenerates `app/src/types/database.ts` (needs Docker)
 - `cd app && npm run typecheck`; `npm start` (dev client; Expo Go is NOT supported: Sign in with Apple)
 - Install Expo-pinned deps with `npx expo install`; if that is blocked, take versions from `node_modules/expo/bundledNativeModules.json`.
 
@@ -28,6 +30,14 @@ Current scope: the **Nov 22 demo subset** only (spec "P0 demo subset", "In the d
 7. Accessibility: 44x44 pt targets, 200% text, screen-reader labels, status in words (never color alone).
 8. Permissions are enforced server-side (RLS + functions); hiding a button is never the only protection.
 9. Never log notes, contacts, calendar contents, budgets, photos or raw invite codes.
+
+## Database conventions
+- Every schema change is a new migration in `supabase/migrations` (never edit an applied one). RPC contract: `docs/rpc.md`.
+- New function => add an explicit `GRANT EXECUTE ... TO authenticated` (defaults are locked down in `..0700_grants.sql`).
+  New table => enable RLS, add a SELECT policy, `GRANT SELECT ... TO authenticated`. No client write grants, ever.
+- Functions are `SECURITY DEFINER` with `set search_path = public, pg_temp`; helpers live in schema `private`.
+- Errors: raise an exception whose message is a snake_case code; the app maps codes to copy.
+- Tests: pgTAP in `supabase/tests/NN_*.test.sql`; each file is standalone (helper header is duplicated on purpose).
 
 ## Process
 Milestones M0..M6 (see `docs/progress.md`): stop after each, summarize, wait. Commit after each coherent step.

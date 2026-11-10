@@ -1,0 +1,2 @@
+-- Seed data runs after migrations on `supabase db reset`.
+-- M3 adds the 40+ placeholder-marked experiences here (every `source` starts with "PLACEHOLDER:").

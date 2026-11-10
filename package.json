@@ -7,7 +7,10 @@
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
     "db:new": "supabase migration new",
-    "app": "npm --prefix app run start"
+    "app": "npm --prefix app run start",
+    "db:test:local": "scripts/local-db/run-tests.sh",
+    "db:stress:local": "scripts/local-db/concurrency.sh",
+    "db:types": "supabase gen types typescript --local > app/src/types/database.ts"
   },
   "devDependencies": {
     "supabase": "^2.0.0"
