@@ -2,8 +2,9 @@
 // Onboarding, Home & Groups, Discover and Planning Flow sections). Names follow Figma's variable names.
 // Screens read from here and never hard-code a color, size or font.
 //
-// Not from Figma yet: `space` and `radius` below. Figma has no variables for them, so they still need to be
-// compared against the Components page (see TEC-6).
+// Figma has no variables for spacing, radii or shadows. `radius`, `inset`, `size` and `shadow` below are
+// measured from the nodes named in their comments (Components page 3:2 and the Discover, Planning Flow and
+// Activity frames). `space` is a general scale for gaps between things and is not read from one node.
 
 export const color = {
   // Surfaces
@@ -43,8 +44,54 @@ export const color = {
   heat: ['#ffefd6', '#ffc46b', '#7a3a50', '#431d2d'],
 } as const;
 
-export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
-export const radius = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
+export const space = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
+
+// Corner radii as measured in Figma.
+export const radius = {
+  xs: 6, // Tag (4:175)
+  sm: 10, // Small button (4:159), Input field (4:201), image tile (28:4880)
+  md: 12, // Large button (4:157)
+  lg: 16, // Card (28:5705)
+  xl: 20, // Top corners of the bottom sheet (28:4876)
+  pill: 999, // Chip (4:170 is 17 on a 34 pt height, so a full pill)
+} as const;
+
+// Padding and gaps inside components, as measured in Figma.
+export const inset = {
+  buttonLarge: 20, // horizontal, Large button (4:157)
+  buttonSmall: 14, // horizontal, Small button (4:159)
+  chip: 14, // horizontal (4:170)
+  tag: 8, // horizontal (4:175)
+  field: 14, // horizontal, Input field (4:201)
+  fieldGap: 6, // between an Input's label and its field (4:199)
+  cardX: 16, cardY: 12, // Card (28:5705)
+  sheetX: 20, sheetTop: 10, sheetGap: 14, // Bottom sheet (28:4876); its bottom padding is the 34 pt home-indicator inset
+} as const;
+
+// Fixed sizes as measured in Figma. Hit areas still grow to `minTap` where a control is smaller.
+export const size = {
+  buttonLarge: 52, // (4:157)
+  buttonSmall: 36, // (4:159)
+  chip: 34, // (4:170)
+  tag: 24, // (4:175)
+  field: 48, // (4:201)
+  avatar: { xs: 24, sm: 32, md: 40, lg: 56, xl: 88 }, // Avatar sizes (4:182 to 4:190)
+  grabber: { width: 36, height: 5, radius: 3 }, // Bottom sheet handle (28:4877)
+} as const;
+
+// Shadows as measured in Figma, as React Native `boxShadow` layers (supported on RN 0.88).
+export const shadow = {
+  // Card (28:5705): 0 8 24 -4 rgba(66,28,46,.09), 0 1 3 rgba(66,28,46,.05)
+  card: [
+    { offsetX: 0, offsetY: 8, blurRadius: 24, spreadDistance: -4, color: 'rgba(66,28,46,0.09)' },
+    { offsetX: 0, offsetY: 1, blurRadius: 3, color: 'rgba(66,28,46,0.05)' },
+  ],
+  // Primary button on the screen frames (28:4908): 0 1 1 rgba(67,29,45,.12), 0 4 6 rgba(67,29,45,.28)
+  button: [
+    { offsetX: 0, offsetY: 1, blurRadius: 1, color: 'rgba(67,29,45,0.12)' },
+    { offsetX: 0, offsetY: 4, blurRadius: 6, color: 'rgba(67,29,45,0.28)' },
+  ],
+} as const;
 
 // Font families are loaded in `fonts.ts`. Custom fonts need one family name per weight, so there is no fontWeight.
 const inter = { regular: 'Inter_400Regular', medium: 'Inter_500Medium', semibold: 'Inter_600SemiBold' } as const;
