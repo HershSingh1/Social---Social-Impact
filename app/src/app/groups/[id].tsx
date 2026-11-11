@@ -1,7 +1,8 @@
-import { useLocalSearchParams } from 'expo-router';
-import { GroupRosterScreen } from '../../features/groups';
+import { router, useLocalSearchParams } from 'expo-router';
+import { GroupDetailScreen } from '../../features/groups';
 
 export default function GroupRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  return <GroupRosterScreen groupId={id} />;
+  return <GroupDetailScreen groupId={id} onOpenPick={pickId => router.push(`/pick/${pickId}`)}
+    onOpenPlan={planId => router.push(`/plan/${planId}`)} />;
 }

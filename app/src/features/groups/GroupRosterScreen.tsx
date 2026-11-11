@@ -4,7 +4,7 @@ import { color, space, type } from '../../ui/theme';
 import type { Member } from './api';
 import { useGroupRoster } from './useGroupRoster';
 
-function MemberRow({ member }: { member: Member }) {
+export function MemberRow({ member }: { member: Member }) {
   return <View style={styles.row}>
     {/* Photos need a storage URL, which isn't decided yet, so everyone shows an initial for now. */}
     <Avatar name={member.name} />
