@@ -52,7 +52,7 @@
   "jest": {
     "preset": "jest-expo",
     "testMatch": [
-      "**/__tests__/**/*.test.tsx"
+      "**/__tests__/**/*.test.{ts,tsx}"
     ]
   }
 }
