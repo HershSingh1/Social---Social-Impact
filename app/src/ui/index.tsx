@@ -78,7 +78,8 @@ export function Chip({ label, selected = false, disabled = false, onPress }: {
   label: string; selected?: boolean; disabled?: boolean; onPress: () => void;
 }) {
   return <Pressable accessibilityRole="checkbox" accessibilityLabel={label}
-    accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={styles.hitArea}>
+    accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress}
+    style={[styles.hitArea, styles.hug]}>
     <View style={[styles.chip, selected ? styles.chipSelected : styles.chipDefault, disabled && styles.dimmed]}>
       <Label style={[type.subhead, { color: selected ? color.onPrimary : color.text }]}>{selected ? `✓ ${label}` : label}</Label>
     </View>
@@ -106,11 +107,11 @@ export function Avatar({ name, uri, size: avatarSize = 'md' }: { name: string; u
   </View>;
 }
 
-// The overlap is a quarter of the avatar width. Figma doesn't specify one yet.
+// Overlap is 30% of the avatar width, as in the Figma stacks (7 pt on 24 pt avatars, 10 pt on 32 pt).
 export function AvatarStack({ people, size: avatarSize = 'sm' }: {
   people: { id: string; name: string; uri?: string }[]; size?: AvatarSize;
 }) {
-  const overlap = -Math.round(size.avatar[avatarSize] / 4);
+  const overlap = -Math.round(size.avatar[avatarSize] * inset.avatarOverlap);
   return <View style={styles.stack} accessible accessibilityLabel={people.map(p => p.name).join(', ')}>
     {people.map((person, index) => <View key={person.id} style={index > 0 && { marginLeft: overlap }}
       accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -179,11 +180,14 @@ const styles = StyleSheet.create({
   bodyText: { ...type.body, color: color.text, flexShrink: 1 },
   gap: { gap: space.xs },
   flex: { flex: 1 },
+  // Vertical padding on the visible controls is absorbed by their Figma heights at normal text size and gives
+  // enlarged text room to breathe at 200% (a 22 pt line + 8 + 8 = 38 pt, under the 52 and 36 pt minimums).
   // Hit area: never smaller than 44 x 44 pt, whatever size the visible control is.
   hitArea: { minHeight: minTap, minWidth: minTap, justifyContent: 'center' },
+  hug: { alignSelf: 'flex-start' }, // a chip is as wide as its label (64 pt for "Label" in Figma), not the whole row
   control: { alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: space.sm },
-  buttonLarge: { minHeight: size.buttonLarge, minWidth: minTap, paddingHorizontal: inset.buttonLarge, borderRadius: radius.md },
-  buttonSmall: { minHeight: size.buttonSmall, minWidth: minTap, paddingHorizontal: inset.buttonSmall, borderRadius: radius.sm },
+  buttonLarge: { minHeight: size.buttonLarge, minWidth: minTap, paddingHorizontal: inset.buttonLarge, paddingVertical: space.sm, borderRadius: radius.md },
+  buttonSmall: { minHeight: size.buttonSmall, minWidth: minTap, paddingHorizontal: inset.buttonSmall, paddingVertical: space.sm, borderRadius: radius.sm },
   primary: { backgroundColor: color.primary },
   secondary: { backgroundColor: color.bg, borderColor: color.lineStrong, borderWidth: 1 },
   text: { backgroundColor: 'transparent' },
@@ -192,9 +196,9 @@ const styles = StyleSheet.create({
   dimmed: { opacity: 0.5 },
   fieldWrap: { gap: inset.fieldGap },
   fieldLabel: { ...type.subhead, color: color.textSecondary },
-  input: { ...type.body, color: color.text, minHeight: size.field, paddingHorizontal: inset.field, backgroundColor: color.bg,
+  input: { ...type.body, color: color.text, minHeight: size.field, paddingHorizontal: inset.field, paddingVertical: space.sm, backgroundColor: color.bg,
     borderWidth: 1, borderColor: color.lineStrong, borderRadius: radius.sm },
-  chip: { minHeight: size.chip, paddingHorizontal: inset.chip, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: size.chip, paddingHorizontal: inset.chip, paddingVertical: space.sm, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   chipDefault: { backgroundColor: color.bg, borderWidth: 1, borderColor: color.lineStrong },
   chipSelected: { backgroundColor: color.primary },
   card: { paddingHorizontal: inset.cardX, paddingVertical: inset.cardY, gap: space.md, backgroundColor: color.bg,
@@ -203,13 +207,13 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   initial: { color: color.text },
   stack: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
-  tag: { alignSelf: 'flex-start', minHeight: size.tag, paddingHorizontal: inset.tag, borderRadius: radius.xs,
+  tag: { alignSelf: 'flex-start', minHeight: size.tag, paddingHorizontal: inset.tag, paddingVertical: space.xs, borderRadius: radius.xs,
     alignItems: 'center', justifyContent: 'center' },
   tag_neutral: { backgroundColor: color.surface },
   tag_dark: { backgroundColor: color.primary },
   tag_outline: { borderWidth: 1, borderColor: color.lineStrong },
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, flexGrow: 1 },
+  content: { paddingHorizontal: inset.screen, paddingVertical: space.lg, gap: space.lg, flexGrow: 1 },
   state: { padding: space.lg, gap: space.md },
   sheetRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: color.overlay, opacity: 0.5 },

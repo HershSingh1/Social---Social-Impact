@@ -1,7 +1,7 @@
 import { expect, jest, test } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import { Avatar, Button, Chip, Sheet, Tag } from '..';
+import { Avatar, AvatarStack, Button, Chip, Sheet, Tag } from '..';
 import { inset, minTap, radius, size } from '../theme';
 
 const flat = (node: { props: { style?: unknown } }) => StyleSheet.flatten(node.props.style as never) as Record<string, number>;
@@ -66,4 +66,22 @@ test('a sheet still closes from its Close button', async () => {
   await render(<Sheet title="Example" visible onClose={onClose}><Tag label="Inside" /></Sheet>);
   await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Close Example' })));
   expect(onClose).toHaveBeenCalled();
+});
+
+test('stacked avatars overlap like the Figma stacks: 7 pt on 24 pt, 10 pt on 32 pt', async () => {
+  const people = [{ id: '1', name: 'Alex' }, { id: '2', name: 'Jordan' }];
+  const result = await render(<AvatarStack people={people} size="xs" />);
+  const margins = (root: typeof result) => root.toJSON() && JSON.stringify(root.toJSON());
+  expect(margins(result)).toContain('"marginLeft":-7');
+  await result.rerender(<AvatarStack people={people} size="sm" />);
+  expect(margins(result)).toContain('"marginLeft":-10');
+});
+
+test('screen content sits 20 pt from the sides', () => {
+  expect(inset.screen).toBe(20);
+});
+
+test('a chip is as wide as its label, not the whole row', async () => {
+  await render(<Chip label="Outdoors" onPress={() => {}} />);
+  expect((flat(screen.getByRole('checkbox', { name: 'Outdoors' })) as Record<string, unknown>).alignSelf).toBe('flex-start');
 });
