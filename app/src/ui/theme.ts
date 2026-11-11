@@ -77,6 +77,7 @@ export const size = {
   chip: 34, // (4:170)
   tag: 24, // (4:175)
   field: 48, // (4:201)
+  codeBox: 58, // one box of the join code entry (28:3061)
   thumb: 56, // image tile in a list card (28:3640)
   avatar: { xs: 24, sm: 32, md: 40, lg: 56, xl: 88 }, // Avatar sizes (4:182 to 4:190)
   grabber: { width: 36, height: 5, radius: 3 }, // Bottom sheet handle (28:4877)
