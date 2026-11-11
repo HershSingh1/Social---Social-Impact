@@ -1,7 +1,25 @@
 import { useState } from 'react';
 import { Redirect } from 'expo-router';
+import { View } from 'react-native';
 import { Avatar, AvatarStack, Button, Card, Chip, Empty, ErrorState, Label, Loading, Screen, Sheet, Tag, TextField } from '../../ui';
-import { type } from '../../ui/theme';
+import { color, radius, space, type } from '../../ui/theme';
+
+const swatches = Object.entries(color).filter(([, value]) => typeof value === 'string') as [string, string][];
+const textStyles = Object.entries(type).filter(([name]) => name !== 'title' && name !== 'heading');
+
+// Every color and text style from theme.ts, for checking against the Figma Style Guide on a phone.
+function Tokens() {
+  return <Card>
+    <Label style={type.heading}>Colors</Label>
+    {swatches.map(([name, value]) => <View key={name} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+      <View style={{ width: 44, height: 44, borderRadius: radius.sm, backgroundColor: value, borderWidth: 1, borderColor: color.line }}
+        accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+      <Label>{name} {value}</Label>
+    </View>)}
+    <Label style={type.heading}>Text styles</Label>
+    {textStyles.map(([name, style]) => <Label key={name} style={style}>{name}: The quick brown fox</Label>)}
+  </Card>;
+}
 
 function Gallery() {
   const [name, setName] = useState('Keep this text');
@@ -14,8 +32,9 @@ function Gallery() {
   }
   return <Screen>
     <Label accessibilityRole="header" style={type.title}>Core UI kit</Label>
-    <Label>Provisional styling. Figma tokens and fonts have not been verified.</Label>
+    <Label>Colors and fonts come from the Figma Style Guide. Spacing and corner radius are still provisional (Figma has no variables for them), so compare each component against the Figma Components page.</Label>
     <Label>Check at 200% system text size, with VoiceOver or TalkBack, and with the keyboard open.</Label>
+    <Tokens />
     <Card>
       <Label style={type.heading}>Buttons</Label>
       <Button label="Primary — slow action" onPress={slowAction} />

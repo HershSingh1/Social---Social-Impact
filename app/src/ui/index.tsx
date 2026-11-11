@@ -169,6 +169,6 @@ const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.lg, flexGrow: 1 },
   state: { padding: space.lg, gap: space.md },
   sheetRoot: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: color.primary, opacity: 0.5 },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: color.overlay, opacity: 0.5 },
   sheet: { maxHeight: '100%', backgroundColor: color.bg, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
 });
