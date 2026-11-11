@@ -57,6 +57,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | G10 | Sign in with Apple exists only on iOS; the demo uses an Android phone. | Maya (organizer) demos on the iPhone with Apple; the Android phone signs in with Google (D2). | Decided by D2 |
 | G11 | T01 and T04 are named but defined in the product spec. | Copy definitions into `spec.md` "Demo acceptance". | Open |
 | G12 | Table names differ between sections: `sponsor_impressions`/`sponsor_clicks` vs `sponsor_stats_daily`; `partner_stats_monthly` and `referral_programs` missing from the tables list; `availability.updated_at` missing. | Use the section names (P2-08, P2-06, P2-09, P1-01) and add them to the table list. | Open |
+| G13 | P0-03 doesn't say how a create retry is made safe. PR #3 added `groups.client_key` for this. | Signature is `create_group(client_key uuid, name text)` (spec had `name` only). Same key returns the same group and its code; returns `{group_id, code, expires_at}`. A key already used by another person is refused. | Decided Nov 10 — TEC-27 |
 
 ## Figma vs spec (Linear PRO-9)
 
