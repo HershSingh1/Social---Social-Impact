@@ -26,7 +26,7 @@ Nov 8, 2026 · @Noah
 | P0-07 | Not shown | Full |
 | P0-08, 09 | Full, using Close now | Full |
 | P0-10 | Draft from winner | Organizer override |
-| P0-11, 12 | Full for flexible-time experiences | Fixed sessions, unknown-fact acknowledgement |
+| P0-11, 12 | Full for flexible-time experiences | Listed sessions shown as hints, unknown-fact acknowledgement |
 | P0-13 | RSVP | Plan links, adding invitees |
 | P0-14 | Time change with reconfirmation | All material fields, minor edits |
 | P0-15 | Booking notice | Cancellation |
@@ -84,7 +84,7 @@ Nov 8, 2026 · @Noah
 - **Who:** anyone. Required to create a group, start a pick or plan, save, or suggest a listing; the app asks to sign in at that moment and returns to the same step afterwards.
 - **Methods:** Sign in with Apple; email one-time code (6 digits, valid 10 minutes, at most 5 tries). Google arrives in P1 (P1-08).
 - **Guest upgrade:** a guest who signs in keeps the same user ID, so memberships, votes and RSVPs stay. If that Apple ID or email already belongs to another account, show "This sign-in already has an account" and offer to sign in to that account instead; the guest's activity stays with the guest.
-- **Profile:** display name required; avatar optional (JPEG, PNG or WebP up to 10 MB, cropped square).
+- **Profile:** display name required. Profile photos are not in Phase 1b, so people show as initials; when they arrive, a photo is JPEG, PNG or WebP up to 10 MB, cropped square.
 - **Account deletion (Pilot):** Settings → Delete account removes the profile, saves, votes and RSVPs, and hands each owned group to its longest-standing member (or archives it if nobody else is in it). Sent plans they organized are cancelled with the reason "Organizer deleted their account". Required by the App Store for guests too.
 - **Done when:** a guest who voted and RSVP'd signs in with Apple and still sees their vote and answer; a signed-out person who taps Create group signs in and lands back on the Create group sheet.
 
@@ -124,7 +124,7 @@ Nov 8, 2026 · @Noah
 
 - **Shows:** image (or a category placeholder), category, name, description (up to 2,000 characters), duration, location and meeting point, price with its label, timing, source with checked-on date, booking notice.
 - **Price labels:** Exact ("$38 per person"), Estimated ("About $5 to $9"), Free, Unknown ("Price unknown. Check the source."). Currency is always USD in P0.
-- **Timing:** Fixed sessions listed as chips ("Sat 10:00 AM") with "Plans must use one of these sessions"; flexible hours as text with "Pick any time within these hours"; unknown as "Hours unknown".
+- **Timing:** Fixed sessions listed as chips ("Sat 10:00 AM") with "Pick any time for your plan"; flexible hours as text with "Pick any time within these hours"; unknown as "Hours unknown".
 - **Booking:** if required, "Booking required. Going here does not reserve a spot." plus a link to the provider; otherwise "No booking needed".
 - **Actions:** Start a plan (primary), Add to group pick, Save. Guests see Start a plan and Save as sign-in prompts.
 - **Removed listing:** "This listing was removed"; existing plans keep their snapshot.
@@ -182,11 +182,11 @@ Nov 8, 2026 · @Noah
 
 - **Who:** account holders. A draft starts from Plan this (P0-10) or from Start a plan on Detail.
 - **Fields:** group; recipients (members, preselected, each can be unticked; the organizer alone is allowed and shows "No other invitees yet"); date; start and end time; meeting point (1–200 characters, prefilled from the experience); note (up to 500 characters, optional).
-- **Time rules:** start must be in the future and end after start. Fixed-session experiences offer only their listed sessions. Flexible experiences must fit their known hours; if hours are unknown, show "Hours unverified" and allow it. All times show in America/Chicago with the zone named on Review.
+- **Time rules:** start must be in the future and end after start. Fixed-session experiences show their listed sessions as hints, and any time can be picked. Flexible experiences must fit their known hours; if hours are unknown, show "Hours unverified" and allow it. All times show in America/Chicago with the zone named on Review.
 - **Unknown facts (Pilot):** if price or booking is unknown, Send requires ticking "I understand the price/booking is unconfirmed".
 - **Review:** one summary card with What, When, Where, Who, Cost and Booking, then Send invitation.
 - **Draft saving:** drafts are kept on the phone with their request ID and labeled "Saved on this phone"; they don't sync to other phones, and only the organizer sees them (Plans hub → Drafts). Send needs a connection.
-- **Done when:** a past time, an end before start, or a time outside a fixed session can't be sent, each with its own message under the field.
+- **Done when:** a past time or an end before start can't be sent, each with its own message under the field.
 
 ### P0-12 Sending
 
@@ -206,8 +206,8 @@ Nov 8, 2026 · @Noah
 
 ### P0-14 Material changes
 
-- **Material (new revision):** date, start or end time, meeting point (the venue itself comes from the catalog and can't be edited), fixed session, a higher price, a price going from unknown to known, or a newly required booking.
-- **Minor (same revision):** note text, spelling fixes, a lower price, removing a booking requirement. Invitees see an "Updated" label; nobody's answer changes.
+- **Material (new revision):** date, start or end time, meeting point (the venue itself comes from the catalog and can't be edited), or a newly required booking.
+- **Minor (same revision):** note text, spelling fixes, any price change (higher, lower, or unknown to known), removing a booking requirement. Invitees see an "Updated" label; a price change also shows the old and new price. Nobody's answer changes.
 - **Before saving a material edit,** the organizer sees the changed fields and "2 Going invitees will need to reconfirm."
 - **After saving:** every Going invitee except the organizer becomes Needs reconfirmation. Awaiting reply and Can't go stay as they are. Invitees see a banner with old and new values and Still going / Can't go buttons. Several edits in a row only need confirmation of the latest.
 - **Stale answers:** each answer carries the revision it was given against. If it isn't the current revision, the server rejects it, and the app reloads the plan and asks again.
@@ -219,7 +219,6 @@ Nov 8, 2026 · @Noah
 - **Cancel (Pilot):** the organizer taps Cancel plan, picks a reason (Weather, Not enough people, Venue closed, Other with text) and confirms. The plan stays visible to invitees with "Maya cancelled this plan: {reason}"; RSVPs and edits are disabled. Start a new plan from it creates a fresh draft with no answers carried over.
 - **Cancellation wins:** an RSVP or edit that arrives at the same moment as a cancellation fails, and the plan stays cancelled.
 - **Booking notice:** on Detail, Review and Plan whenever booking is required: "Booking required. Going here does not reserve a spot." with the provider link. The app never records or implies a ticket or reservation.
-- **Unavailable session:** if the catalog marks the plan's session unavailable, the plan shows a warning to the organizer with Change session (a material edit) or Cancel; the group is never moved silently.
 
 ### Plan and RSVP states
 
