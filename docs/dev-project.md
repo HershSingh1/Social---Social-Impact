@@ -43,6 +43,23 @@ hosted Auth**. Complete and verify those dashboard settings separately.
 After TEC-3 is reviewed, use `supabase db push --dry-run`, inspect the target and
 migrations, then `supabase db push`. Never use `db reset --linked` on shared data.
 
+## Check sign-in and access rules
+
+After `npm run check:env` passes and the migration is pushed, run these from `app/`
+(they print PASS or FAIL only, never keys or codes):
+
+```sh
+npm run check:auth -- anon                         # guests are off; signed-out visitors read nothing
+npm run check:auth -- request you@team.com         # emails you a 6-digit code
+npm run check:auth -- verify you@team.com 123456   # signs in with the code, then checks the access rules
+npm run check:auth -- reject you@team.com          # a wrong code is refused
+```
+
+`request` creates an account for that address if none exists. Supabase's built-in email
+only delivers to members of your Supabase organization and allows very few messages an
+hour, so use a team address and wait between tries (or set up custom SMTP). To check that
+an expired code fails, request a code, wait 10 minutes, then run `verify`: it should FAIL.
+
 ## Verification still required
 
 - [ ] `supabase link` and `migration list --linked` succeed against the team dev project.
