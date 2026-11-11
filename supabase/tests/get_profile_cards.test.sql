@@ -8,9 +8,10 @@ create function public.uid_of(text) returns uuid language sql immutable as 'sele
 -- alice+carol share group A; bob is alone in B; dana is only on alice's sent plan;
 -- gone was removed from A; blk is blocked in A; eve is unconnected; fay is only on a draft plan.
 insert into auth.users (id) select uid_of(n) from unnest(array['alice','bob','carol','dana','gone','blk','eve','fay']) n;
-insert into profiles (id, display_name, avatar_path, budget_cap, transport)
-  select uid_of(n), initcap(n), n || '.png', 30, 'car'
-  from unnest(array['alice','bob','carol','dana','gone','blk','eve','fay']) n;
+-- The sign-up trigger (TEC-26) already created a profile row per auth user; fill them in.
+update profiles p set display_name = initcap(n), avatar_path = n || '.png', budget_cap = 30, transport = 'car'
+  from unnest(array['alice','bob','carol','dana','gone','blk','eve','fay']) n
+  where p.id = uid_of(n);
 insert into groups (id, name, owner_id, client_key) values
   (uid_of('a'), 'Group A', uid_of('alice'), uid_of('a')),
   (uid_of('b'), 'Group B', uid_of('bob'), uid_of('b'));
