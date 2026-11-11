@@ -1,9 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, Empty, ErrorState, Label, Loading, Screen, Tag } from '../../ui';
 import { color, minTap, space, type } from '../../ui/theme';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
+import { EditPlanSheet } from './EditPlanSheet';
+import { ReconfirmBanner } from './ReconfirmBanner';
 import { usePlan } from './usePlan';
 
 type Props = { planId: string; viewerId: string; justSent?: boolean };
@@ -33,6 +36,7 @@ function Details({ plan }: { plan: Plan }) {
 export function PlanScreen({ planId, viewerId, justSent }: Props) {
   const query = usePlan(planId);
   const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
   const retry = () => { void query.refetch(); };
 
   if (query.isPending) return <Screen><Loading label="Loading the plan…" /></Screen>;
@@ -59,6 +63,16 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
     <Label accessibilityRole="header" style={type.title1}>{plan.name}</Label>
     {plan.state === 'cancelled' && <Tag label={`Cancelled${plan.cancelReason ? `: ${plan.cancelReason}` : ''}`} variant="dark" />}
     <Details plan={plan} />
+
+    {plan.state === 'sent' && me?.status === 'needs_reconfirm' && !started && (() => {
+      const was = plan.revisions.find(r => r.revision === me.answeredRevision);
+      return was ? <ReconfirmBanner was={was} now={plan.current} onAnswer={answer} errorMessage={saveFailed} /> : null;
+    })()}
+    {plan.state === 'sent' && isOrganizer && !started && <>
+      <Button label="Edit plan" variant="secondary" onPress={() => setEditing(true)} />
+      {editing && <EditPlanSheet plan={plan} visible onClose={() => setEditing(false)}
+        onSaved={() => { setEditing(false); void queryClient.invalidateQueries({ queryKey: planKey(plan.id) }); }} />}
+    </>}
 
     {plan.state === 'sent' && me && <View style={styles.section}>
       <Label accessibilityRole="header" style={styles.overline}>ARE YOU GOING?</Label>

@@ -1,10 +1,10 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, ErrorState, Label, Loading, Screen, TextField } from '../../ui';
 import { color, space, type } from '../../ui/theme';
-import { formatClock, formatWhen, PLAN_TIME_ZONE, zoneLabel } from '../../lib/time';
+import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
+import { TimeField } from './TimeField';
 import {
   discardDraft, fetchPlanContext, loadDraft, newDraft, saveDraft, sendPlan, SendRefused, validateDraft,
   type DraftErrors, type DraftSource, type PlanContext, type PlanDraft,
@@ -14,20 +14,6 @@ type Props = { source: DraftSource; organizerId: string; proposedStart?: string;
 
 const DEFAULT_DURATION_MIN = 120;
 const tomorrowAtTen = () => { const d = new Date(Date.now() + 86_400_000); d.setUTCHours(16, 0, 0, 0); return d; }; // 10 AM CST
-
-function TimeField({ label, value, error, onChange }: { label: string; value: string; error?: string; onChange: (d: Date) => void }) {
-  return <View style={styles.field}>
-    <Label style={styles.fieldLabel}>{label}</Label>
-    <View style={styles.pickers}>
-      {/* Pickers run in Austin time whatever the phone's zone is (rule 4). */}
-      <DateTimePicker value={new Date(value)} mode="date" display="compact" timeZoneName={PLAN_TIME_ZONE}
-        accessibilityLabel={`${label} date`} onChange={(_, d) => { if (d) onChange(d); }} />
-      <DateTimePicker value={new Date(value)} mode="time" display="compact" timeZoneName={PLAN_TIME_ZONE} minuteInterval={5}
-        accessibilityLabel={`${label} time`} onChange={(_, d) => { if (d) onChange(d); }} />
-    </View>
-    {error && <Label accessibilityRole="alert" accessibilityLiveRegion="polite">{error}</Label>}
-  </View>;
-}
 
 function Review({ draft, context }: { draft: PlanDraft; context: PlanContext }) {
   const who = context.members.filter(m => draft.recipients.includes(m.userId)).map(m => m.name);
@@ -139,7 +125,6 @@ const styles = StyleSheet.create({
   caption: { ...type.caption, color: color.textSecondary },
   field: { gap: space.xs },
   fieldLabel: { ...type.subhead, color: color.textSecondary },
-  pickers: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   reviewRow: { gap: space.xxs },
 });

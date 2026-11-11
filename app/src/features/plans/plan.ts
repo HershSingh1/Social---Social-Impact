@@ -1,12 +1,14 @@
 import { supabase } from '../../lib/supabase';
 
 export type RsvpStatus = 'going' | 'awaiting' | 'cant_go' | 'needs_reconfirm';
-export type Invitee = { userId: string; name: string; status: RsvpStatus; isOrganizer: boolean };
+export type Invitee = { userId: string; name: string; status: RsvpStatus; isOrganizer: boolean;
+  /** The revision this person last answered; older than current while they need to reconfirm. */
+  answeredRevision: number };
 export type Revision = { revision: number; startAt: string; endAt: string; meetingPoint: string; note: string | null;
   price: { kind: string; min: number | null; max: number | null }; bookingRequired: boolean };
 export type Plan = {
   id: string; name: string; organizerId: string; state: 'sent' | 'cancelled' | 'draft'; cancelReason: string | null;
-  current: Revision; previous: Revision | null; invitees: Invitee[];
+  current: Revision; revisions: Revision[]; invitees: Invitee[];
 };
 export type Counts = Record<RsvpStatus, number>;
 
@@ -47,23 +49,22 @@ export async function fetchPlan(planId: string): Promise<Plan> {
   const p = plan.data as { id: string; experience_name: string; organizer_id: string; state: Plan['state']; cancel_reason: string | null; current_revision: number };
   const [revisions, rsvps] = await Promise.all([
     supabase.from('plan_revisions').select('revision, start_at, end_at, meeting_point, note, price_snapshot, booking_required')
-      .eq('plan_id', planId).gte('revision', p.current_revision - 1),
-    supabase.from('rsvps').select('user_id, status').eq('plan_id', planId).is('removed_at', null),
+      .eq('plan_id', planId),
+    supabase.from('rsvps').select('user_id, status, revision').eq('plan_id', planId).is('removed_at', null),
   ]);
   if (revisions.error) throw revisions.error;
   if (rsvps.error) throw rsvps.error;
   const revs = (revisions.data ?? []) as RevisionRow[];
   const current = revs.find(r => r.revision === p.current_revision);
   if (!current) throw new Error('missing_revision');
-  const previous = revs.find(r => r.revision === p.current_revision - 1);
-  const rows = (rsvps.data ?? []) as { user_id: string; status: RsvpStatus }[];
+  const rows = (rsvps.data ?? []) as { user_id: string; status: RsvpStatus; revision: number }[];
   const cards = await supabase.rpc('get_profile_cards', { user_ids: rows.map(r => r.user_id) });
   if (cards.error) throw cards.error;
   const nameOf = new Map(((cards.data ?? []) as { user_id: string; display_name: string }[]).map(c => [c.user_id, c.display_name]));
   return {
     id: p.id, name: p.experience_name, organizerId: p.organizer_id, state: p.state, cancelReason: p.cancel_reason,
-    current: toRevision(current), previous: previous ? toRevision(previous) : null,
-    invitees: rows.map(r => ({ userId: r.user_id, name: nameOf.get(r.user_id) ?? 'Member', status: r.status, isOrganizer: r.user_id === p.organizer_id }))
+    current: toRevision(current), revisions: revs.map(toRevision),
+    invitees: rows.map(r => ({ userId: r.user_id, name: nameOf.get(r.user_id) ?? 'Member', status: r.status, isOrganizer: r.user_id === p.organizer_id, answeredRevision: r.revision }))
       // Organizer first, then by name.
       .sort((a, b) => Number(b.isOrganizer) - Number(a.isOrganizer) || a.name.localeCompare(b.name)),
   };
