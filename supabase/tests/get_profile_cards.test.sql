@@ -1,0 +1,80 @@
+-- TEC-102 access rules. Runs after core (…000100) and get_profile_cards (…000500) migrations.
+begin;
+create extension if not exists pgtap with schema extensions;
+set search_path = public, extensions;
+select no_plan();
+create function public.uid_of(text) returns uuid language sql immutable as 'select md5($1)::uuid';
+
+-- alice+carol share group A; bob is alone in B; dana is only on alice's sent plan;
+-- gone was removed from A; blk is blocked in A; eve is unconnected; fay is only on a draft plan.
+insert into auth.users (id) select uid_of(n) from unnest(array['alice','bob','carol','dana','gone','blk','eve','fay']) n;
+insert into profiles (id, display_name, avatar_path, budget_cap, transport)
+  select uid_of(n), initcap(n), n || '.png', 30, 'car'
+  from unnest(array['alice','bob','carol','dana','gone','blk','eve','fay']) n;
+insert into groups (id, name, owner_id, client_key) values
+  (uid_of('a'), 'Group A', uid_of('alice'), uid_of('a')),
+  (uid_of('b'), 'Group B', uid_of('bob'), uid_of('b'));
+insert into group_members (group_id, user_id, role, removed_at, blocked) values
+  (uid_of('a'), uid_of('alice'), 'owner', null, false),
+  (uid_of('a'), uid_of('carol'), 'member', null, false),
+  (uid_of('a'), uid_of('gone'), 'member', now(), false),
+  (uid_of('a'), uid_of('blk'), 'member', null, true),
+  (uid_of('b'), uid_of('bob'), 'owner', null, false);
+insert into plans (id, group_id, organizer_id, experience_name, experience_category, state, current_revision, client_key) values
+  (uid_of('sent'), uid_of('a'), uid_of('alice'), 'V', 'Outdoors', 'sent', 1, uid_of('sent')),
+  (uid_of('draft'), uid_of('a'), uid_of('alice'), 'V', 'Outdoors', 'draft', 1, uid_of('draft'));
+insert into plan_revisions select p, 1, now() + interval '1 day', now() + interval '2 days',
+  'America/Chicago', 'Entrance', null, '{"kind":"free"}', false
+  from unnest(array[uid_of('sent'), uid_of('draft')]) p;
+insert into rsvps values
+  (uid_of('sent'), uid_of('alice'), 'going', 1, null),
+  (uid_of('sent'), uid_of('dana'), 'awaiting', 1, null),
+  (uid_of('sent'), uid_of('gone'), 'awaiting', 1, now()),
+  (uid_of('draft'), uid_of('alice'), 'going', 1, null),
+  (uid_of('draft'), uid_of('fay'), 'awaiting', 1, null);
+set constraints all immediate;
+
+create table public.all_ids as
+  select array_agg(uid_of(n)) as ids from unnest(array['alice','bob','carol','dana','gone','blk','eve','fay']) n;
+grant select on public.all_ids to authenticated;
+grant execute on function public.uid_of(text) to authenticated;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', uid_of('alice')::text, true);
+select set_eq($$select user_id from get_profile_cards((select ids from all_ids))$$,
+  $$select uid_of(n) from unnest(array['alice','carol','dana']) n$$,
+  'Alice sees only herself, a group-mate and a plan invitee');
+select ok(exists (select 1 from get_profile_cards(array[uid_of('carol')])
+  where display_name = 'Carol' and avatar_path = 'carol.png'), 'Group-mate name and avatar returned');
+select is((select count(*)::int from get_profile_cards(array[uid_of('bob')])), 0, 'Stranger in another group returns nothing');
+select is((select count(*)::int from get_profile_cards(array[uid_of('eve')])), 0, 'Unconnected user returns nothing');
+select is((select count(*)::int from get_profile_cards(array[uid_of('gone')])), 0, 'Removed member returns nothing');
+select is((select count(*)::int from get_profile_cards(array[uid_of('blk')])), 0, 'Blocked member returns nothing');
+select is((select count(*)::int from get_profile_cards(array[uid_of('fay')])), 0, 'Draft-only invitee returns nothing');
+select is((select count(*)::int from get_profile_cards(null)), 0, 'Null list returns nothing');
+select results_eq($$select to_jsonb(c)::text from get_profile_cards(array[uid_of('carol')]) c$$,
+  $$select jsonb_build_object('user_id', uid_of('carol'), 'display_name', 'Carol', 'avatar_path', 'carol.png')::text$$,
+  'Row has only user_id, display_name, avatar_path');
+select throws_ok($$select budget_cap from get_profile_cards(array[uid_of('carol')])$$, '42703', null, 'budget_cap is not exposed');
+select throws_ok($$select transport from get_profile_cards(array[uid_of('carol')])$$, '42703', null, 'transport is not exposed');
+select is((select count(*)::int from profiles where id = uid_of('carol')), 0, 'Direct read of another profile stays blocked');
+
+select set_config('request.jwt.claim.sub', uid_of('bob')::text, true);
+select is((select count(*)::int from get_profile_cards(array[uid_of('alice'), uid_of('carol')])), 0, 'Bob cannot read Group A members');
+
+select set_config('request.jwt.claim.sub', uid_of('dana')::text, true);
+select ok(exists (select 1 from get_profile_cards(array[uid_of('alice')])), 'Invitee sees the plan organizer');
+select is((select count(*)::int from get_profile_cards(array[uid_of('carol')])), 0, 'Invitee does not see an unrelated group member');
+
+select set_config('request.jwt.claim.sub', uid_of('gone')::text, true);
+select is((select count(*)::int from get_profile_cards(array[uid_of('alice'), uid_of('carol')])), 0, 'Removed member sees no one from the old group');
+
+select set_config('request.jwt.claim.sub', '', true);
+select is((select count(*)::int from get_profile_cards(array[uid_of('alice')])), 0, 'No signed-in user returns nothing');
+reset role;
+
+select ok(not has_function_privilege('anon', 'public.get_profile_cards(uuid[])', 'execute'), 'anon cannot execute');
+select ok(not has_function_privilege('public', 'public.get_profile_cards(uuid[])', 'execute'), 'PUBLIC cannot execute');
+select ok(has_function_privilege('authenticated', 'public.get_profile_cards(uuid[])', 'execute'), 'authenticated can execute');
+select * from finish();
+rollback;

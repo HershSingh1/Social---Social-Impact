@@ -13,6 +13,7 @@ Status: **Open** (default in use, decision pending) · **Decided** · **Changed*
 | D3 | **The demo covers all of P0, then P1, then P2 group memory.** Each feature works for real along the demo path. Phases are built in order and each passes a check on real phones first. P2 revenue (P2-06 to P2-10) is on hold. | The spec's entry gates for P1 and P2 (pilot results) no longer apply to the demo. "Before the pilot" items become Phase 1b. Server drafts (C2) and session times (G6) are now required in Phase 1b. The Nov 22 date is dropped. | Decided Nov 10 |
 | D7 | **The team designs the demo.** Its script, cast, staging and date are decided by the team closer to the time. AI agents don't plan or schedule it. | None in the spec. The three-act script in the Decision Register is a starting sketch, not a commitment. Phone checks test each phase's features, whatever the final demo looks like. | Decided Nov 10 |
 | D8 | **Niche spots are a P2 feature.** Members of the local community can upload lesser-known spots that offer a more unusual experience than the venues in the catalog. It came from the revenue plan. | Not in the spec yet. Needs its own requirement (how uploads are reviewed, how niche spots differ from P0-18 suggested listings, whether it's free or paid). Not scheduled; tracked in Linear for definition. | Noted Nov 10 |
+| D9 | **iOS only for now.** The team has no Android devices to test on, so we build and check on iPhone only. The app stays Expo + React Native, so Android and web are not ruled out later; we just don't build, test or accept work for them now. A browser preview (`npx expo start --web`) may be used to look at screens, but it is not a target and nothing is accepted on it. We do not build a separate web app first and port it to iOS: it would mean writing the UI twice, and native features (Sign in with Apple, maps, device permissions) would be built twice. | D2: Google sign-in stays in P0 and works on iPhone, so the Android client ID is not needed yet. G10: the Android phone in the demo is dropped, so every demo phone is an iPhone and Apple and Google sign-in are both checked on iPhone. `spec.md` "demo is done when" needs "at least one iPhone and one Android" changed to iPhones only. Android Maps key (TEC-103) stays in the backlog. TEC-4 drops the Android build. Rule 7 and the phone checks in AGENTS.md apply to iPhone. | Decided Nov 10 |
 
 D4–D6 (fresh start from Figma, the `v2-figma` branch, Linear as tracker) are process decisions recorded in the Decision Register only.
 
@@ -70,7 +71,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 
 ## Linear
 
-Every entry above is tracked in Linear project "Sidequest P0–P2" (team Product & Design): D1/D2 → PRO-1 (done), C1 → PRO-2, C2 → PRO-3, C3 → PRO-4, C4 → PRO-5, C5 → PRO-6, C6 → PRO-7, C7 → PRO-8, F1–F5 → PRO-9, G1–G12 → PRO-10.
+Every entry above is tracked in Linear project "Sidequest P0–P2" (team Product & Design): D1/D2 → PRO-1 (done), D9 → PRO-13 (done), C1 → PRO-2, C2 → PRO-3, C3 → PRO-4, C4 → PRO-5, C5 → PRO-6, C6 → PRO-7, C7 → PRO-8, F1–F5 → PRO-9, G1–G12 → PRO-10.
 
 ## Checked, no conflict
 

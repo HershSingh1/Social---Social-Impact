@@ -534,7 +534,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 
 ## Demo acceptance (Nov 22)
 
-**The demo is done when all eight steps below pass live, in order, on three phones (at least one iPhone and one Android), with no app restart and no manual database edits.** Requirement IDs refer to the [Sidequest Product Spec](https://claude.ai/artifact/5zUQic45hFucMoWdYPRZkN).
+**The demo is done when all eight steps below pass live, in order, on three iPhones (iOS only, decision D9), with no app restart and no manual database edits.** Requirement IDs refer to the [Sidequest Product Spec](https://claude.ai/artifact/5zUQic45hFucMoWdYPRZkN).
 
 | Step | What happens on stage | Passes when | Spec |
 | --- | --- | --- | --- |

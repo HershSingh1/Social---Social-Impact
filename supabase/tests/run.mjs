@@ -1,5 +1,5 @@
 // Fast SQL/pgTAP check without Docker. Hosted Auth and Realtime still need integration checks.
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { pgtap } from '@electric-sql/pglite-pgtap';
 const db = new PGlite({ extensions: { pgtap } });
@@ -16,13 +16,15 @@ try {
     create publication supabase_realtime;
     alter default privileges in schema public grant all on tables to anon, authenticated;
   `);
-  for (const m of ['20261110000100_core.sql', '20261110000200_profiles_set_profile.sql'])
-    await db.exec(await readFile(new URL(`../migrations/${m}`, import.meta.url), 'utf8'));
-  const results = [];
-  for (const t of ['core_rls.test.sql', 'profiles.test.sql'])
-    results.push(...await db.exec(await readFile(new URL(`./${t}`, import.meta.url), 'utf8')));
-  const lines = results.flatMap(result => result.rows.flatMap(row => Object.values(row)))
-    .filter(value => typeof value === 'string' && /^(ok |not ok |1\.\.|#)/m.test(value));
+  const migrations = new URL('../migrations/', import.meta.url);
+  for (const f of (await readdir(migrations)).filter(f => f.endsWith('.sql')).sort())
+    await db.exec(await readFile(new URL(f, migrations), 'utf8'));
+  const lines = [];
+  for (const f of (await readdir(new URL('./', import.meta.url))).filter(f => f.endsWith('.test.sql')).sort()) {
+    const results = await db.exec(await readFile(new URL(f, import.meta.url), 'utf8'));
+    lines.push(...results.flatMap(result => result.rows.flatMap(row => Object.values(row)))
+      .filter(value => typeof value === 'string' && /^(ok |not ok |1\.\.|#)/m.test(value)));
+  }
   console.log(lines.join('\n'));
   if (!lines.some(line => /^1\.\./m.test(line)) || lines.some(line => /^not ok /m.test(line))) process.exitCode = 1;
 } finally { await db.close(); }
