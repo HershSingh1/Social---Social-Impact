@@ -45,7 +45,7 @@ function Gallery() {
   }
   return <Screen>
     <Label accessibilityRole="header" style={type.title}>Core UI kit</Label>
-    <Label>Colors and fonts come from the Figma Style Guide. Radii, insets, sizes and shadows are measured from the Figma Components page and the Discover and Planning Flow frames (node ids are in theme.ts). Avatar overlap and the Screen padding are not specified in Figma yet.</Label>
+    <Label>Colors and fonts come from the Figma Style Guide. Radii, insets, sizes and shadows are measured from the Figma Components page and the Discover and Planning Flow frames (node ids are in theme.ts). The side padding of Screen (20) and the avatar overlap (30%) are measured too. Screen top and bottom padding (16) is not specified in Figma.</Label>
     <Label>Check at 200% system text size, with VoiceOver or TalkBack, and with the keyboard open.</Label>
     <Tokens />
     <Card>

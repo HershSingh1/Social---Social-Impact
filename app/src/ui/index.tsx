@@ -106,11 +106,11 @@ export function Avatar({ name, uri, size: avatarSize = 'md' }: { name: string; u
   </View>;
 }
 
-// The overlap is a quarter of the avatar width. Figma doesn't specify one yet.
+// Overlap is 30% of the avatar width, as in the Figma stacks (7 pt on 24 pt avatars, 10 pt on 32 pt).
 export function AvatarStack({ people, size: avatarSize = 'sm' }: {
   people: { id: string; name: string; uri?: string }[]; size?: AvatarSize;
 }) {
-  const overlap = -Math.round(size.avatar[avatarSize] / 4);
+  const overlap = -Math.round(size.avatar[avatarSize] * inset.avatarOverlap);
   return <View style={styles.stack} accessible accessibilityLabel={people.map(p => p.name).join(', ')}>
     {people.map((person, index) => <View key={person.id} style={index > 0 && { marginLeft: overlap }}
       accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   tag_dark: { backgroundColor: color.primary },
   tag_outline: { borderWidth: 1, borderColor: color.lineStrong },
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: space.lg, gap: space.lg, flexGrow: 1 },
+  content: { paddingHorizontal: inset.screen, paddingVertical: space.lg, gap: space.lg, flexGrow: 1 },
   state: { padding: space.lg, gap: space.md },
   sheetRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: color.overlay, opacity: 0.5 },

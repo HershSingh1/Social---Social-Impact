@@ -66,6 +66,8 @@ export const inset = {
   fieldGap: 6, // between an Input's label and its field (4:199)
   cardX: 16, cardY: 12, // Card (28:5705)
   sheetX: 20, sheetTop: 10, sheetGap: 14, // Bottom sheet (28:4876); its bottom padding is the 34 pt home-indicator inset
+  screen: 20, // side padding of screen content: 157 elements sit at x = 20 in the 390 pt frames (only the sides are measured)
+  avatarOverlap: 0.3, // share of an avatar's width that the next one covers: 24 pt steps 17 pt (7 pt), 32 pt steps 22 pt (10 pt)
 } as const;
 
 // Fixed sizes as measured in Figma. Hit areas still grow to `minTap` where a control is smaller.
