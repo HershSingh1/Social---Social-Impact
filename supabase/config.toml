@@ -1,0 +1,33 @@
+# Local development parity. Linking does NOT apply these Auth settings remotely.
+project_id = "sidequest-dev"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+major_version = 17
+
+[auth]
+enabled = true
+site_url = "sidequest://"
+additional_redirect_urls = ["sidequest://auth/callback"]
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+otp_length = 6
+otp_expiry = 600
+
+[auth.email.template.magic_link]
+subject = "Your Sidequest sign-in code"
+content_path = "./supabase/templates/email-code.html"
+
+[auth.email.template.confirmation]
+subject = "Your Sidequest sign-in code"
+content_path = "./supabase/templates/email-code.html"
