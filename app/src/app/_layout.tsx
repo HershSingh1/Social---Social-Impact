@@ -28,6 +28,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="groups" />
                 <Stack.Screen name="join" />
+                <Stack.Screen name="plan" />
                 <Stack.Screen name="dev" />
               </Stack.Protected>
             </Stack>}
