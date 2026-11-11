@@ -80,3 +80,8 @@ test('stacked avatars overlap like the Figma stacks: 7 pt on 24 pt, 10 pt on 32 
 test('screen content sits 20 pt from the sides', () => {
   expect(inset.screen).toBe(20);
 });
+
+test('a chip is as wide as its label, not the whole row', async () => {
+  await render(<Chip label="Outdoors" onPress={() => {}} />);
+  expect((flat(screen.getByRole('checkbox', { name: 'Outdoors' })) as Record<string, unknown>).alignSelf).toBe('flex-start');
+});
