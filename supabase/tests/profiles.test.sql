@@ -44,6 +44,40 @@ select is((select count(*) from profiles), 1::bigint, 'RLS hides the first profi
 reset role;
 select is((select display_name from profiles where id = pg_temp.id('newbie')), 'Newbie 2', 'First profile unchanged by other');
 
+-- City and age (TEC-108, PRO-9 F1): optional, own-row only, never shared
+select has_function('public', 'set_profile', array['text', 'text', 'text', 'integer'], 'set_profile takes city and age');
+select hasnt_function('public', 'set_profile', array['text', 'text'], 'Old two-argument set_profile is gone');
+set local role authenticated;
+select pg_temp.as_user('newbie');
+select lives_ok($$select public.set_profile('Newbie', null, '  Austin, TX  ', 20)$$, 'City and age saved');
+select is((select city from profiles), 'Austin, TX', 'City is trimmed');
+select is((select age from profiles), 20::smallint, 'Age is stored');
+select lives_ok($$select public.set_profile('Newbie')$$, 'Omitting city and age is allowed');
+select is((select city from profiles), null, 'Omitted city is cleared');
+select is((select age from profiles), null, 'Omitted age is cleared');
+select lives_ok($$select public.set_profile('Newbie', null, '   ', null)$$, 'Blank city is allowed');
+select is((select city from profiles), null, 'Blank city is stored as null');
+select lives_ok($$select public.set_profile('Newbie', null, repeat('c', 60), null)$$, '60-character city accepted');
+select throws_ok($$select public.set_profile('Newbie', null, repeat('c', 61), null)$$, 'P0001', 'invalid_city', '61-character city rejected');
+select lives_ok($$select public.set_profile('Newbie', null, null, 13)$$, 'Age 13 accepted');
+select lives_ok($$select public.set_profile('Newbie', null, null, 120)$$, 'Age 120 accepted');
+select throws_ok($$select public.set_profile('Newbie', null, null, 12)$$, 'P0001', 'invalid_age', 'Age 12 rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, 121)$$, 'P0001', 'invalid_age', 'Age 121 rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, 0)$$, 'P0001', 'invalid_age', 'Age 0 rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, -5)$$, 'P0001', 'invalid_age', 'Negative age rejected');
+select lives_ok($$select public.set_profile('Newbie', null, 'Dallas', 30)$$, 'Valid city and age saved again');
+select throws_ok($$select public.set_profile('Changed', null, 'Houston', 12)$$, 'P0001', 'invalid_age', 'Rejected call fails');
+select is((select display_name || '/' || city || '/' || age from profiles), 'Newbie/Dallas/30', 'A rejected call changes nothing');
+
+reset role;
+set local role authenticated;
+select pg_temp.as_user('other');
+select is((select count(*) from profiles where id = pg_temp.id('newbie')), 0::bigint, 'Other users cannot read city or age');
+reset role;
+select is(pg_get_function_result('public.get_profile_cards(uuid[])'::regprocedure),
+  'TABLE(user_id uuid, display_name text, avatar_path text)', 'get_profile_cards does not return city or age');
+select ok(not has_function_privilege('anon', 'public.set_profile(text, text, text, integer)', 'EXECUTE'), 'Signed-out cannot execute the new set_profile');
+
 -- Anonymous sign-ins are off in config.toml; anonymous JWTs and signed-out clients can call no RPC
 set local role authenticated;
 select pg_temp.as_user('newbie', true);
