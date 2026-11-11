@@ -11,6 +11,10 @@ avoid recursive membership/RSVP policies. Profiles are self-only because they ho
 private preferences; future roster/profile RPCs must project only public name/avatar
 fields. `client_key` on groups and picks follows the repository's create-write rule.
 
+A profile row may exist before the person picks a name: `display_name` is null until
+`set_profile` runs, and a blank name is still rejected. Every write function must raise
+`profile_required` while the name is null (TEC-26).
+
 Feature RPCs (including transactional tally/status maintenance, join attempt limits,
 membership caps and lifecycle validation) remain out of scope. Rate limiting stores
 per-user counters, never raw codes. P1/P2 fields and tables are not implemented.

@@ -6,7 +6,7 @@ grant usage on schema private to authenticated;
 
 create table public.profiles (
   id uuid primary key references auth.users(id),
-  display_name text not null check (length(trim(display_name)) > 0),
+  display_name text check (display_name is null or length(trim(display_name)) > 0), -- null until set_profile runs
   avatar_path text, budget_cap numeric check (budget_cap >= 0), transport text
 );
 create table public.groups (

@@ -478,7 +478,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 
 | Table | Key columns | Phase |
 | --- | --- | --- |
-| `profiles` | `id` (auth user ID), `display_name`, `avatar_path`, `budget_cap`, `transport` | P0 |
+| `profiles` | `id` (auth user ID), `display_name` (null until first set), `avatar_path`, `budget_cap`, `transport` | P0 |
 | `groups` | `id`, `name`, `owner_id`, `archived_at`, `client_key` (unique) | P0 |
 | `group_members` | `group_id`, `user_id`, `role` (owner, member), `joined_at`, `removed_at`, `blocked`; unique (group, user) | P0 |
 | `join_codes` | `code` (6 chars, no 0/O/1/I), `group_id`, `expires_at`, `revoked_at` | P0 |

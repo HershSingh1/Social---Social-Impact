@@ -34,7 +34,12 @@ insert into plan_revisions values (pg_temp.id('plan-a'), 1, now() + interval '1 
   'America/Chicago', 'Entrance', 'Private note', '{"kind":"free"}', false);
 insert into rsvps values (pg_temp.id('plan-a'), pg_temp.id('alice'), 'going', 1, null),
   (pg_temp.id('plan-a'), pg_temp.id('dana'), 'awaiting', 1, null);
+-- A profile can exist before the person has chosen a name (created at first sign-in).
+insert into auth.users (id) select pg_temp.id(n) from unnest(array['erin','frank']) n;
+insert into profiles (id) values (pg_temp.id('erin'));
 set constraints all immediate;
+select ok((select display_name is null from profiles where id = pg_temp.id('erin')), 'Profile can exist without a name');
+select throws_ok($$insert into profiles (id, display_name) values (pg_temp.id('frank'), '   ')$$, '23514', null, 'A blank name is still rejected');
 
 select ok(bool_and(c.relrowsecurity), 'RLS on every core table') from pg_class c
   join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r';
