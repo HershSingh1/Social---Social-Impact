@@ -25,7 +25,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Sidequest uses your location to center the map on activities near you."
+        }
+      ]
     ],
     "scheme": "sidequest"
   }

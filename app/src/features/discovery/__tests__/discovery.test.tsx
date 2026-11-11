@@ -8,7 +8,7 @@ const mockOrder = jest.fn<() => Promise<{ data: unknown; error: unknown }>>();
 jest.mock('../../../lib/supabase', () => ({ supabase: { from: () => ({ select: () => ({ order: () => mockOrder() }) }) } }));
 
 const row = (name: string, category: string, price_kind: Experience['price_kind'], price_max: number | null): Experience =>
-  ({ id: name, name, category, description: '', lat: null, lng: null, area: null, image_url: null, timing_kind: 'flexible',
+  ({ id: name, name, category, description: '', lat: null, lng: null, area: null, image_url: null, timing_kind: 'flexible', hours_text: null, booking_required: false,
     price_kind, price_min: price_max, price_max });
 const CATALOG = [row('Mural walk', 'Art and walks', 'free', 0), row('Pottery', 'Make something', 'exact', 38), row('Trivia', 'Games and trivia', 'unknown', null)];
 
