@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AvatarStack, Button, Card, Chip, ErrorState, Label, Loading, Screen, Tag } from '@/ui';
 import { color, radius, space, type } from '@/ui/theme';
+import { useAuth } from '@/features/auth';
 import { addOptionToPick, castVote, fetchExperience, pickKey, usePick, type PickDetail } from './api';
-import { toggledVote, votePoints, type VoteValue } from './model';
+import { planThisPath, toggledVote, votePoints, type VoteValue } from './model';
+import { PickOrganizerActions } from './PickOrganizerActions';
+import { PickResultScreen } from './PickResultScreen';
 
 function updateVote(pick: PickDetail, optionId: string, next: VoteValue | null): PickDetail {
   return { ...pick, options: pick.options.map(option => {
@@ -20,6 +23,7 @@ function updateVote(pick: PickDetail, optionId: string, next: VoteValue | null):
 export function PickVotingScreen() {
   const { id = '', addExperienceId } = useLocalSearchParams<{ id: string; addExperienceId?: string }>();
   const query = usePick(id); const client = useQueryClient();
+  const { session } = useAuth(); const viewerId = session?.user.id ?? '';
   const addition = useQuery({ queryKey: ['experience', addExperienceId], queryFn: () => fetchExperience(addExperienceId!), enabled: Boolean(addExperienceId) });
   const [failed, setFailed] = useState<{ optionId: string; value: VoteValue | null }>();
   const mutation = useMutation({ mutationFn: ({ optionId, value }: { optionId: string; value: VoteValue | null }) => castVote(optionId, value),
@@ -33,6 +37,14 @@ export function PickVotingScreen() {
   if (query.isError || !query.data) return <Screen><ErrorState message="Couldn’t load this pick." onRetry={async () => { await query.refetch(); }} /></Screen>;
   const pick = query.data; const closed = pick.state !== 'open' || new Date(pick.deadline).getTime() <= query.dataUpdatedAt;
   const complete = pick.voters.filter(voter => voter.complete); const hasAnyVote = pick.options.some(option => option.myVote);
+  const refresh = () => { void client.invalidateQueries({ queryKey: pickKey(id) }); };
+  // Closed, planned or cancelled: the same result on every phone.
+  if (pick.state !== 'open') return <Screen>
+    <View style={styles.center}><Label accessibilityRole="header" style={type.title2}>Result</Label><Label style={styles.secondary}>{pick.title}</Label></View>
+    <PickResultScreen pick={pick} viewerId={viewerId} onChanged={refresh}
+      onOpenPlan={planId => router.push(`/plan/${planId}`)}
+      onPlanThis={optionId => { const option = pick.options.find(o => o.id === optionId); if (option) router.push(planThisPath(pick, option) as never); }} />
+  </Screen>;
   return <Screen>
     <View style={styles.center}><Label accessibilityRole="header" style={type.title2}>Vote</Label><Label style={styles.secondary}>{pick.title}</Label></View>
     <Card><View style={styles.row}><View style={styles.grow}><Label style={type.bodyStrong}>{closed ? 'Voting closed' : `Closes ${new Date(pick.deadline).toLocaleString()}`}</Label>
@@ -61,6 +73,7 @@ export function PickVotingScreen() {
       </Card>; })}
     <Card><Label style={type.bodyStrong}>Built-in tie-breaker</Label><Label>If points tie, fewer No votes wins, then the starred option, then the option added first.</Label></Card>
     {closed && <Label accessibilityRole="alert" style={styles.centerText}>Voting closed</Label>}
+    {pick.organizerId === viewerId && <PickOrganizerActions pickId={pick.id} allowClose={!closed} onDone={refresh} />}
   </Screen>;
 }
 

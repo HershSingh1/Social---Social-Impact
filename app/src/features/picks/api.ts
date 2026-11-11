@@ -23,6 +23,12 @@ export type PickDetail = {
   deadline: string;
   state: string;
   starredOptionId?: string;
+  /** Set by the server when the pick closes (TEC-30); null when nobody voted. */
+  winnerOptionId?: string;
+  /** The server's sentence naming the rule that decided the winner. */
+  tieRule?: string;
+  /** The plan made from this pick, when the viewer is invited to it (RLS). */
+  planId?: string;
   options: PickOption[];
   voters: { id: string; name: string; avatar?: string; complete: boolean }[];
 };
@@ -91,13 +97,14 @@ export async function addOptionToPick(pickId: string, experienceId: string) {
 
 export async function fetchPick(id: string): Promise<PickDetail> {
   const { data: pick, error: pickError } = await supabase.from('picks')
-    .select('id,title,group_id,organizer_id,deadline,state,starred_option_id,groups(name)').eq('id', id).single();
+    .select('id,title,group_id,organizer_id,deadline,state,starred_option_id,winner_option_id,tie_rule,groups(name)').eq('id', id).single();
   fail(pickError);
   if (!pick) throw new Error('Pick not found.');
-  const [{ data: optionRows, error: optionError }, { data: statusRows, error: statusError }, { data: memberRows, error: memberError }] = await Promise.all([
+  const [{ data: optionRows, error: optionError }, { data: statusRows, error: statusError }, { data: memberRows, error: memberError }, { data: planRow }] = await Promise.all([
     supabase.from('pick_options').select('id,experience_id,proposed_start,position,experiences(name,category,area),option_tallies(yes,maybe,no),votes(value)').eq('pick_id', id).order('position'),
     supabase.from('pick_voter_status').select('user_id,complete').eq('pick_id', id),
     supabase.from('group_members').select('user_id').eq('group_id', pick.group_id).is('removed_at', null).eq('blocked', false),
+    supabase.from('plans').select('id').eq('pick_id', id).neq('state', 'draft').maybeSingle(),
   ]);
   fail(optionError); fail(statusError); fail(memberError);
   const memberIds = (memberRows ?? []).map(row => row.user_id);
@@ -120,10 +127,29 @@ export async function fetchPick(id: string): Promise<PickDetail> {
   const group = Array.isArray(pick.groups) ? pick.groups[0] : pick.groups;
   return { id: pick.id, title: pick.title, groupId: pick.group_id, groupName: group?.name ?? 'Group',
     organizerId: pick.organizer_id, deadline: pick.deadline, state: pick.state,
-    starredOptionId: pick.starred_option_id ?? undefined, options,
+    starredOptionId: pick.starred_option_id ?? undefined, winnerOptionId: pick.winner_option_id ?? undefined,
+    tieRule: pick.tie_rule ?? undefined, planId: (planRow as { id: string } | null)?.id, options,
     voters: memberIds.map(userId => ({ id: userId, name: profileMap.get(userId)?.display_name ?? 'Member',
       avatar: profileMap.get(userId)?.avatar_path ?? undefined, complete: status.get(userId) ?? false })) };
 }
+
+const PICK_ERRORS: Record<string, string> = {
+  not_organizer: 'Only the organizer can do this.',
+  pick_cancelled: 'This pick was cancelled.',
+  pick_not_cancellable: 'This pick already has a plan, so it can’t be cancelled.',
+};
+/** A refusal from close_pick or cancel_pick, in words; anything else stays a connection error. */
+export class PickRefused extends Error {}
+async function organizerCall(fn: 'close_pick' | 'cancel_pick', pickId: string) {
+  const { error } = await supabase.rpc(fn, { pick_id: pickId });
+  if (!error) return;
+  const known = Object.keys(PICK_ERRORS).find(code => error.message.includes(code));
+  throw known ? new PickRefused(PICK_ERRORS[known]) : new Error(error.message);
+}
+/** Close now (P0-09). Closing twice changes nothing; the server ranks and writes the winner. */
+export const closePick = (pickId: string) => organizerCall('close_pick', pickId);
+/** Cancel an open or closed pick before it becomes a plan. */
+export const cancelPick = (pickId: string) => organizerCall('cancel_pick', pickId);
 
 export function usePick(id: string) {
   const client = useQueryClient();
@@ -135,6 +161,8 @@ export function usePick(id: string) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'option_tallies' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pick_voter_status', filter: `pick_id=eq.${id}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pick_options', filter: `pick_id=eq.${id}` }, refresh)
+      // Close, cancel and Planned all change the pick row, so every phone moves to the result together.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'picks', filter: `id=eq.${id}` }, refresh)
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [client, id]);
