@@ -12,9 +12,11 @@ export type Experience = Filterable & {
   area: string | null;
   image_url: string | null;
   timing_kind: 'fixed' | 'flexible' | 'unknown';
+  hours_text: string | null;
+  booking_required: boolean;
 };
 
-const COLUMNS = 'id, name, category, description, lat, lng, area, image_url, price_kind, price_min, price_max, timing_kind';
+const COLUMNS = 'id, name, category, description, lat, lng, area, image_url, price_kind, price_min, price_max, timing_kind, hours_text, booking_required';
 
 export const EXPERIENCES_KEY = ['experiences'] as const;
 

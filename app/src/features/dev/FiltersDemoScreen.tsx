@@ -7,7 +7,7 @@ import { Card, Label, Screen, Tag } from '../../ui';
 import { type } from '../../ui/theme';
 
 const row = (name: string, category: string, price_kind: Experience['price_kind'], price_min: number | null, price_max: number | null): Experience =>
-  ({ id: name, name, category, description: '', lat: null, lng: null, area: null, image_url: null, timing_kind: 'flexible', price_kind, price_min, price_max });
+  ({ id: name, name, category, description: '', lat: null, lng: null, area: null, image_url: null, timing_kind: 'flexible', hours_text: null, booking_required: false, price_kind, price_min, price_max });
 // A few made-up rows so the filters can be tried on a phone with no sign-in or database.
 const SAMPLE = [
   row('Sample mural walk', 'Art and walks', 'free', 0, 0), row('Sample pottery class', 'Make something', 'exact', 38, 38),
