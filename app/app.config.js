@@ -7,8 +7,6 @@ module.exports = ({ config }) => {
       EAS_PROJECT_ID: projectId,
       EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
       EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-      ...(process.env.EAS_BUILD_PLATFORM === 'android'
-        ? { GOOGLE_MAPS_ANDROID_API_KEY: mapsKey } : {}),
     };
     for (const [name, value] of Object.entries(required)) {
       if (!value || /YOUR[-_]/i.test(value)) throw new Error(`Configure ${name} before building`);
@@ -21,7 +19,7 @@ module.exports = ({ config }) => {
       ...(config.plugins ?? []),
       'expo-dev-client',
       'expo-apple-authentication',
-      ['react-native-maps', { androidGoogleMapsApiKey: mapsKey }],
+      ['react-native-maps', mapsKey ? { androidGoogleMapsApiKey: mapsKey } : {}], // key is backlogged (TEC-103); Android map is blank without it
     ],
     extra: { ...config.extra, ...(projectId ? { eas: { ...config.extra?.eas, projectId } } : {}) },
   };

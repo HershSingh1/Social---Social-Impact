@@ -5,7 +5,7 @@ Simulator builds. No cloud build, signing registration, account linking or devic
 installation has been run.
 
 **No paid Apple account?** Use the iOS Simulator for the iPhone side (see "iOS
-Simulator" below). The Android phone and the Maps key are still needed.
+Simulator" below). The Android phone is still needed.
 
 ## Link the team's accounts
 
@@ -15,10 +15,9 @@ For this dynamic config, set the returned project UUID as `EAS_PROJECT_ID` in
 `.env` (or accept EAS's suggested `extra.eas.projectId` update in app.json).
 Do not commit an Expo access token.
 
-Fill `.env` with the shared Supabase dev URL/anon key and restricted Android Maps
-key. Add those same values and `EAS_PROJECT_ID` to the Expo project's **development**
-environment. Use plain text for public IDs and sensitive visibility for the Maps
-key; config evaluation needs it locally as well as remotely. Variables prefixed
+Fill `.env` with the shared Supabase dev URL/anon key. Add those same values and
+`EAS_PROJECT_ID` to the Expo project's **development** environment. Use plain text
+for public IDs. (The Android Maps key is backlogged; see below.) Variables prefixed
 `EXPO_PUBLIC_` are bundled into the app. No server/provider secrets belong there.
 The build profile selects this environment; it does not upload your ignored `.env`.
 
@@ -28,10 +27,12 @@ The build profile selects this environment; it does not upload your ignored `.en
   and allow EAS to manage its signing credentials. Register each test iPhone using
   `npx eas-cli@latest device:create` before building. Enable Developer Mode on phones
   where required. The config plugin sets the entitlement; it cannot grant team access.
-- Google Cloud: enable Maps SDK for Android and billing, create a key restricted to
-  `com.sidequest.app` plus the EAS development keystore SHA-1. Obtain that fingerprint
-  from `npx eas-cli@latest credentials -p android`. A different signing key needs a
-  matching restriction. Rebuild after changing the embedded Maps key.
+- **Android Maps key: backlogged (TEC-103).** Builds no longer require it. Until it is
+  added, the Android map shows no tiles; iPhone and the iOS Simulator use Apple Maps and
+  are unaffected. When picked up: enable Maps SDK for Android and billing in Google Cloud,
+  create a key restricted to `com.sidequest.app` plus the EAS development keystore SHA-1
+  (`npx eas-cli@latest credentials -p android`), add it as `GOOGLE_MAPS_ANDROID_API_KEY`
+  (sensitive visibility in EAS) and rebuild.
 - Supabase: complete Apple, Google and email provider configuration in TEC-1.
   Sign-in screens and the map screen are separate feature issues.
 
@@ -71,7 +72,7 @@ npx eas-cli@latest build --platform ios --profile development-simulator
 
 The `development-simulator` profile inherits `development` and sets
 `ios.simulator = true`. The same required-value check applies, so set the Supabase
-values and `EAS_PROJECT_ID` as above. The Maps key is only required for Android.
+values and `EAS_PROJECT_ID` as above. No Maps key is needed.
 
 Not yet tested: whether Sign in with Apple completes inside the Simulator (it may
 need the Simulator signed in to an Apple ID) and whether Supabase accepts the
@@ -83,7 +84,7 @@ the fallback (decision D2).
 | Phone | OS/build ID | Opens app | Same dev project | Sign-in | Map visible |
 | --- | --- | --- | --- | --- | --- |
 | iPhone (or iOS Simulator if no paid Apple account) | Pending | Pending | Pending | Apple pending | Pending |
-| Android | Pending | Pending | Pending | Google pending | Pending |
+| Android | Pending | Pending | Pending | Google pending | Backlogged (TEC-103) |
 | Third phone (team selects OS) | Pending | Pending | Pending | Pending | Pending |
 
 Use this as an installation check, not a demo script. Once feature screens exist,
