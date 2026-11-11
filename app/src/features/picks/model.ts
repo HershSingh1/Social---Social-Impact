@@ -59,3 +59,23 @@ export function toggledVote(current: VoteValue | undefined, pressed: VoteValue):
 export function votePoints(tally: { yes: number; maybe: number }): number {
   return tally.yes * 2 + tally.maybe;
 }
+
+export type Ranked = { id: string; position: number; tally: { yes: number; maybe: number; no: number } };
+
+/** Final order on the result screen, by the server's rules (P0-09): points, then fewer No votes, then the
+ * starred option, then the option added first. The server's winner always goes first. */
+export function finalOrder<T extends Ranked>(options: readonly T[], starredId?: string, winnerId?: string): T[] {
+  return [...options].sort((a, b) =>
+    Number(b.id === winnerId) - Number(a.id === winnerId)
+    || votePoints(b.tally) - votePoints(a.tally)
+    || a.tally.no - b.tally.no
+    || Number(b.id === starredId) - Number(a.id === starredId)
+    || a.position - b.position);
+}
+
+/** Query string for the plan draft (TEC-42) opened by Plan this. */
+export function planThisPath(pick: { id: string; groupId: string }, option: { experienceId: string; proposedStart?: string }): string {
+  const params = new URLSearchParams({ group: pick.groupId, experience: option.experienceId, pick: pick.id });
+  if (option.proposedStart) params.set('start', option.proposedStart);
+  return `/plan/new?${params.toString()}`;
+}
