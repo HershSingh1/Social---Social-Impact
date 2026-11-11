@@ -12,13 +12,15 @@ insert into auth.users (id) select pg_temp.id(n) from unnest(array['olive','sam'
 update profiles set display_name = 'User ' || substr(id::text, 1, 6);
 update profiles set display_name = 'Olive Owner' where id = pg_temp.id('olive');
 insert into groups (id, name, owner_id, client_key) values
-  (pg_temp.id('g1'), 'Taco Crew', pg_temp.id('olive'), gen_random_uuid());
+  (pg_temp.id('g1'), 'Taco Crew', pg_temp.id('olive'), gen_random_uuid()),
+  (pg_temp.id('g0'), 'Old Crew', pg_temp.id('olive'), gen_random_uuid());
 insert into group_members (group_id, user_id, role) values (pg_temp.id('g1'), pg_temp.id('olive'), 'owner');
-insert into join_codes (code, group_id, expires_at) values
-  ('ABC234', pg_temp.id('g1'), now() + interval '14 days'),
-  ('QWE234', pg_temp.id('g1'), now() - interval '1 day'),
-  ('RTY234', pg_temp.id('g1'), now() + interval '14 days');
-update join_codes set revoked_at = now() where code = 'RTY234';
+-- join_codes_one_active allows one unrevoked code per group, so the expired (not revoked) code
+-- lives on its own group and the revoked code is inserted already revoked.
+insert into join_codes (code, group_id, expires_at, revoked_at) values
+  ('ABC234', pg_temp.id('g1'), now() + interval '14 days', null),
+  ('QWE234', pg_temp.id('g0'), now() - interval '1 day', null),
+  ('RTY234', pg_temp.id('g1'), now() + interval '14 days', now());
 
 set local role authenticated;
 select pg_temp.as_user('sam');
