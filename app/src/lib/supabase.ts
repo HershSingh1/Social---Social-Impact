@@ -10,5 +10,7 @@ if (!url || !anonKey) {
 }
 
 export const supabase = createClient(url, anonKey, {
-  auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
+  auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false,
+    // PKCE: Google sign-in returns a one-time code to sidequest://auth/callback, swapped for a session in the app.
+    flowType: 'pkce' },
 });
