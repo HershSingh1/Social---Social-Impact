@@ -62,7 +62,7 @@ if (command === 'anon') {
     const claims = JSON.parse(Buffer.from(token.split('.')[1] ?? '', 'base64url').toString() || '{}');
     report(claims.role === 'authenticated' && claims.is_anonymous !== true, 'Signed in as a real account, not a guest');
     for (const table of ['experiences', 'groups', 'picks', 'plans', 'votes']) {
-      const read = await call(`/rest/v1/${table}?select=id&limit=1`, { token });
+      const read = await call(`/rest/v1/${table}?select=*&limit=1`, { token });
       report(read.status === 200 && Array.isArray(read.json), `Can read ${table} (returns only what this account may see)`);
     }
     const write = await call('/rest/v1/groups', { method: 'POST', body: { name: 'check' }, token });
