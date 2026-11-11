@@ -35,28 +35,28 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | # | Topic | Conflict | Default we build with | Status |
 | --- | --- | --- | --- | --- |
 | C1 | Vote privacy | "Realtime subscriptions" has clients subscribe to `votes` rows and recompute totals; P0-08 says members never see who voted what. Subscribing to rows exposes `user_id` + `value`. | `votes` readable only by its owner. Server-maintained `option_tallies (option_id, yes, maybe, no)` and `pick_voter_status (pick_id, user_id, complete)`; Realtime on those. Same pattern for P1-01 availability. | Decided Nov 10 — approved by Noah for TEC-3 |
-| C2 | Server drafts | P0-11 says drafts save to the server as fields change; P0-12 says Send *creates* the plan. No draft function, no place for draft recipients, no revision before send. | Demo: drafts live on the phone with their `client_key`; `send_plan` creates the plan. Pilot: add `save_draft(client_key, payload)` and a `plans.draft` jsonb column. | Open |
+| C2 | Server drafts | P0-11 says drafts save to the server as fields change; P0-12 says Send *creates* the plan. No draft function, no place for draft recipients, no revision before send. | Drafts stay on the phone with their `client_key`, labelled "Saved on this phone". `send_plan` creates the plan. No `save_draft` function and no `plans.draft` column. This overrides the D3 note that server drafts are required in Phase 1b. | Changed Nov 11 |
 | C3 | P2 entry gate | Scope table: "at least 25 Austin venues in the catalog with repeat plans". P2 section: "at least 4 pilot groups sent a second plan within 28 days". | Both must hold. | Open |
 | C4 | Private data and revenue | Revenue rules: saves and attendance are "never used to place paid items or shared with partners". P2-06 gives partners saves and reported-outing counts; P2-08 hides sponsored cards from people who saved them. | Reword the rule to "never used to *target* paid items or shared *per person*". Aggregates with at least 10 people are allowed; suppressing a card someone already saved is allowed. | Open |
-| C5 | Budget | P0-17: budget only prefills the person's own filters. P1-05: used in a group filter. P2-03: a separate "budget comfort range". | One `profiles.budget_cap`. P1-05 uses it only after the person opts in. Drop the P2-03 range. | Open |
+| C5 | Budget | P0-17: budget only prefills the person's own filters. P1-05: used in a group filter. P2-03: a separate "budget comfort range". | One `profiles.budget_cap`. P1-05 uses it only after the person opts in. Drop the P2-03 range. | Decided Nov 11 |
 | C6 | Minor price edits | A lower price is a minor edit (same revision), but `price_snapshot` lives on `plan_revisions`. Price and booking changes come from the catalog, not the organizer. | Catalog changes reach plans through a server job. Material changes create a revision; minor ones update the current revision's snapshot and set `plans.updated_at`, which drives the "Updated" label. | Open |
-| C7 | "Venue" | P0-14 lists "venue" as a material edit, but changing the experience is not an edit. | "Venue" means the meeting point. | Open |
+| C7 | "Venue" | P0-14 lists "venue" as a material edit, but changing the experience is not an edit. | "Venue" means where the activity takes place. It comes from the catalog, and the organizer can't edit it on a plan: a different place means a different activity, so cancel and start a new plan. The meeting point is the place the organizer can edit, and changing it is a material edit. | Decided Nov 11 |
 
 ## Gaps
 
 | # | Gap | Default | Status |
 | --- | --- | --- | --- |
 | G1 | `group_members.role` is in P0-03 but not in the Data model table. | Add `role` (`owner`, `member`). | Decided Nov 10 — approved by Noah for TEC-3 |
-| G2 | No functions for revoke code, leave group, allow back, or `save_draft`. | Add `revoke_code`, `leave_group`, `allow_back` (pilot) and `save_draft` (pilot). | Open |
-| G3 | Analytics "event log table" in P0 is never defined. | `events (id, user_id, name, props jsonb, created_at)`, insert-only through `log_event`. | Open |
+| G2 | No functions for revoke code, leave group, allow back, or `save_draft`. | Add `revoke_code`, `leave_group` and `allow_back` in Phase 1b. `save_draft` is dropped (C2). | Decided Nov 11 |
+| G3 | Analytics "event log table" in P0 is never defined. | `events (id, user_id, name, props jsonb, created_at)`, insert-only through `log_event`. | Decided Nov 11 |
 | G4 | `picks` has no `created_at`, `closed_at` or title. | Add all three; title defaults to "What should we do?". | Decided Nov 10 — approved by Noah for TEC-3 |
 | G5 | `experiences` has no image, street address or provider name. | Add `image_url`, `address`, `provider_name`. | Decided Nov 10 — approved by Noah for TEC-3 |
 | G6 | `sessions` JSON shape undefined, so fixed sessions can't be validated. | `[{ "start_local": "2026-11-14T10:00", "end_local": "2026-11-14T12:00" }]` in America/Chicago. | Open |
 | G7 | A removed listing loses what the plan showed. | Snapshot experience name and category on `plans`. | Decided Nov 10 — approved by Noah for TEC-3 |
-| G8 | Account deletion and ownership transfer don't say who becomes owner. | Longest-standing account-holding member; never a guest. Archive if none. | Open |
+| G8 | Account deletion and ownership transfer don't say who becomes owner. | Longest-standing account-holding member; never a guest. Archive if none. | Decided Nov 11 |
 | G9 | Realtime list covers only `votes` and `rsvps`, but the roster (5 s), hub and revision banner need live data. | Also publish `group_members`, `picks`, `pick_options`, `plans`, `plan_revisions`. | Decided Nov 10 — approved by Noah for TEC-3 |
 | G10 | Sign in with Apple exists only on iOS; the demo uses an Android phone. | Maya (organizer) demos on the iPhone with Apple; the Android phone signs in with Google (D2). | Decided by D2 |
-| G11 | T01 and T04 are named but defined in the product spec. | Copy definitions into `spec.md` "Demo acceptance". | Open |
+| G11 | T01 and T04 are named but defined in the product spec. | Copy definitions into `spec.md` "Demo acceptance" (it already has a one-line version of each). | Decided Nov 11 |
 | G12 | Table names differ between sections: `sponsor_impressions`/`sponsor_clicks` vs `sponsor_stats_daily`; `partner_stats_monthly` and `referral_programs` missing from the tables list; `availability.updated_at` missing. | Use the section names (P2-08, P2-06, P2-09, P1-01) and add them to the table list. | Open |
 | G13 | Spec lists `create_group(name)`, but retries must not duplicate groups (rule 3) and `groups.client_key` exists. | Signature is `create_group(client_key uuid, name text)` returning `{group_id, code, expires_at}`; the same key returns the same group and its code. Limit 20 active groups per person. | Decided Nov 10 (TEC-27) |
 
