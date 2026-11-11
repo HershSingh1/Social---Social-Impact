@@ -85,7 +85,7 @@ Nov 8, 2026 · @Noah
 - **Methods:** Sign in with Apple; email one-time code (6 digits, valid 10 minutes, at most 5 tries). Google arrives in P1 (P1-08).
 - **Guest upgrade:** a guest who signs in keeps the same user ID, so memberships, votes and RSVPs stay. If that Apple ID or email already belongs to another account, show "This sign-in already has an account" and offer to sign in to that account instead; the guest's activity stays with the guest.
 - **Profile:** display name required; avatar optional (JPEG, PNG or WebP up to 10 MB, cropped square).
-- **Account deletion (Pilot):** Settings → Delete account removes the profile, saves, votes and RSVPs, transfers or archives owned groups, and cancels the person's unsent drafts. Sent plans they organized are cancelled with the reason "Organizer deleted their account". Required by the App Store for guests too.
+- **Account deletion (Pilot):** Settings → Delete account removes the profile, saves, votes and RSVPs, and hands each owned group to its longest-standing member (or archives it if nobody else is in it). Sent plans they organized are cancelled with the reason "Organizer deleted their account". Required by the App Store for guests too.
 - **Done when:** a guest who voted and RSVP'd signs in with Apple and still sees their vote and answer; a signed-out person who taps Create group signs in and lands back on the Create group sheet.
 
 ### P0-03 Groups and join codes
@@ -185,7 +185,7 @@ Nov 8, 2026 · @Noah
 - **Time rules:** start must be in the future and end after start. Fixed-session experiences offer only their listed sessions. Flexible experiences must fit their known hours; if hours are unknown, show "Hours unverified" and allow it. All times show in America/Chicago with the zone named on Review.
 - **Unknown facts (Pilot):** if price or booking is unknown, Send requires ticking "I understand the price/booking is unconfirmed".
 - **Review:** one summary card with What, When, Where, Who, Cost and Booking, then Send invitation.
-- **Draft saving:** drafts save to the server as fields change; only the organizer sees them (Plans hub → Drafts). Offline, the draft is kept on the phone and labeled "Not synced"; Send needs a connection.
+- **Draft saving:** drafts are kept on the phone with their request ID and labeled "Saved on this phone"; they don't sync to other phones, and only the organizer sees them (Plans hub → Drafts). Send needs a connection.
 - **Done when:** a past time, an end before start, or a time outside a fixed session can't be sent, each with its own message under the field.
 
 ### P0-12 Sending
@@ -206,7 +206,7 @@ Nov 8, 2026 · @Noah
 
 ### P0-14 Material changes
 
-- **Material (new revision):** date, start or end time, venue or meeting point, fixed session, a higher price, a price going from unknown to known, or a newly required booking.
+- **Material (new revision):** date, start or end time, meeting point (the venue itself comes from the catalog and can't be edited), fixed session, a higher price, a price going from unknown to known, or a newly required booking.
 - **Minor (same revision):** note text, spelling fixes, a lower price, removing a booking requirement. Invitees see an "Updated" label; nobody's answer changes.
 - **Before saving a material edit,** the organizer sees the changed fields and "2 Going invitees will need to reconfirm."
 - **After saving:** every Going invitee except the organizer becomes Needs reconfirmation. Awaiting reply and Can't go stay as they are. Invitees see a banner with old and new values and Still going / Can't go buttons. Several edits in a row only need confirmation of the latest.
@@ -316,7 +316,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 ### P1-05 Budget-safe filtering
 
 - **Who:** account holders may set a private cap per outing (Profile → Budget, a dollar amount per person).
-- **Behavior:** when building a group pick, a "Fits everyone's budget" filter hides experiences priced above the lowest cap among members who set one. Unknown prices stay visible with a "Price unknown" label.
+- **Behavior:** when building a group pick, a "Fits everyone's budget" filter hides experiences priced above the lowest cap among members who set one and opted in. Unknown prices stay visible with a "Price unknown" label.
 - **Privacy:** nobody sees anyone's cap, the lowest cap, or an average. The filter only appears when at least 3 members have set a cap, so no single cap can be worked out.
 - **Done when:** with caps of $20, $40 and $60 set, a $25 experience is hidden and a $15 one shown, and no screen or API response reveals "$20".
 
@@ -365,7 +365,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 
 - **Feedback:** after reporting they went, each person can rate the outing Would do again, Maybe, or Not for me, with optional tags (Too pricey, Too far, Great for groups, Bad timing) and a short reason. It is private unless they tap Share with group.
 - **Group summary:** shows only shared feedback ("3 of 4 who shared would do again"); never an average that includes people who didn't share.
-- **Preferences:** Profile lets people set interests (from P1-06), a budget comfort range, preferred days and times, and accessibility needs. All private, all editable or removable.
+- **Preferences:** Profile lets people set interests (from P1-06), preferred days and times, and accessibility needs. All private, all editable or removable.
 - **Data:** `feedback` (`plan_id`, `user_id`, `rating`, `tags`, `reason`, `shared`), `preferences` (per user).
 - **Done when:** unshared feedback never appears in any group view or API response for other members.
 
@@ -494,6 +494,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | `plan_revisions` | `plan_id`, `revision`, `start_at`, `end_at` (UTC), `time_zone`, `meeting_point`, `note`, `price_snapshot`, `booking_required`; unique (plan, revision) | P0 |
 | `rsvps` | `plan_id`, `user_id`, `status` (going, cant\_go, awaiting, needs\_reconfirm), `revision`, `removed_at`; unique (plan, user) | P0 |
 | `plan_links` | `token`, `plan_id`, `expires_at`, `revoked_at` | P0 |
+| `events` | `id`, `user_id`, `name`, `props` (JSON), `created_at`; insert-only, written through `log_event` | P0 |
 | `submissions` | `id`, `author_id`, `experience_id` (for edits), `payload` (JSON), `state`, `reason`, `reviewer_id`, `client_key` | P0 |
 | `listing_reports` | `experience_id`, `version`, `user_id`, `issue`, `created_at` | P0 |
 | `availability` | `option_id`, `user_id`, `status` (free, busy), `source` (manual, calendar) | P1 |
@@ -512,6 +513,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | Function | Does | Rules it enforces | Phase |
 | --- | --- | --- | --- |
 | `create_group(name)`, `join_group(code)`, `regenerate_code(group_id)`, `remove_member(group_id, user_id)`, `transfer_owner(group_id, user_id)` | Group lifecycle | Account for create; owner for the rest; codes valid, not revoked or expired; blocked users can't join | P0 |
+| `revoke_code(group_id)`, `leave_group(group_id)`, `allow_back(group_id, user_id)` | Turns off the active code; leaves a group; lets a removed member rejoin | Owner for revoke and allow back; a member can leave once the owner has transferred ownership, or the group is archived if they are the only member; revoking never removes existing members | P0 |
 | `toggle_save(experience_id, group_id)` | Adds or removes one save | Account holder; member of the group | P0 |
 | `create_pick(group_id, options[], deadline, starred)`, `add_option(pick_id, …)` | Opens a pick | Account and member; 2–5 options; one open pick per group; deadline 1 h to 7 days | P0 |
 | `cast_vote(option_id, value)` | Upserts or clears one vote | Member; pick open | P0 |
