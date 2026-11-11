@@ -1,5 +1,7 @@
-import { Placeholder } from '@/ui/Placeholder';
+import { router } from 'expo-router';
+import { MapListScreen } from '@/features/discovery/MapListScreen';
 
 export default function MapTab() {
-  return <Placeholder title="Map" />;
+  // Detail lives at /experience/[id] (TEC-39).
+  return <MapListScreen onOpen={id => router.push(`/experience/${id}`)} />;
 }
