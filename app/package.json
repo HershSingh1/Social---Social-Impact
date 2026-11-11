@@ -38,6 +38,7 @@
   "scripts": {
     "check:env": "node --env-file=.env scripts/check-env.mjs",
     "check:auth": "node --env-file=.env scripts/check-auth.mjs",
+    "check:send-plan": "node --env-file=.env scripts/check-send-plan.mjs",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
