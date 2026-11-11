@@ -27,7 +27,8 @@ export function JoinScreen({ initialCode = '', onBack, onJoined }: Props) {
   }
 
   // A code from a link (sidequest://join/CODE) is previewed straight away. Opening a link never joins.
-  useEffect(() => { void check(code); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Started after mount rather than during the effect, so the effect never sets state itself.
+  useEffect(() => { queueMicrotask(() => { void check(code); }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function change(raw: string) {
     const next = cleanCode(raw);
