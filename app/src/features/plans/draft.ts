@@ -3,8 +3,9 @@ import { randomUUID } from 'expo-crypto';
 import { supabase } from '../../lib/supabase';
 import { fromChicagoLocal, toChicagoLocal } from '../../lib/time';
 
-export const MEETING_POINT_MAX = 200;
-export const NOTE_MAX = 500;
+import { MEETING_POINT_MAX, NOTE_MAX } from './limits';
+
+export { MEETING_POINT_MAX, NOTE_MAX };
 
 /** Where a draft came from: Plan this on a closed pick, or Start a plan on Detail. */
 export type DraftSource = { groupId: string; experienceId: string; pickId?: string };
