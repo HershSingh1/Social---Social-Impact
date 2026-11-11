@@ -23,6 +23,7 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
+    "check:env": "node --env-file=.env scripts/check-env.mjs",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
