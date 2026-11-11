@@ -12,7 +12,7 @@ const failed = (error: string) => ({ data: { ok: false, error }, error: null });
 const typeCode = (text: string) => act(async () => { fireEvent.changeText(screen.getByLabelText('Group code'), text); });
 const tap = (name: string) => act(async () => fireEvent.press(screen.getByRole('button', { name })));
 
-beforeEach(() => mockRpc.mockReset());
+beforeEach(() => { mockRpc.mockReset(); });
 
 test('codes are uppercased and keep only the code alphabet, so a pasted "k7q 2mx" works', () => {
   expect(cleanCode('k7q 2mx')).toBe('K7Q2MX');
