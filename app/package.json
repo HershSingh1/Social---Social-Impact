@@ -10,7 +10,9 @@
     "@tanstack/react-query": "^5.107.1",
     "expo": "~58.0.23",
     "expo-apple-authentication": "~58.0.2",
+    "expo-clipboard": "~58.0.4",
     "expo-constants": "~58.0.15",
+    "expo-crypto": "~58.0.8",
     "expo-dev-client": "~58.0.18",
     "expo-font": "~58.0.11",
     "expo-linking": "~58.0.16",
@@ -38,6 +40,7 @@
   "scripts": {
     "check:env": "node --env-file=.env scripts/check-env.mjs",
     "check:auth": "node --env-file=.env scripts/check-auth.mjs",
+    "check:send-plan": "node --env-file=.env scripts/check-send-plan.mjs",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -51,7 +54,7 @@
   "jest": {
     "preset": "jest-expo",
     "testMatch": [
-      "**/__tests__/**/*.test.tsx"
+      "**/__tests__/**/*.test.{ts,tsx}"
     ]
   }
 }
