@@ -5,8 +5,9 @@ select no_plan();
 create function pg_temp.id(text) returns uuid language sql immutable as 'select md5($1)::uuid';
 
 insert into auth.users (id) select pg_temp.id(n) from unnest(array['alice','bob','carol','dana']) n;
-insert into profiles (id, display_name, budget_cap)
-  select pg_temp.id(n), n, 25 from unnest(array['alice','bob','carol','dana']) n;
+-- The sign-up trigger already created these profiles; fill them in.
+update profiles p set display_name = n, budget_cap = 25
+  from unnest(array['alice','bob','carol','dana']) n where p.id = pg_temp.id(n);
 insert into groups (id, name, owner_id, client_key) values
   (pg_temp.id('a'), 'Group A', pg_temp.id('alice'), pg_temp.id('a')),
   (pg_temp.id('b'), 'Group B', pg_temp.id('bob'), pg_temp.id('b'));
@@ -34,9 +35,8 @@ insert into plan_revisions values (pg_temp.id('plan-a'), 1, now() + interval '1 
   'America/Chicago', 'Entrance', 'Private note', '{"kind":"free"}', false);
 insert into rsvps values (pg_temp.id('plan-a'), pg_temp.id('alice'), 'going', 1, null),
   (pg_temp.id('plan-a'), pg_temp.id('dana'), 'awaiting', 1, null);
--- A profile can exist before the person has chosen a name (created at first sign-in).
+-- The sign-up trigger creates a profile before the person has chosen a name.
 insert into auth.users (id) select pg_temp.id(n) from unnest(array['erin','frank']) n;
-insert into profiles (id) values (pg_temp.id('erin'));
 set constraints all immediate;
 select ok((select display_name is null from profiles where id = pg_temp.id('erin')), 'Profile can exist without a name');
 select throws_ok($$insert into profiles (id, display_name) values (pg_temp.id('frank'), '   ')$$, '23514', null, 'A blank name is still rejected');
