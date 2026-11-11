@@ -12,6 +12,12 @@ Use the team's Supabase organization, not a personal or production project.
    Confirm signup and Magic Link email bodies with `supabase/templates/email-code.html`.
    Use an approved SMTP provider for team recipients; Supabase's default mail service
    restricts delivery. Never commit SMTP credentials.
+   The dev project sends through Mailgun (Authentication → Emails → SMTP Settings):
+   host `smtp.mailgun.org` (`smtp.eu.mailgun.org` for an EU domain), port `587`, the
+   domain's SMTP username and SMTP password (not the API key), and a sender address on
+   that same domain. While the domain is Mailgun's sandbox, each tester must be added
+   under Authorized Recipients and confirm Mailgun's email (about 5 on the free plan).
+   Before real users, verify a domain in Mailgun with SPF, DKIM and DMARC (TEC-105).
 3. Configure Apple with the paid team's `com.sidequest.app` identifier. Configure
    Google with the team's web, iOS and Android OAuth clients. Add all expected client
    IDs to the provider's allowed audience list; use the web client for browser OAuth.
