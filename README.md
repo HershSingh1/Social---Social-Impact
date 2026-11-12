@@ -104,7 +104,7 @@ Press `i` to open the Simulator, or open the Sidequest app that is already insta
 
 **Rebuild the native app** (`npx expo run:ios` again) whenever someone adds a native package, changes `app.json` or `app.config.js` plugins, or you pull changes that do. The sign that you forgot: a red screen saying `Cannot find native module 'ExpoSomething'`.
 
-**Quick check that it works:** the app should open to the welcome screen. If you get a red `Cannot find native module` screen instead, see the known issue in section 10. To see every shared UI component, run `xcrun simctl openurl booted sidequest://dev/ui-kit`.
+**Quick check that it works:** the app opens to the welcome or sign-in screen. If you get a red `Cannot find native module` screen instead, see section 10. To see every shared UI component, run `xcrun simctl openurl booted sidequest://dev/ui-kit`.
 
 Notes:
 
@@ -246,8 +246,7 @@ Data rules in short: react-query for reads (`supabase.from().select()`, RLS deci
 
 | What you see | What to do |
 | --- | --- |
-| `Cannot find native module 'ExpoSomething'` | The installed app is older than the code. Run `npx expo run:ios` again |
-| `Cannot find native module` for `ExpoWebBrowser`, `ExpoLocation` or `ExpoClipboard`, even after a fresh `npx expo run:ios` | **Known issue, not solved yet.** On a clean checkout of `v2-figma` (Xcode 26.6, iPhone 17 Pro Simulator on iOS 26.5, after `npm ci` and a regenerated `ios/`) these three modules are compiled into the app but the app can't find them when it starts, so the auth, map and group screens don't load. Regenerating `ios/` with `npx expo prebuild --clean --platform ios` did not help. If you see it, tell your lead your Xcode and Simulator versions |
+| `Cannot find native module 'ExpoSomething'` | The Simulator is running an older build than the code. Rebuild with `npx expo run:ios`. If the error survives a rebuild, a second, older Sidequest build is probably installed: run `xcrun simctl listapps booted` and look for more than one Sidequest bundle ID (this project's is `com.sidequest.app`). Remove the extra one with `xcrun simctl uninstall booted <its-bundle-id>` and open the app again. Both builds register the `exp+sidequest` link scheme, so iOS keeps opening the old one even though the new one is installed |
 | CocoaPods crashes with `Unicode Normalization not appropriate for ASCII-8BIT` | `export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8` and run the command again |
 | `The sandbox is not in sync with the Podfile.lock` | `cd app/ios && pod install` (with the locale line above), then build again |
 | `Port 8081 is being used by another process` | Another Metro is running (maybe another agent's). Stop it, or use the port Expo suggests |
