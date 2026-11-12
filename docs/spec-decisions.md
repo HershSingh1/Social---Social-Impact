@@ -51,7 +51,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | G3 | Analytics "event log table" in P0 is never defined. | `events (id, user_id, name, props jsonb, created_at)`, insert-only through `log_event`. | Decided Nov 11 |
 | G4 | `picks` has no `created_at`, `closed_at` or title. | Add all three; title defaults to "What should we do?". | Decided Nov 10 — approved by Noah for TEC-3 |
 | G5 | `experiences` has no image, street address or provider name. | Add `image_url`, `address`, `provider_name`. | Decided Nov 10 — approved by Noah for TEC-3 |
-| G6 | `sessions` JSON shape undefined, so fixed sessions can't be validated. | `[{ "start_local": "2026-11-14T10:00", "end_local": "2026-11-14T12:00" }]` in America/Chicago. | Open |
+| G6 | `sessions` JSON shape undefined, so fixed sessions can't be validated. | `[{ "start_local": "2026-11-14T10:00", "end_local": "2026-11-14T12:00" }]` in America/Chicago. Listed sessions are shown on the detail screen and in the plan draft; they are not enforced, so `send_plan` accepts any time and the `fixed_sessions_not_supported` refusal goes away. | Decided Nov 11 |
 | G7 | A removed listing loses what the plan showed. | Snapshot experience name and category on `plans`. | Decided Nov 10 — approved by Noah for TEC-3 |
 | G8 | Account deletion and ownership transfer don't say who becomes owner. | Longest-standing account-holding member; never a guest. Archive if none. | Decided Nov 11 |
 | G9 | Realtime list covers only `votes` and `rsvps`, but the roster (5 s), hub and revision banner need live data. | Also publish `group_members`, `picks`, `pick_options`, `plans`, `plan_revisions`. | Decided Nov 10 — approved by Noah for TEC-3 |
