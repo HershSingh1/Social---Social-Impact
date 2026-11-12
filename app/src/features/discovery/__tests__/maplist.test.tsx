@@ -12,9 +12,12 @@ const mockAnimate = jest.fn();
 jest.mock('react-native-maps', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { Pressable, View } = jest.requireActual<typeof import('react-native')>('react-native');
-  const MapView = React.forwardRef(function MockMap({ children, initialRegion }: { children: React.ReactNode; initialRegion: object }, ref) {
+  const MapView = React.forwardRef(function MockMap({ children, initialRegion, onTouchStart, onRegionChangeComplete }: {
+    children: React.ReactNode; initialRegion: object; onTouchStart?: () => void; onRegionChangeComplete?: (region: object) => void;
+  }, ref) {
     React.useImperativeHandle(ref, () => ({ animateToRegion: mockAnimate }));
-    return <View testID="map" accessibilityHint={JSON.stringify(initialRegion)}>{children}</View>;
+    return <View testID="map" accessibilityHint={JSON.stringify(initialRegion)}
+      {...{ onTouchStart, onRegionChangeComplete }}>{children}</View>;
   });
   function Marker({ title, onPress }: { title: string; onPress: (e: { stopPropagation: () => void }) => void }) {
     return <Pressable accessibilityRole="button" accessibilityLabel={`Pin ${title}`} onPress={() => onPress({ stopPropagation: () => {} })} />;
@@ -32,9 +35,9 @@ const row = (id: string, name: string, category: string, area: string, extra: Pa
   booking_required: false, price_kind: 'exact', price_min: 20, price_max: 20, ...extra,
 });
 const CATALOG = [
-  row('a', 'Barton Springs Pool', 'Outdoors', 'Zilker', { price_kind: 'estimated', price_min: 5, price_max: 9 }),
-  row('b', 'Clay and conversation', 'Make something', 'East Austin', { booking_required: true }),
-  row('c', 'Sketch and stroll', 'Art and walks', 'Downtown', { price_kind: 'free', price_min: 0, price_max: 0 }),
+  row('a', 'Barton Springs Pool', 'Outdoors', 'Zilker', { lng: -97.77, price_kind: 'estimated', price_min: 5, price_max: 9 }),
+  row('b', 'Clay and conversation', 'Make something', 'East Austin', { lng: -97.72, booking_required: true }),
+  row('c', 'Sketch and stroll', 'Art and walks', 'Downtown', { lng: -97.74, price_kind: 'free', price_min: 0, price_max: 0 }),
 ];
 
 const onOpen = jest.fn();
@@ -109,4 +112,32 @@ test('location allowed moves the map to the person', async () => {
   await show();
   await press('button', 'Locate me');
   expect(mockAnimate).toHaveBeenCalledWith(expect.objectContaining({ latitude: 30.3, longitude: -97.7 }));
+});
+
+test('moving the map waits for Search this area, then Map and List share the applied bounds', async () => {
+  await show();
+  const map = screen.getByTestId('map');
+  const eastAustin = { latitude: 30.26, longitude: -97.72, latitudeDelta: 0.04, longitudeDelta: 0.02 };
+
+  await act(async () => { map.props.onRegionChangeComplete(eastAustin); });
+  expect(screen.queryByRole('button', { name: 'Search this area' })).toBeNull(); // programmatic moves do not prompt
+  await act(async () => {
+    map.props.onTouchStart();
+    map.props.onRegionChangeComplete(eastAustin);
+  });
+  expect(screen.getByRole('button', { name: 'Pin Barton Springs Pool' })).toBeTruthy(); // panning alone keeps results
+  expect(screen.getByRole('button', { name: 'Search this area' })).toBeTruthy();
+
+  await press('button', 'Search this area');
+  expect(screen.queryByRole('button', { name: 'Pin Barton Springs Pool' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Pin Clay and conversation' })).toBeTruthy();
+  expect(screen.getByRole('checkbox', { name: 'In this area' })).toBeTruthy();
+
+  await press('checkbox', 'List');
+  expect(screen.getByText('Clay and conversation')).toBeTruthy();
+  expect(screen.queryByText('Barton Springs Pool')).toBeNull();
+
+  await press('checkbox', 'In this area');
+  expect(screen.getByText('Barton Springs Pool')).toBeTruthy();
+  expect(screen.queryByRole('checkbox', { name: 'In this area' })).toBeNull();
 });
