@@ -26,7 +26,8 @@ export type DraftField = 'start' | 'end' | 'meetingPoint' | 'note' | 'recipients
 export type DraftErrors = Partial<Record<DraftField, string>>;
 
 // Drafts live on the phone until Phase 1b adds server drafts (spec-decision C2).
-const storageKey = ({ groupId, experienceId, pickId }: DraftSource) => `sidequest.planDraft:${groupId}:${experienceId}:${pickId ?? '-'}`;
+export const DRAFT_KEY_PREFIX = 'sidequest.planDraft:';
+const storageKey = ({ groupId, experienceId, pickId }: DraftSource) => `${DRAFT_KEY_PREFIX}${groupId}:${experienceId}:${pickId ?? '-'}`;
 
 export async function loadDraft(source: DraftSource): Promise<PlanDraft | null> {
   const raw = await AsyncStorage.getItem(storageKey(source));

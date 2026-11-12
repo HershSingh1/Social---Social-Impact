@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { loadSavedDrafts } from './drafts';
 import { EMPTY_HUB_DATA, type HubPick, type HubPlan, type ViewerPlanStatus } from './hub';
 
 export const plansHubQueryKey = ['plans-hub'] as const;
@@ -81,4 +82,10 @@ export function usePlansHubRealtime() {
     channel.subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [queryClient]);
+}
+
+export const savedDraftsKey = ['plan-drafts'] as const;
+/** Drafts saved on this phone (C2). A failure here never hides the rest of the hub. */
+export function useSavedDrafts() {
+  return useQuery({ queryKey: savedDraftsKey, queryFn: loadSavedDrafts });
 }
