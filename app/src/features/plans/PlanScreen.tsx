@@ -11,6 +11,7 @@ import { CancelPlanSheet } from './CancelPlanSheet';
 import { cancelledLine } from './cancel';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
+import { InviteesPanel } from './InviteesPanel';
 import { ReconfirmBanner } from './ReconfirmBanner';
 import { usePlan } from './usePlan';
 
@@ -123,6 +124,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
         <View style={styles.flex}><Button label="Can’t go" variant="secondary" disabled onPress={() => {}} /></View>
       </View>
     </View>}
+
+    {isOrganizer && <InviteesPanel plan={plan} readAt={query.dataUpdatedAt} />}
 
     <Card>
       <Label accessibilityRole="header" style={type.title2}>Who’s coming</Label>

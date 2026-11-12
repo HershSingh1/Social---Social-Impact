@@ -150,3 +150,14 @@ test('the organizer can start a new plan from a cancelled one, with a fresh draf
   await tap('Start a new plan from it');
   expect(mockPush).toHaveBeenCalledWith('/plan/new?group=g1&experience=e1');
 });
+
+test('the organizer sees the invite tools; an invitee does not', async () => {
+  await show('maya');
+  expect(await screen.findByText('Invite more people')).toBeTruthy();
+});
+
+test('an invitee has no invite tools', async () => {
+  await show('jordan');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByText('Invite more people')).toBeNull();
+});
