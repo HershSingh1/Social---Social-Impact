@@ -27,7 +27,7 @@ function refuse(error: { message: string }): never {
 
 export type LinkPreview = {
   activity: string; category: string; inviter: string; group: string; startAt: string; endAt: string;
-  price: Revision['price']; bookingRequired: boolean; alreadyJoined: boolean;
+  price: Revision['price']; bookingRequired: boolean | null; alreadyJoined: boolean;
 };
 
 /** Shows what the plan is. Opening a link never joins it. */
@@ -39,7 +39,7 @@ export async function previewLink(token: string): Promise<LinkPreview> {
   return {
     activity: String(r.activity), category: String(r.category), inviter: String(r.inviter ?? 'A friend'), group: String(r.group ?? 'a group'),
     startAt: String(r.start_at), endAt: String(r.end_at), price: r.price as Revision['price'],
-    bookingRequired: Boolean(r.booking_required), alreadyJoined: Boolean(r.already_joined),
+    bookingRequired: (r.booking_required ?? null) as boolean | null, alreadyJoined: Boolean(r.already_joined),
   };
 }
 

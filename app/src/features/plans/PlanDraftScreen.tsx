@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Button, Card, Chip, ErrorState, Label, Loading, Screen, TextField } from '../../ui';
-import { color, space, type } from '../../ui/theme';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Button, Card, Chip, ErrorState, Label, Loading, Screen, Tag, TextField } from '../../ui';
+import { color, minTap, radius, space, type } from '../../ui/theme';
 import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
+import { bookingText } from './plan';
 import { TimeField } from './TimeField';
 import {
-  discardDraft, fetchPlanContext, loadDraft, newDraft, saveDraft, sendPlan, SendRefused, validateDraft,
+  acknowledgeLabel, discardDraft, fetchPlanContext, loadDraft, newDraft, saveDraft, sendPlan, SendRefused, validateDraft,
   type DraftErrors, type DraftSource, type PlanContext, type PlanDraft,
 } from './draft';
 
@@ -24,7 +25,7 @@ function Review({ draft, context }: { draft: PlanDraft; context: PlanContext }) 
     ['Where', draft.meetingPoint.trim()],
     ['Who', who.length ? `You, ${who.join(', ')}` : 'You. No other invitees yet.'],
     ['Cost', context.experience.priceLabel],
-    ['Booking', context.experience.bookingRequired ? 'Booking required. Each person books their own spot.' : 'No booking needed.'],
+    ['Booking', bookingText(context.experience.bookingRequired)],
   ];
   return <Card>
     {rows.map(([label, value]) => <View key={label} style={styles.reviewRow} accessible>
@@ -32,6 +33,20 @@ function Review({ draft, context }: { draft: PlanDraft; context: PlanContext }) 
     </View>)}
     {draft.note.trim() ? <View style={styles.reviewRow} accessible><Label style={styles.fieldLabel}>Note</Label><Label>{draft.note.trim()}</Label></View> : null}
   </Card>;
+}
+
+// No Figma frame for this checkbox: a UI-kit style row with a 24 pt box inside a 44 pt tap target.
+function Acknowledge({ label, checked, error, onToggle }: { label: string; checked: boolean; error?: string; onToggle: () => void }) {
+  return <View style={styles.field}>
+    <Pressable accessibilityRole="checkbox" accessibilityLabel={label} accessibilityState={{ checked }}
+      accessibilityHint={error ? `Error: ${error}` : undefined} onPress={onToggle} style={styles.checkRow}>
+      <View style={[styles.box, checked && styles.boxChecked]}>
+        {checked && <Label style={[type.subhead, { color: color.onPrimary }]}>✓</Label>}
+      </View>
+      <Label style={styles.flex}>{label}</Label>
+    </Pressable>
+    {error && <Label accessibilityRole="alert" accessibilityLiveRegion="polite">{error}</Label>}
+  </View>;
 }
 
 // Plan draft and review (P0-11) and Send (P0-12). Figma has no draft frame for P0, so this uses the UI kit.
@@ -81,17 +96,29 @@ export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: 
       await discardDraft(source);
       onSent(planId);
     } catch (error) {
-      if (error instanceof SendRefused) { setErrors({ [error.field]: error.message }); setStep('edit'); return; }
+      if (error instanceof SendRefused) {
+        setErrors({ [error.field]: error.message });
+        // The listing lost its price or booking since this screen loaded: reload it and ask on Review.
+        if (error.field === 'acknowledged') { update({ acknowledged: false }); void context.refetch(); return; }
+        setStep('edit');
+        return;
+      }
       setFailed(true);
       throw error; // the button shows the message; the draft and its key stay for Retry
     }
   }
 
+  const needsAck = ctx.experience.unconfirmed.length > 0 || errors.acknowledged !== undefined;
+  const acked = draft.acknowledged === true;
   if (step === 'review') {
     return <Screen>
       <Label accessibilityRole="header" style={type.title1}>Review your plan</Label>
       <Review draft={draft} context={ctx} />
-      <Button label={failed ? 'Retry' : 'Send invitation'} onPress={send}
+      {needsAck && <Acknowledge label={acknowledgeLabel(ctx.experience.unconfirmed.length ? ctx.experience.unconfirmed : ['price', 'booking'])}
+        checked={acked} error={errors.acknowledged}
+        onToggle={() => { setErrors(e => ({ ...e, acknowledged: undefined })); update({ acknowledged: !acked }); }} />}
+      {needsAck && !acked && <Label style={styles.caption}>Tick the box above to send.</Label>}
+      <Button label={failed ? 'Retry' : 'Send invitation'} onPress={send} disabled={needsAck && !acked}
         errorMessage="Couldn’t send. Your draft is saved on this phone. Check your connection and retry." />
       <Button label="Edit" variant="secondary" onPress={() => setStep('edit')} />
     </Screen>;
@@ -104,10 +131,14 @@ export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: 
     {errors.form && <Label accessibilityRole="alert">{errors.form}</Label>}
     <TimeField label="Starts" value={draft.start} error={errors.start} onChange={moveStart} />
     <TimeField label="Ends" value={draft.end} error={errors.end} onChange={d => update({ end: d.toISOString() })} />
-    <Label style={styles.caption}>
-      {fixed ? 'This activity runs at set times. Picking a session comes in a later update.'
-        : ctx.experience.hoursText ? `Listed hours: ${ctx.experience.hoursText}` : 'Hours unverified'}
-    </Label>
+    {fixed ? <View style={styles.field}>
+      <Label style={styles.fieldLabel}>Listed sessions</Label>
+      {ctx.experience.sessions.length
+        ? <View style={styles.chips}>{ctx.experience.sessions.map(s => <Tag key={s} label={s} />)}</View>
+        : <Label style={styles.caption}>{ctx.experience.hoursText ?? 'Session times being checked'}</Label>}
+      <Label style={styles.caption}>Pick any time for your plan.</Label>
+    </View>
+      : <Label style={styles.caption}>{ctx.experience.hoursText ? `Listed hours: ${ctx.experience.hoursText}` : 'Hours unverified'}</Label>}
     <TextField label="Meeting point" value={draft.meetingPoint} error={errors.meetingPoint} onChangeText={v => update({ meetingPoint: v })} />
     <TextField label="Note (optional)" value={draft.note} error={errors.note} onChangeText={v => update({ note: v })} multiline />
     <View style={styles.field}>
@@ -121,7 +152,7 @@ export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: 
       {draft.recipients.length === 0 && <Label style={styles.caption}>No other invitees yet</Label>}
       {errors.recipients && <Label accessibilityRole="alert">{errors.recipients}</Label>}
     </View>
-    <Button label="Review" onPress={toReview} disabled={fixed} />
+    <Button label="Review" onPress={toReview} />
   </Screen>;
 }
 
@@ -131,4 +162,9 @@ const styles = StyleSheet.create({
   fieldLabel: { ...type.subhead, color: color.textSecondary },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   reviewRow: { gap: space.xxs },
+  flex: { flex: 1 },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: minTap },
+  box: { width: space.xl, height: space.xl, borderRadius: radius.xs, borderWidth: 2, borderColor: color.primary,
+    alignItems: 'center', justifyContent: 'center' },
+  boxChecked: { backgroundColor: color.primary },
 });

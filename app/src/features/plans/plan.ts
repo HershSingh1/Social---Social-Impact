@@ -38,6 +38,12 @@ export function priceText({ kind, min, max }: Pick<Price, 'kind' | 'min' | 'max'
   return kind === 'estimated' ? `About ${range} per person` : `${range} per person`;
 }
 
+/** Booking in words. `null` means the listing doesn't say (G15), so it reads as unconfirmed, never "not needed". */
+export function bookingText(required: boolean | null): string {
+  if (required === null) return 'Booking not confirmed. Check with the provider before you go.';
+  return required ? 'Booking required. Each person books their own spot.' : 'No booking needed.';
+}
+
 type RevisionRow = { revision: number; start_at: string; end_at: string; meeting_point: string; note: string | null;
   price_snapshot: { kind: string; min: number | null; max: number | null }; booking_required: boolean | null };
 const toRevision = (r: RevisionRow): Revision => ({
