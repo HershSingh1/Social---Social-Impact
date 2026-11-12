@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, Empty, ErrorState, Label, Loading, Screen, Tag } from '../../ui';
@@ -6,6 +7,9 @@ import { color, minTap, space, type } from '../../ui/theme';
 import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
+import { CancelPlanSheet } from './CancelPlanSheet';
+import { cancelledLine } from './cancel';
+import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
 import { ReconfirmBanner } from './ReconfirmBanner';
 import { usePlan } from './usePlan';
@@ -38,6 +42,7 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
   const query = usePlan(planId);
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const retry = () => { void query.refetch(); };
   // An invitee opening the plan counts as viewing the invite; the organizer opening their own plan does not.
   const organizerId = query.data?.organizerId;
@@ -57,6 +62,9 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
   // Judged at the last read (at most 30 s old); the server locks answers at the start time either way.
   const started = new Date(plan.current.startAt).getTime() <= query.dataUpdatedAt;
   const isOrganizer = plan.organizerId === viewerId;
+  const ended = new Date(plan.current.endAt).getTime() <= query.dataUpdatedAt;
+  const organizerName = plan.invitees.find(i => i.userId === plan.organizerId)?.name;
+  const cancelled = plan.state === 'cancelled';
 
   async function answer(status: 'going' | 'cant_go') {
     try { await respond(plan.id, plan.current.revision, status); }
@@ -67,7 +75,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
     {justSent && <Label accessibilityRole="alert" style={styles.banner}>Invitations sent</Label>}
     {query.isError && <ErrorState message="Couldn’t refresh this plan. Showing what we loaded last." onRetry={retry} />}
     <Label accessibilityRole="header" style={type.title1}>{plan.name}</Label>
-    {plan.state === 'cancelled' && <Tag label={`Cancelled${plan.cancelReason ? `: ${plan.cancelReason}` : ''}`} variant="dark" />}
+    {cancelled && <Tag label="Cancelled" variant="dark" />}
+    {cancelled && <Label accessibilityRole="alert" style={type.bodyStrong}>{cancelledLine(organizerName, plan.cancelReason)}</Label>}
     <Details plan={plan} />
 
     {plan.state === 'sent' && me?.status === 'needs_reconfirm' && !started && (() => {
@@ -79,6 +88,19 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
       {editing && <EditPlanSheet plan={plan} visible onClose={() => setEditing(false)}
         onSaved={() => { setEditing(false); void queryClient.invalidateQueries({ queryKey: planKey(plan.id) }); }} />}
     </>}
+    {plan.state === 'sent' && isOrganizer && !ended && <>
+      <Button label="Cancel plan" variant="secondary" onPress={() => setCancelling(true)} />
+      {cancelling && <CancelPlanSheet planId={plan.id} organizerName={organizerName ?? 'You'} invited={plan.invitees.length} visible
+        onClose={() => setCancelling(false)}
+        onCancelled={() => { setCancelling(false); void queryClient.invalidateQueries({ queryKey: planKey(plan.id) }); }} />}
+    </>}
+    {cancelled && isOrganizer && plan.groupId && plan.experienceId && (
+      <Button label="Start a new plan from it" variant="secondary" onPress={async () => {
+        // A fresh draft: nothing from this plan, not even an old saved draft for the same activity, carries over.
+        await discardDraft({ groupId: plan.groupId!, experienceId: plan.experienceId! });
+        router.push(`/plan/new?group=${plan.groupId}&experience=${plan.experienceId}`);
+      }} />
+    )}
 
     {plan.state === 'sent' && me && <View style={styles.section}>
       <Label accessibilityRole="header" style={styles.overline}>ARE YOU GOING?</Label>
@@ -91,6 +113,15 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
           <View style={styles.flex}><Button label="Can’t go" variant={me.status === 'cant_go' ? 'primary' : 'secondary'}
             accessibilityLabel={me.status === 'cant_go' ? 'Can’t go, your answer' : 'Can’t go'} errorMessage={saveFailed} onPress={() => answer('cant_go')} /></View>
         </View>}
+    </View>}
+
+    {cancelled && me && !isOrganizer && <View style={styles.section}>
+      <Label accessibilityRole="header" style={styles.overline}>ARE YOU GOING?</Label>
+      <Label>Answers are closed because this plan was cancelled. Your answer: {statusLabel[me.status]}</Label>
+      <View style={styles.answers}>
+        <View style={styles.flex}><Button label="Going" variant="secondary" disabled onPress={() => {}} /></View>
+        <View style={styles.flex}><Button label="Can’t go" variant="secondary" disabled onPress={() => {}} /></View>
+      </View>
     </View>}
 
     <Card>
