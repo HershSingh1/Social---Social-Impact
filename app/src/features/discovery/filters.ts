@@ -1,4 +1,6 @@
-// Activity and Price filters (P0-05). Pure functions only: the Map and List read the same state and call
+import { chicagoToday, matchesDate, type DateFilter, type Schedulable } from './dates';
+
+// Activity, Price and Date filters (P0-05). Pure functions only: the Map and List read the same state and call
 // `applyFilters`, so both always show the same experiences. No React, no network.
 
 export const ACTIVITY_CATEGORIES = [
@@ -17,8 +19,9 @@ export const PRICE_FILTERS = [
 ] as const;
 export type PriceFilterId = (typeof PRICE_FILTERS)[number]['id'];
 
-export type Filters = { activity: ActivityFilter; price: PriceFilterId };
-export const DEFAULT_FILTERS: Filters = { activity: 'all', price: 'any' };
+/** `includeUnknownPrices` is the spec's "Include unknown prices" toggle; it only matters under a price cap. */
+export type Filters = { activity: ActivityFilter; price: PriceFilterId; date: DateFilter; includeUnknownPrices: boolean };
+export const DEFAULT_FILTERS: Filters = { activity: 'all', price: 'any', date: 'any', includeUnknownPrices: true };
 
 /** The columns the filters read. Catalog rows (price_kind, price_min, price_max, category) fit this. */
 export type Filterable = {
@@ -43,10 +46,7 @@ export function isPriceUnknown(experience: Filterable): boolean {
   return knownMaxPrice(experience) === null;
 }
 
-/**
- * Whether a price filter lets this experience through. Unknown prices stay visible (the spec's "Include unknown
- * prices" toggle, on by default). TEC-84 adds the toggle and passes `false` here to hide them.
- */
+/** Whether a price filter lets this experience through. Unknown prices pass only when `includeUnknown` is on. */
 export function matchesPrice(experience: Filterable, price: PriceFilterId, includeUnknown = true): boolean {
   const cap = PRICE_FILTERS.find(option => option.id === price)?.cap ?? null;
   if (cap === null) return true;
@@ -58,12 +58,15 @@ export function matchesActivity(experience: Filterable, activity: ActivityFilter
   return activity === 'all' || experience.category === activity;
 }
 
-export function applyFilters<T extends Filterable>(experiences: readonly T[], filters: Filters, includeUnknown = true): T[] {
-  return experiences.filter(item => matchesActivity(item, filters.activity) && matchesPrice(item, filters.price, includeUnknown));
+/** `today` is the Austin date ("YYYY-MM-DD") that "This weekend" and "Next weekend" count from. */
+export function applyFilters<T extends Filterable & Schedulable>(experiences: readonly T[], filters: Filters, today = chicagoToday()): T[] {
+  return experiences.filter(item => matchesActivity(item, filters.activity)
+    && matchesPrice(item, filters.price, filters.includeUnknownPrices) && matchesDate(item, filters.date, today));
 }
 
 export function countActiveFilters(filters: Filters): number {
-  return Number(filters.activity !== DEFAULT_FILTERS.activity) + Number(filters.price !== DEFAULT_FILTERS.price);
+  return Number(filters.activity !== DEFAULT_FILTERS.activity) + Number(filters.price !== DEFAULT_FILTERS.price)
+    + Number(filters.date !== DEFAULT_FILTERS.date) + Number(!filters.includeUnknownPrices);
 }
 
 export function priceFilterLabel(price: PriceFilterId): string {

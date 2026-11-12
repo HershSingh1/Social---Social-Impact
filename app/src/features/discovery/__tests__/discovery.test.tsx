@@ -5,12 +5,14 @@ import { Text } from 'react-native';
 import { DiscoveryResults, EXPERIENCES_KEY, FilterBar, FiltersProvider, type Experience } from '..';
 
 const mockOrder = jest.fn<() => Promise<{ data: unknown; error: unknown }>>();
+jest.mock('@react-native-community/datetimepicker', () => () => null);
 jest.mock('../../../lib/supabase', () => ({ supabase: { from: () => ({ select: () => ({ order: () => mockOrder() }) }) } }));
 
 const row = (name: string, category: string, price_kind: Experience['price_kind'], price_max: number | null): Experience =>
   ({ id: name, name, category, description: '', lat: null, lng: null, area: null, image_url: null, timing_kind: 'flexible', hours_text: null, booking_required: false,
     price_kind, price_min: price_max, price_max });
-const CATALOG = [row('Mural walk', 'Art and walks', 'free', 0), row('Pottery', 'Make something', 'exact', 38), row('Trivia', 'Games and trivia', 'unknown', null)];
+const CATALOG = [row('Mural walk', 'Art and walks', 'free', 0), { ...row('Pottery', 'Make something', 'exact', 38), hours_text: 'Open daily' },
+  row('Trivia', 'Games and trivia', 'unknown', null)];
 
 function setup(seed?: Experience[]) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
@@ -60,6 +62,35 @@ test('filters from the sheet narrow the list; unknown prices stay under a price 
   expect(screen.getAllByText('Trivia').length).toBeGreaterThan(0);
   expect(screen.getByRole('button', { name: 'Filters, 1 applied' })).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Show 2 results' })).toBeTruthy();
+});
+
+test('"Include unknown prices" is on by default; off hides unknown prices under a cap, on brings them back', async () => {
+  await setup(CATALOG);
+  await fireEvent.press(screen.getByRole('button', { name: 'Filters' }));
+  const toggle = screen.getByRole('switch', { name: 'Include unknown prices' });
+  expect(toggle.props.value).toBe(true);
+  await choose('Under $25');
+  await fireEvent(toggle, 'valueChange', false);
+  expect(screen.getByText('Off: hidden when a price limit is set')).toBeTruthy();
+  expect(screen.queryByText('Trivia')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Show 1 result' })).toBeTruthy();
+  await fireEvent(screen.getByRole('switch', { name: 'Include unknown prices' }), 'valueChange', true);
+  expect(screen.getAllByText('Trivia').length).toBeGreaterThan(0);
+});
+
+test('a date option narrows the list and shows as a chip that turns it off', async () => {
+  await setup(CATALOG);
+  await fireEvent.press(screen.getByRole('button', { name: 'Filters' }));
+  await choose('This weekend');
+  expect(screen.getAllByText('Pottery').length).toBeGreaterThan(0);
+  expect(screen.queryByText('Mural walk')).toBeNull();
+  expect(screen.queryByText('Trivia')).toBeNull();
+  await choose('Pick a date');
+  expect(screen.queryByRole('checkbox', { name: 'Pick a date' })).toBeNull();
+  await fireEvent.press(screen.getByRole('button', { name: 'Close Filters' }));
+  expect(screen.getByRole('button', { name: 'Filters, 1 applied' })).toBeTruthy();
+  await fireEvent.press(screen.getAllByRole('checkbox', { checked: true })[0]);
+  expect(screen.getAllByText('Mural walk').length).toBeGreaterThan(0);
 });
 
 test('no match shows "Nothing matches here"; Clear filters brings the list back', async () => {
