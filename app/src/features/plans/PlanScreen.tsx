@@ -6,6 +6,7 @@ import { color, minTap, space, type } from '../../ui/theme';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
 import { EditPlanSheet } from './EditPlanSheet';
+import { InviteesPanel } from './InviteesPanel';
 import { ReconfirmBanner } from './ReconfirmBanner';
 import { usePlan } from './usePlan';
 
@@ -86,6 +87,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
             accessibilityLabel={me.status === 'cant_go' ? 'Can’t go, your answer' : 'Can’t go'} errorMessage={saveFailed} onPress={() => answer('cant_go')} /></View>
         </View>}
     </View>}
+
+    {isOrganizer && <InviteesPanel plan={plan} readAt={query.dataUpdatedAt} />}
 
     <Card>
       <Label accessibilityRole="header" style={type.title2}>Who’s coming</Label>

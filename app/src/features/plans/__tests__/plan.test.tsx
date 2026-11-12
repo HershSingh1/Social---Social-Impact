@@ -114,3 +114,14 @@ test('after the start time, answers are locked', async () => {
   expect(await screen.findByText('This plan has started, so answers are closed.')).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Going' })).toBeNull();
 });
+
+test('the organizer sees the invite tools; an invitee does not', async () => {
+  await show('maya');
+  expect(await screen.findByText('Invite more people')).toBeTruthy();
+});
+
+test('an invitee has no invite tools', async () => {
+  await show('jordan');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByText('Invite more people')).toBeNull();
+});

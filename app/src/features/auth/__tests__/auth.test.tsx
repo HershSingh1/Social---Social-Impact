@@ -92,6 +92,10 @@ test('links to the auth screens and the home link are not kept', () => {
   expect(linkToPath('sidequest://groups/g1')).toBe('/groups/g1');
 });
 
+test('a plan link opened signed out is kept, so it opens after sign-in (D1)', () => {
+  expect(linkToPath('sidequest://plan-link/abc123')).toBe('/plan-link/abc123');
+});
+
 const typeInto = (label: string, text: string) => act(async () => { fireEvent.changeText(screen.getByLabelText(label), text); });
 const tap = (name: string) => act(async () => fireEvent.press(screen.getByRole('button', { name })));
 
