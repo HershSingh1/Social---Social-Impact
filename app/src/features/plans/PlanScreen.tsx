@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, Empty, ErrorState, Label, Loading, Screen, Tag } from '../../ui';
 import { color, minTap, space, type } from '../../ui/theme';
+import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
 import { EditPlanSheet } from './EditPlanSheet';
@@ -38,6 +39,11 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const retry = () => { void query.refetch(); };
+  // An invitee opening the plan counts as viewing the invite; the organizer opening their own plan does not.
+  const organizerId = query.data?.organizerId;
+  useEffect(() => {
+    if (organizerId && organizerId !== viewerId) logEvent('invite_viewed', { plan_id: planId });
+  }, [planId, organizerId, viewerId]);
 
   if (query.isPending) return <Screen><Loading label="Loading the plan…" /></Screen>;
   if (query.error instanceof PlanUnavailable) {

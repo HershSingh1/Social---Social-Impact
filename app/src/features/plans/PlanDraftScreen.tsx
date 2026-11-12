@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, ErrorState, Label, Loading, Screen, TextField } from '../../ui';
 import { color, space, type } from '../../ui/theme';
+import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { TimeField } from './TimeField';
 import {
@@ -45,11 +46,14 @@ export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: 
   useEffect(() => {
     if (!context.data || draft) return;
     const ctx = context.data;
-    void loadDraft(source).then(saved => setDraft(saved ?? newDraft(source, {
-      start: proposedStart && new Date(proposedStart).getTime() > Date.now() ? new Date(proposedStart) : tomorrowAtTen(),
-      durationMin: ctx.experience.durationMin ?? DEFAULT_DURATION_MIN,
-      meetingPoint: ctx.experience.meetingPoint ?? '', recipients: ctx.members.map(m => m.userId),
-    })));
+    void loadDraft(source).then(saved => {
+      if (!saved) logEvent('plan_drafted', { group_id: source.groupId, experience_id: source.experienceId, pick_id: source.pickId });
+      setDraft(saved ?? newDraft(source, {
+        start: proposedStart && new Date(proposedStart).getTime() > Date.now() ? new Date(proposedStart) : tomorrowAtTen(),
+        durationMin: ctx.experience.durationMin ?? DEFAULT_DURATION_MIN,
+        meetingPoint: ctx.experience.meetingPoint ?? '', recipients: ctx.members.map(m => m.userId),
+      }));
+    });
   }, [context.data, draft, proposedStart, source]);
 
   if (context.isPending || (context.data && !draft)) return <Screen><Loading label="Opening your plan…" /></Screen>;

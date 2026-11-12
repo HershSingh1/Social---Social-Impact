@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { randomUUID } from 'expo-crypto';
+import { logEvent } from '../../lib/analytics';
 import { supabase } from '../../lib/supabase';
 import { fromChicagoLocal, toChicagoLocal } from '../../lib/time';
 
@@ -85,6 +86,7 @@ export async function sendPlan(draft: PlanDraft): Promise<string> {
     if (known) throw new SendRefused(...SERVER_ERRORS[known]);
     throw error;
   }
+  logEvent('plan_sent', { plan_id: data as string, group_id: draft.groupId });
   return data as string;
 }
 

@@ -121,8 +121,10 @@ describe('Close now', () => {
     expect(screen.getByText('Close voting now?')).toBeTruthy();
     expect(mockRpc).not.toHaveBeenCalled();
     await tap('Close voting');
-    expect(mockRpc).toHaveBeenCalledTimes(1);
+    // One close on the server, and one analytics event for it.
+    expect(mockRpc.mock.calls.filter(([fn]) => fn === 'close_pick')).toHaveLength(1);
     expect(mockRpc).toHaveBeenCalledWith('close_pick', { pick_id: 'k1' });
+    expect(mockRpc).toHaveBeenCalledWith('log_event', { name: 'pick_closed', props: { pick_id: 'k1' } });
     expect(onDone).toHaveBeenCalled();
   });
 
