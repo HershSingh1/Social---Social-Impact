@@ -61,6 +61,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | G12 | Table names differ between sections: `sponsor_impressions`/`sponsor_clicks` vs `sponsor_stats_daily`; `partner_stats_monthly` and `referral_programs` missing from the tables list; `availability.updated_at` missing. | Use the section names (P2-08, P2-06, P2-09, P1-01) and add them to the table list. | Open |
 | G13 | Spec lists `create_group(name)`, but retries must not duplicate groups (rule 3) and `groups.client_key` exists. | Signature is `create_group(client_key uuid, name text)` returning `{group_id, code, expires_at}`; the same key returns the same group and its code. Limit 20 active groups per person. | Decided Nov 10 (TEC-27) |
 | G15 | P0-11 asks for an acknowledgement when booking is unknown, but `experiences.booking_required` is a non-null boolean, so unknown can't be stored. | `experiences.booking_required` and `plan_revisions.booking_required` are nullable; NULL means unknown, and the plan keeps it. `send_plan` gains `acknowledged boolean default false` (last parameter, not part of the `client_key` payload) and refuses with `unconfirmed_info_not_acknowledged` when `price_kind = 'unknown'` or booking is NULL unless it is true. For C6, unknown to required is a newly required booking (material); other booking changes involving unknown are minor. G14 is left for the profile photo gap on the open decisions branch. ([PRO-21](https://linear.app/social-impact-finance/issue/PRO-21)) | Decided Nov 11 — by Noah for TEC-89 |
+| G16 | P0-05 says flexible experiences match a date "if their hours include that day", but `hours_text` is free text with no structured open days. | The app reads day names from `hours_text`: single days, ranges ("Tue-Sun", "Fri to Sun"), "daily", "weekdays", "weekends", minus "closed Monday". Hours that name no day count as open every day; empty hours match no date. A weekend is Saturday and Sunday in Austin time; on a Sunday "This weekend" is just that day. No table change. Revisit if the catalog gets structured hours. | Default — TEC-84, needs team sign-off |
 
 ## Figma vs spec (Linear PRO-9)
 
@@ -71,6 +72,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | F3 | "Meet People & Safety" section: meeting strangers is outside P0–P2. | Not built. | Decided Nov 11 |
 | F4 | Join screen "Your name" field and "No account needed" copy. | Removed from the join screen (TEC-35). | Decided Nov 11 |
 | F5 | Activity, Memories & Profile section is mostly P2. | Only profile basics in P0. | Decided Nov 11 |
+| F6 | The Filters frame (4.2) has Date chips Today, Tomorrow, This weekend, Pick dates, a price slider, and no "Include unknown prices" switch. | Built from the spec: Any, This weekend, Next weekend, Pick a date (one day); price stays as chips (TEC-38); the switch sits under Price, a switch like the frame's location toggle. | Default — TEC-84 |
 
 ## Linear
 
