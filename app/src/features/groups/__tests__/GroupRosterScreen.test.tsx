@@ -55,10 +55,10 @@ test('shows loading, then the members with the Owner badge in words', async () =
   expect(screen.getAllByText('Owner')).toHaveLength(1);
 });
 
-test('shows an empty state when the roster has no members', async () => {
+test('shows the removed state when the roster comes back empty', async () => {
   mockMembers = { data: [], error: null };
   await renderScreen();
-  expect(await screen.findByText('No members to show')).toBeTruthy();
+  expect(await screen.findByText('You’re no longer in this group')).toBeTruthy();
 });
 
 test('shows an error with Try again when the first load fails, then recovers', async () => {
