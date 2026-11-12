@@ -1,15 +1,19 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Card, Empty, ErrorState, Label, Loading, Screen, Tag } from '../../ui';
 import { color, space, type } from '../../ui/theme';
 import type { Member } from './api';
 import { useGroupRoster } from './useGroupRoster';
 
-export function MemberRow({ member }: { member: Member }) {
+export const NO_LONGER_IN_GROUP = 'You left or were removed, so its members, ideas and votes are hidden. Plans you were invited to stay in the Plans tab.';
+
+export function MemberRow({ member, children }: { member: Member; children?: ReactNode }) {
   return <View style={styles.row}>
     {/* Photos need a storage URL, which isn't decided yet, so everyone shows an initial for now. */}
     <Avatar name={member.name} />
     <Label style={[type.bodyStrong, styles.name]}>{member.name}</Label>
     {member.isOwner && <Tag label="Owner" variant="dark" />}
+    {children}
   </View>;
 }
 
@@ -26,7 +30,7 @@ export function GroupRosterScreen({ groupId }: { groupId: string }) {
     <Label accessibilityRole="header" style={type.title}>{data.groupName || 'Group'}</Label>
     {roster.isError && <ErrorState message="Couldn’t refresh the member list. Showing the last list we loaded." onRetry={() => { void roster.refetch(); }} />}
     {count === 0
-      ? <Empty title="No members to show" description="You may no longer be in this group." />
+      ? <Empty title="You’re no longer in this group" description={NO_LONGER_IN_GROUP} />
       : <Card>
         <View style={styles.header}>
           <Label accessibilityRole="header" style={type.heading}>Members</Label>

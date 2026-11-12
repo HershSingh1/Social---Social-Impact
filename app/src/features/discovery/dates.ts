@@ -56,7 +56,7 @@ function daysBetween(from: number, to: number): number[] {
 }
 
 /**
- * The weekdays a flexible experience is open, read from its free-text hours (G16): day names and ranges such as
+ * The weekdays a flexible experience is open, read from its free-text hours (G17): day names and ranges such as
  * "Mon-Thu" or "Tue to Sun", "daily", "weekdays", "weekends", minus "closed Monday". Text that names no day is
  * read as open every day ("10 a.m. to 6 p.m."). Empty hours mean we don't know, so no day.
  */
