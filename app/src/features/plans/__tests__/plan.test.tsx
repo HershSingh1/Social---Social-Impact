@@ -1,6 +1,7 @@
 import { beforeEach, expect, jest, test } from '@jest/globals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PlanScreen } from '../PlanScreen';
 import type { RsvpStatus } from '../plan';
 
@@ -9,6 +10,7 @@ let mockPlan: Record<string, unknown> | null;
 let mockRsvps: { user_id: string; status: RsvpStatus }[];
 let mockOnChange: () => void = () => {};
 let mockStart = '2099-11-14T16:00:00Z';
+let mockPrice: Record<string, unknown> = { kind: 'exact', min: 9, max: 9 };
 const mockRespond = jest.fn<(args: Record<string, unknown>) => Promise<Result>>();
 const people = ['maya', 'jordan', 'sam', 'alex', 'riley', 'casey'];
 
@@ -18,7 +20,7 @@ function mockBuilder(table: string) {
   const result = (): Result => table === 'plans' ? { data: mockPlan, error: null }
     : table === 'rsvps' ? { data: mockRsvps, error: null }
     : { data: [{ revision: 1, start_at: mockStart, end_at: '2099-11-14T18:00:00Z', meeting_point: 'South gate',
-      note: null, price_snapshot: { kind: 'exact', min: 9, max: 9 }, booking_required: true }], error: null };
+      note: null, price_snapshot: mockPrice, booking_required: true }], error: null };
   b.maybeSingle = async () => result();
   b.then = (resolve: (r: Result) => unknown) => Promise.resolve(result()).then(resolve);
   return b;
@@ -44,11 +46,13 @@ const setCounts = (...n: [number, number, number, number]) => {
   mockRsvps = statuses(...n).map((status, i) => ({ user_id: people[i], status }));
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  await AsyncStorage.clear();
   mockPush.mockReset();
   mockRespond.mockReset();
   mockStart = '2099-11-14T16:00:00Z';
-  mockPlan = { id: 'p1', experience_name: 'Barton Springs', organizer_id: 'maya', state: 'sent', cancel_reason: null, current_revision: 1 };
+  mockPrice = { kind: 'exact', min: 9, max: 9 };
+  mockPlan = { id: 'p1', experience_name: 'Barton Springs', organizer_id: 'maya', state: 'sent', cancel_reason: null, current_revision: 1, updated_at: '2099-01-01T00:00:00Z' };
   setCounts(1, 5, 0, 0);
 });
 
@@ -160,4 +164,30 @@ test('an invitee has no invite tools', async () => {
   await show('jordan');
   await screen.findByText('Who’s coming');
   expect(screen.queryByText('Invite more people')).toBeNull();
+});
+
+test('a minor edit shows an Updated label to an invitee who saw the plan before', async () => {
+  await show('jordan');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByText('Updated')).toBeNull();
+  mockPlan = { ...mockPlan, updated_at: '2099-01-02T00:00:00Z' };
+  await act(async () => { mockOnChange(); });
+  expect(await screen.findByText('Updated')).toBeTruthy();
+  // What was shown is remembered, so the label is gone the next time the plan is opened.
+  expect(JSON.parse((await AsyncStorage.getItem('sidequest.planSeen:p1')) ?? 'null')).toEqual({ revision: 1, updatedAt: '2099-01-02T00:00:00Z' });
+});
+
+test('the organizer never sees the Updated label on their own plan', async () => {
+  await show('maya');
+  await screen.findByText('Who’s coming');
+  mockPlan = { ...mockPlan, updated_at: '2099-01-02T00:00:00Z' };
+  await act(async () => { mockOnChange(); });
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByText('Updated')).toBeNull();
+});
+
+test('a price change says what it was and what it is now', async () => {
+  mockPrice = { kind: 'exact', min: 18, max: 18, previous: { kind: 'exact', min: 12, max: 12 } };
+  await show('jordan');
+  expect(await screen.findByText('Price was $12, now $18')).toBeTruthy();
 });

@@ -1,21 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 import { Button, Label } from '../../ui';
 import { color, radius, space, type } from '../../ui/theme';
-import { formatClock, formatWhen } from '../../lib/time';
 import type { Revision } from './plan';
+import { changeRows } from './updated';
 
 type Props = { was: Revision; now: Revision; onAnswer: (status: 'going' | 'cant_go') => Promise<void>; errorMessage: (e: unknown) => string };
 
-const when = (r: Revision) => `${formatWhen(r.startAt)} to ${formatClock(r.endAt)}`;
-
 /** Shown to an invitee who said Going before a material change: old and new values, answered against the new revision. */
 export function ReconfirmBanner({ was, now, onAnswer, errorMessage }: Props) {
-  const rows: [string, string, string][] = [];
-  if (when(was) !== when(now)) rows.push(['When', when(was), when(now)]);
-  if (was.meetingPoint !== now.meetingPoint) rows.push(['Where', was.meetingPoint, now.meetingPoint]);
+  const rows = changeRows(was, now);
   return <View style={styles.banner} accessibilityRole="alert">
     <Label style={type.headline}>This plan changed. Are you still going?</Label>
-    {rows.map(([label, before, after]) => <View key={label} accessible style={styles.row}
+    {rows.map(({ label, before, after }) => <View key={label} accessible style={styles.row}
       accessibilityLabel={`${label} changed from ${before} to ${after}`}>
       <Label style={styles.label}>{label}</Label>
       <Label style={styles.old}>Was: {before}</Label>

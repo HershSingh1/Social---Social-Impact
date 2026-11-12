@@ -115,3 +115,12 @@ test('a stale answer reloads the plan and asks again', async () => {
   expect(await screen.findByText('Now: North gate')).toBeTruthy();
   expect(screen.getByText('This plan just changed. Check the new details and answer again.')).toBeTruthy();
 });
+
+test('the edit sheet covers date and time for the start and the end, the meeting point and the note', async () => {
+  await show('maya');
+  await screen.findByText('Barton Springs');
+  await tap('Edit plan');
+  for (const name of ['Starts date', 'Starts time', 'Ends date', 'Ends time']) expect(screen.getByRole('button', { name })).toBeTruthy();
+  expect(screen.getByLabelText('Meeting point')).toBeTruthy();
+  expect(screen.getByLabelText('Note (optional)')).toBeTruthy();
+});

@@ -121,7 +121,7 @@ describe('plan link screen', () => {
 
 describe('invitees panel (organizer)', () => {
   const plan = (over: Partial<Plan> = {}): Plan => ({
-    id: 'p1', name: 'Clay', organizerId: 'maya', state: 'sent', cancelReason: null, groupId: 'g1', experienceId: 'e1',
+    id: 'p1', name: 'Clay', organizerId: 'maya', state: 'sent', cancelReason: null, groupId: 'g1', experienceId: 'e1', updatedAt: '2099-01-01T00:00:00Z',
     current: { revision: 1, startAt: '2099-11-14T16:00:00Z', endAt: '2099-11-14T18:00:00Z', meetingPoint: 'Door', note: null,
       price: { kind: 'exact', min: 30, max: 30 }, bookingRequired: false },
     revisions: [],

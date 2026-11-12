@@ -13,6 +13,7 @@ import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
 import { InviteesPanel } from './InviteesPanel';
 import { ReconfirmBanner } from './ReconfirmBanner';
+import { priceChangeLine, usePlanUpdated } from './updated';
 import { usePlan } from './usePlan';
 
 type Props = { planId: string; viewerId: string; justSent?: boolean };
@@ -22,6 +23,7 @@ const saveFailed = (error: unknown) => error instanceof RespondRefused ? error.m
 
 function Details({ plan }: { plan: Plan }) {
   const rev = plan.current;
+  const priceChange = priceChangeLine(rev.price);
   return <Card>
     <View accessible style={styles.detail}>
       <Label style={type.bodyStrong}>{formatWhen(rev.startAt)} to {formatClock(rev.endAt)}</Label>
@@ -32,6 +34,7 @@ function Details({ plan }: { plan: Plan }) {
     </View>
     <View accessible style={styles.detail}>
       <Label style={type.bodyStrong}>{priceText(rev.price)}</Label>
+      {priceChange && <Label style={styles.caption}>{priceChange}</Label>}
       <Label style={styles.caption}>{rev.bookingRequired ? 'Booking required. Each person books their own spot.' : 'No booking needed.'}</Label>
     </View>
     {rev.note ? <Label>{rev.note}</Label> : null}
@@ -45,6 +48,7 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
   const [editing, setEditing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const retry = () => { void query.refetch(); };
+  const updated = usePlanUpdated(query.data, viewerId);
   // An invitee opening the plan counts as viewing the invite; the organizer opening their own plan does not.
   const organizerId = query.data?.organizerId;
   useEffect(() => {
@@ -76,6 +80,7 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
     {justSent && <Label accessibilityRole="alert" style={styles.banner}>Invitations sent</Label>}
     {query.isError && <ErrorState message="Couldn’t refresh this plan. Showing what we loaded last." onRetry={retry} />}
     <Label accessibilityRole="header" style={type.title1}>{plan.name}</Label>
+    {updated && plan.state === 'sent' && <Tag label="Updated" variant="dark" />}
     {cancelled && <Tag label="Cancelled" variant="dark" />}
     {cancelled && <Label accessibilityRole="alert" style={type.bodyStrong}>{cancelledLine(organizerName, plan.cancelReason)}</Label>}
     <Details plan={plan} />

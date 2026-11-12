@@ -5,12 +5,16 @@ export type RsvpStatus = 'going' | 'awaiting' | 'cant_go' | 'needs_reconfirm';
 export type Invitee = { userId: string; name: string; status: RsvpStatus; isOrganizer: boolean;
   /** The revision this person last answered; older than current while they need to reconfirm. */
   answeredRevision: number };
+export type Price = { kind: string; min: number | null; max: number | null; previous?: Omit<Price, 'previous'> };
 export type Revision = { revision: number; startAt: string; endAt: string; meetingPoint: string; note: string | null;
-  price: { kind: string; min: number | null; max: number | null }; bookingRequired: boolean };
+  /** `previous` is set when the catalog changed the price after the plan was sent (TEC-93). */
+  price: Price; bookingRequired: boolean };
 export type Plan = {
   id: string; name: string; organizerId: string; state: 'sent' | 'cancelled' | 'draft'; cancelReason: string | null;
   /** For "Start a new plan from it". The experience is null once its listing is removed. */
   groupId: string | null; experienceId: string | null;
+  /** Set by the server on every edit, material or minor. */
+  updatedAt: string;
   current: Revision; revisions: Revision[]; invitees: Invitee[];
 };
 export type Counts = Record<RsvpStatus, number>;
@@ -27,7 +31,7 @@ export function countRsvps(invitees: Pick<Invitee, 'status'>[]): Counts {
   return counts;
 }
 
-export function priceText({ kind, min, max }: Revision['price']): string {
+export function priceText({ kind, min, max }: Pick<Price, 'kind' | 'min' | 'max'>): string {
   if (kind === 'free') return 'Free';
   if (kind === 'unknown' || min === null) return 'Price not confirmed';
   const range = max !== null && max !== min ? `$${min}–$${max}` : `$${min}`;
@@ -45,12 +49,12 @@ export class PlanUnavailable extends Error { constructor() { super('plan_unavail
 
 /** Reads only; RLS returns nothing for a plan the viewer isn't invited to. */
 export async function fetchPlan(planId: string): Promise<Plan> {
-  const plan = await supabase.from('plans').select('id, experience_name, organizer_id, state, cancel_reason, current_revision, group_id, experience_id')
+  const plan = await supabase.from('plans').select('id, experience_name, organizer_id, state, cancel_reason, current_revision, group_id, experience_id, updated_at')
     .eq('id', planId).maybeSingle();
   if (plan.error) throw plan.error;
   if (!plan.data) throw new PlanUnavailable();
   const p = plan.data as { id: string; experience_name: string; organizer_id: string; state: Plan['state']; cancel_reason: string | null; current_revision: number;
-    group_id: string | null; experience_id: string | null };
+    group_id: string | null; experience_id: string | null; updated_at: string };
   const [revisions, rsvps] = await Promise.all([
     supabase.from('plan_revisions').select('revision, start_at, end_at, meeting_point, note, price_snapshot, booking_required')
       .eq('plan_id', planId),
@@ -66,7 +70,7 @@ export async function fetchPlan(planId: string): Promise<Plan> {
   if (cards.error) throw cards.error;
   const nameOf = new Map(((cards.data ?? []) as { user_id: string; display_name: string }[]).map(c => [c.user_id, c.display_name]));
   return {
-    id: p.id, name: p.experience_name, organizerId: p.organizer_id, state: p.state, cancelReason: p.cancel_reason, groupId: p.group_id, experienceId: p.experience_id,
+    id: p.id, name: p.experience_name, organizerId: p.organizer_id, state: p.state, cancelReason: p.cancel_reason, groupId: p.group_id, experienceId: p.experience_id, updatedAt: p.updated_at,
     current: toRevision(current), revisions: revs.map(toRevision),
     invitees: rows.map(r => ({ userId: r.user_id, name: nameOf.get(r.user_id) ?? 'Member', status: r.status, isOrganizer: r.user_id === p.organizer_id, answeredRevision: r.revision }))
       // Organizer first, then by name.
