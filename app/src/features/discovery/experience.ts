@@ -67,7 +67,7 @@ export function formatTiming(experience: Pick<Experience, 'timing_kind' | 'sessi
     ? [formatLocalSession(session.start_local)].filter((value): value is string => Boolean(value)) : []);
   return {
     label: sessions.length ? 'Fixed sessions' : experience.hours_text?.trim() || 'Session times being checked',
-    detail: 'Plans must use one of these sessions', sessions,
+    detail: 'Pick any time for your plan', sessions,
   };
 }
 

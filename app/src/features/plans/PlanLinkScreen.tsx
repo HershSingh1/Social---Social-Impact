@@ -4,7 +4,7 @@ import { Button, Card, Empty, ErrorState, Label, Loading, Screen } from '../../u
 import { color, space, type } from '../../ui/theme';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { INVITE_ERRORS, InviteRefused, joinPlan, previewLink } from './invites';
-import { priceText } from './plan';
+import { bookingText, priceText } from './plan';
 
 type Props = { token: string; onBack: () => void; onJoined: (planId: string) => void };
 
@@ -38,7 +38,7 @@ export function PlanLinkScreen({ token, onBack, onJoined }: Props) {
       </View>
       <View accessible style={styles.detail}>
         <Label style={type.bodyStrong}>{priceText(plan.price)}</Label>
-        <Label style={styles.caption}>{plan.bookingRequired ? 'Booking required. Each person books their own spot.' : 'No booking needed.'}</Label>
+        <Label style={styles.caption}>{bookingText(plan.bookingRequired)}</Label>
       </View>
     </Card>
     <Label style={styles.caption}>Joining adds you to this plan only, not to the group.</Label>

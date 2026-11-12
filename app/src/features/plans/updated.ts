@@ -22,7 +22,8 @@ export function priceChangeLine(price: Price): string | null {
 
 export type ChangeRow = { label: string; before: string; after: string };
 const when = (r: Revision) => `${formatWhen(r.startAt)} to ${formatClock(r.endAt)}`;
-const booking = (r: Revision) => r.bookingRequired ? 'Booking required' : 'No booking needed';
+const booking = (r: Revision) => r.bookingRequired === null ? 'Booking not confirmed'
+  : r.bookingRequired ? 'Booking required' : 'No booking needed';
 
 /** Every field that differs between the revision someone answered and the current one, old and new. */
 export function changeRows(was: Revision, now: Revision): ChangeRow[] {

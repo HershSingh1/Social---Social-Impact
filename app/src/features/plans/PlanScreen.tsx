@@ -6,7 +6,7 @@ import { Avatar, Button, Card, Empty, ErrorState, Label, Loading, Screen, Tag } 
 import { color, minTap, space, type } from '../../ui/theme';
 import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
-import { countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
+import { bookingText, countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
 import { CancelPlanSheet } from './CancelPlanSheet';
 import { cancelledLine } from './cancel';
 import { discardDraft } from './draft';
@@ -35,7 +35,7 @@ function Details({ plan }: { plan: Plan }) {
     <View accessible style={styles.detail}>
       <Label style={type.bodyStrong}>{priceText(rev.price)}</Label>
       {priceChange && <Label style={styles.caption}>{priceChange}</Label>}
-      <Label style={styles.caption}>{rev.bookingRequired ? 'Booking required. Each person books their own spot.' : 'No booking needed.'}</Label>
+      <Label style={styles.caption}>{bookingText(rev.bookingRequired)}</Label>
     </View>
     {rev.note ? <Label>{rev.note}</Label> : null}
   </Card>;
