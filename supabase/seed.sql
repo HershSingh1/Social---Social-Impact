@@ -10,8 +10,9 @@
 --   * `image_url` is null on every row (no licensed images chosen). Spec allows a category placeholder meanwhile.
 --   * `lat`/`lng` are approximate where given and null where I could not place the venue (HOPE, Barton Creek
 --     Greenbelt, several studios and operators). Acceptance requires coordinates inside Austin on every row.
---   * Weekly trivia nights are `timing_kind = 'fixed'` with `sessions` null, because the sessions JSON shape
---     (G6) is still open. Fill `sessions` once G6 is decided.
+--   * Weekly trivia nights are `timing_kind = 'fixed'` with `sessions` null: nobody has confirmed dates yet.
+--     Fill `sessions` as [{"start_local","end_local"}] in America/Chicago (G6) once checked.
+--   * `booking_required` null means booking is unknown (G15). The trivia rows use it: the sources don't say.
 --   * The demo script names "Sketch and stroll" and "Clay and conversation" as flexible-time experiences.
 --     The team picks those venues (D7); they are not in this file. "Barton Springs swim" is.
 --
@@ -163,13 +164,13 @@ values
  'Weekly Geeks Who Drink trivia night on South Lamar, Tuesdays at 8 p.m. Cost was not in the sources.',
  null, null, 'South Lamar', null, 'Gibson Street Bar',
  'unknown', null, null, 'fixed', 'Reported Tuesdays, 8 p.m.', null,
- false, null, 'PLACEHOLDER: Austin trivia night roundups, found by web search (https://neighborhoods.com/blog/four-austin-bars-with-trivia-nights)'),
+ null, null, 'PLACEHOLDER: Austin trivia night roundups, found by web search (https://neighborhoods.com/blog/four-austin-bars-with-trivia-nights)'),
 
 ('Trivia at Gourmands', 'Games and trivia',
  'Weekly Geeks Who Drink trivia night at an East Austin sandwich-and-drinks bar, Wednesday nights. Cost was not in the sources.',
  null, null, 'East Austin', null, 'Gourmands',
  'unknown', null, null, 'fixed', 'Reported Wednesday nights', null,
- false, null, 'PLACEHOLDER: Austin trivia night roundups, found by web search (https://neighborhoods.com/blog/four-austin-bars-with-trivia-nights)'),
+ null, null, 'PLACEHOLDER: Austin trivia night roundups, found by web search (https://neighborhoods.com/blog/four-austin-bars-with-trivia-nights)'),
 
 ('Emerald Tavern Games & Cafe', 'Games and trivia',
  'Board game cafe on Research Blvd. Free entry; renting from the game library costs $2 to $5 per session.',

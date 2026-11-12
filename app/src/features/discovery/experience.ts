@@ -18,7 +18,7 @@ export type Experience = {
   hours_text: string | null;
   duration_min: number | null;
   meeting_point: string | null;
-  booking_required: boolean;
+  booking_required: boolean | null;
   booking_url: string | null;
   source: string;
   checked_on: string | null;

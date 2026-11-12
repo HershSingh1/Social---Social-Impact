@@ -60,6 +60,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | G11 | T01 and T04 are named but defined in the product spec. | Copy definitions into `spec.md` "Demo acceptance" (it already has a one-line version of each). | Decided Nov 11 |
 | G12 | Table names differ between sections: `sponsor_impressions`/`sponsor_clicks` vs `sponsor_stats_daily`; `partner_stats_monthly` and `referral_programs` missing from the tables list; `availability.updated_at` missing. | Use the section names (P2-08, P2-06, P2-09, P1-01) and add them to the table list. | Open |
 | G13 | Spec lists `create_group(name)`, but retries must not duplicate groups (rule 3) and `groups.client_key` exists. | Signature is `create_group(client_key uuid, name text)` returning `{group_id, code, expires_at}`; the same key returns the same group and its code. Limit 20 active groups per person. | Decided Nov 10 (TEC-27) |
+| G15 | P0-11 asks for an acknowledgement when booking is unknown, but `experiences.booking_required` is a non-null boolean, so unknown can't be stored. | `experiences.booking_required` and `plan_revisions.booking_required` are nullable; NULL means unknown, and the plan keeps it. `send_plan` gains `acknowledged boolean default false` (last parameter, not part of the `client_key` payload) and refuses with `unconfirmed_info_not_acknowledged` when `price_kind = 'unknown'` or booking is NULL unless it is true. For C6, unknown to required is a newly required booking (material); other booking changes involving unknown are minor. G14 is left for the profile photo gap on the open decisions branch. ([PRO-21](https://linear.app/social-impact-finance/issue/PRO-21)) | Decided Nov 11 — by Noah for TEC-89 |
 
 ## Figma vs spec (Linear PRO-9)
 
@@ -73,7 +74,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 
 ## Linear
 
-Every entry above is tracked in Linear project "Sidequest P0–P2" (team Product & Design): D1/D2 → PRO-1 (done), D9 → PRO-13 (done), D10 → PRO-14, C1 → PRO-2, C2 → PRO-3, C3 → PRO-4, C4 → PRO-5, C5 → PRO-6, C6 → PRO-7, C7 → PRO-8, F1–F5 → PRO-9, G1–G12 → PRO-10.
+Every entry above is tracked in Linear project "Sidequest P0–P2" (team Product & Design): D1/D2 → PRO-1 (done), D9 → PRO-13 (done), D10 → PRO-14, C1 → PRO-2, C2 → PRO-3, C3 → PRO-4, C4 → PRO-5, C5 → PRO-6, C6 → PRO-7, C7 → PRO-8, F1–F5 → PRO-9, G1–G12 → PRO-10, G15 → PRO-21.
 
 ## Checked, no conflict
 
