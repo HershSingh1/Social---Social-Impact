@@ -1,3 +1,4 @@
+import { logEvent } from '../../lib/analytics';
 import { supabase } from '../../lib/supabase';
 
 export type RsvpStatus = 'going' | 'awaiting' | 'cant_go' | 'needs_reconfirm';
@@ -87,7 +88,10 @@ export class RespondRefused extends Error {
 /** Answers against the revision the person is looking at; the server refuses a stale one. */
 export async function respond(planId: string, revision: number, status: 'going' | 'cant_go') {
   const { error } = await supabase.rpc('respond', { plan_id: planId, revision, status });
-  if (!error) return;
+  if (!error) {
+    logEvent('rsvp_saved', { plan_id: planId, status });
+    return;
+  }
   const known = Object.keys(RESPOND_ERRORS).find(code => error.message.includes(code));
   throw known ? new RespondRefused(known) : error;
 }

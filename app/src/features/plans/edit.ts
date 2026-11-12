@@ -1,3 +1,4 @@
+import { logEvent } from '../../lib/analytics';
 import { supabase } from '../../lib/supabase';
 import { toChicagoLocal } from '../../lib/time';
 import { MEETING_POINT_MAX, NOTE_MAX } from './limits';
@@ -58,5 +59,9 @@ export async function saveEdit(planId: string, rev: Revision, form: EditForm): P
     if (known) throw new EditRefused(...SERVER_ERRORS[known]);
     throw error;
   }
-  return (data as { needs_reconfirm: number }).needs_reconfirm;
+  const result = data as { needs_reconfirm: number; material?: boolean; changed?: string[] };
+  const names = ['start_local', 'end_local', 'meeting_point', 'note'] as const;
+  logEvent('plan_edited', { plan_id: planId, material: result.material,
+    changed: names.filter(name => result.changed?.includes(name)) });
+  return result.needs_reconfirm;
 }

@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, ErrorState, Label, Loading, Tag } from '@/ui';
 import { color, inset, minTap, radius, shadow, space, type } from '@/ui/theme';
+import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { BookingNotice } from './BookingNotice';
 import {
@@ -37,6 +38,9 @@ function BackButton() {
 
 export function ExperienceDetail({ experience }: { experience: Experience }) {
   const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => {
+    if (experience.status === 'published') logEvent('experience_viewed', { experience_id: experience.id });
+  }, [experience.id, experience.status]);
   const price = formatPrice(experience);
   const timing = formatTiming(experience);
   const url = sourceUrl(experience.source);

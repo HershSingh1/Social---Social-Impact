@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { addDraftOption, EMPTY_DRAFT, type DraftOption, type PickDraft, type VoteValue } from './model';
 
@@ -82,12 +83,14 @@ export async function createPick(draft: PickDraft, clientKey: string, deadline: 
     wrapped.code = error.code; wrapped.details = error.details;
     throw wrapped;
   }
+  logEvent('pick_created', { pick_id: data as string, group_id: draft.groupId });
   return data as string;
 }
 
 export async function castVote(optionId: string, value: VoteValue | null) {
   const { error } = await supabase.rpc('cast_vote', { option_id: optionId, value });
   fail(error);
+  if (value) logEvent('vote_cast', { option_id: optionId, value });
 }
 
 export async function addOptionToPick(pickId: string, experienceId: string) {
@@ -142,7 +145,10 @@ const PICK_ERRORS: Record<string, string> = {
 export class PickRefused extends Error {}
 async function organizerCall(fn: 'close_pick' | 'cancel_pick', pickId: string) {
   const { error } = await supabase.rpc(fn, { pick_id: pickId });
-  if (!error) return;
+  if (!error) {
+    if (fn === 'close_pick') logEvent('pick_closed', { pick_id: pickId });
+    return;
+  }
   const known = Object.keys(PICK_ERRORS).find(code => error.message.includes(code));
   throw known ? new PickRefused(PICK_ERRORS[known]) : new Error(error.message);
 }
