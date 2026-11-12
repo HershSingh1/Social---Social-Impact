@@ -6,6 +6,7 @@ import { AuthGate, linkToPath } from '../AuthGate';
 import { AuthProvider } from '../AuthProvider';
 import { EmailSignInScreen } from '../EmailSignInScreen';
 import { ProfileSetupScreen } from '../ProfileSetupScreen';
+import { SettingsScreen } from '../SettingsScreen';
 
 type Result = { data?: unknown; error: { message: string; status?: number } | null };
 type AuthListener = (event: string, session: unknown) => void;
@@ -14,6 +15,7 @@ const mockAuth = {
   onAuthStateChange: jest.fn((listener: AuthListener) => { mockListener = listener; return { data: { subscription: { unsubscribe: () => {} } } }; }),
   signInWithOtp: jest.fn<(args: unknown) => Promise<Result>>(),
   verifyOtp: jest.fn<(args: unknown) => Promise<Result>>(),
+  signOut: jest.fn<(args: unknown) => Promise<Result>>(),
 };
 let mockListener: AuthListener = () => {};
 const mockProfile = jest.fn<() => Promise<Result>>();
@@ -161,4 +163,41 @@ test('profile setup saves name, city and age through set_profile', async () => {
   await typeInto('Age (optional)', '24');
   await tap('Continue');
   expect(mockRpc).toHaveBeenCalledWith('set_profile', { display_name: 'Maya', avatar_path: null, city: null, age: 24 });
+});
+
+test('settings signs out locally', async () => {
+  mockAuth.signOut.mockResolvedValue({ error: null });
+  await render(<SettingsScreen />);
+  await tap('Sign out');
+  expect(mockAuth.signOut).toHaveBeenCalledWith({ scope: 'local' });
+});
+
+test('a signed-out auth event returns the gate to welcome', async () => {
+  mockAuth.getSession.mockResolvedValue({ data: { session } });
+  mockProfile.mockResolvedValue({ data: { display_name: 'Maya' }, error: null });
+  await gate();
+  expect(await screen.findByText('ready')).toBeTruthy();
+  await act(async () => mockListener('SIGNED_OUT', null));
+  expect(await screen.findByText('signed-out')).toBeTruthy();
+});
+
+test('delete account names what is deleted, confirms, then clears the local session', async () => {
+  mockRpc.mockResolvedValue({ error: null });
+  mockAuth.signOut.mockResolvedValue({ error: null });
+  await render(<SettingsScreen />);
+  await tap('Delete account');
+  expect(screen.getByText(/profile, saves, votes, responses, and group memberships/)).toBeTruthy();
+  expect(screen.getByText(/Plans you organized will be cancelled/)).toBeTruthy();
+  expect(mockRpc).not.toHaveBeenCalled();
+  await tap('Delete my account');
+  expect(mockRpc).toHaveBeenCalledWith('delete_account', undefined);
+  expect(mockAuth.signOut).toHaveBeenCalledWith({ scope: 'local' });
+});
+
+test('delete account can be cancelled without changing anything', async () => {
+  await render(<SettingsScreen />);
+  await tap('Delete account');
+  await tap('Keep my account');
+  expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy();
+  expect(mockRpc).not.toHaveBeenCalled();
 });

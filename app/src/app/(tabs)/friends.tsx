@@ -6,5 +6,6 @@ export default function FriendsTab() {
   const { session } = useAuth();
   if (!session) return null; // the auth gate keeps signed-out people off this tab
   return <FriendsScreen userId={session.user.id} onCreate={() => router.push('/groups/new')}
-    onJoin={() => router.push('/join')} onOpenGroup={id => router.push(`/groups/${id}`)} />;
+    onJoin={() => router.push('/join')} onSettings={() => router.push('/settings')}
+    onOpenGroup={id => router.push(`/groups/${id}`)} />;
 }

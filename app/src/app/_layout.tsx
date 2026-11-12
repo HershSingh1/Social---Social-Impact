@@ -32,6 +32,7 @@ export default function RootLayout() {
                 <Stack.Screen name="plan-link" />
                 <Stack.Screen name="pick/new" />
                 <Stack.Screen name="pick/[id]" />
+                <Stack.Screen name="settings" />
                 <Stack.Screen name="dev" />
               </Stack.Protected>
             </Stack>}
