@@ -26,6 +26,8 @@ export type PlansHub = {
   needsResponse: PlanHubItem[];
   openPicks: PickHubItem[];
   upcoming: PlanHubItem[];
+  /** Ended in the last 90 days, newest first. "Past" means the end time passed, not that anyone went. */
+  past: PlanHubItem[];
   badgeCount: number;
   isEmpty: boolean;
 };
@@ -37,6 +39,16 @@ const responsePriority: Record<ViewerPlanStatus, number> = {
   awaiting: 1,
   going: 2,
   cant_go: 3,
+};
+
+/** How many days Past reaches back. */
+export const PAST_DAYS = 90;
+
+const pastLabel = (plan: HubPlan) => {
+  if (plan.state === 'cancelled') return 'Cancelled';
+  if (plan.viewerStatus === 'going') return 'You said Going';
+  if (plan.viewerStatus === 'cant_go') return 'You said Can’t go';
+  return 'No reply';
 };
 
 const statusLabel = (plan: HubPlan) => {
@@ -57,9 +69,14 @@ export function buildPlansHub(
   const nowMs = now.getTime();
   const needsResponse: PlanHubItem[] = [];
   const upcoming: PlanHubItem[] = [];
+  const past: PlanHubItem[] = [];
+  const pastFrom = nowMs - PAST_DAYS * 86_400_000;
 
   for (const plan of data.plans) {
-    if (Date.parse(plan.endAt) <= nowMs) continue;
+    if (Date.parse(plan.endAt) <= nowMs) {
+      if (Date.parse(plan.endAt) > pastFrom) past.push({ ...plan, kind: 'plan', statusLabel: pastLabel(plan) });
+      continue;
+    }
     const item: PlanHubItem = { ...plan, kind: 'plan', statusLabel: statusLabel(plan) };
     if (plan.state === 'sent' && (plan.viewerStatus === 'needs_reconfirm' || plan.viewerStatus === 'awaiting')) {
       needsResponse.push(item);
@@ -73,6 +90,7 @@ export function buildPlansHub(
     return priority || Date.parse(a.startAt) - Date.parse(b.startAt);
   });
   upcoming.sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
+  past.sort((a, b) => Date.parse(b.startAt) - Date.parse(a.startAt));
 
   const openPicks: PickHubItem[] = data.picks
     .filter(pick => pick.state === 'open')
@@ -85,8 +103,9 @@ export function buildPlansHub(
     needsResponse,
     openPicks,
     upcoming,
+    past,
     badgeCount,
-    isEmpty: needsResponse.length + openPicks.length + upcoming.length === 0,
+    isEmpty: needsResponse.length + openPicks.length + upcoming.length + past.length === 0,
   };
 }
 
