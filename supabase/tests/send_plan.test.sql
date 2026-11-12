@@ -121,7 +121,7 @@ select throws_ok($$select pg_temp.send('maya', 'v11', '{"rec":["d"]}')$$, 'P0001
 reset role;
 select throws_ok($$select pg_temp.send('maya', 'v12', '{"tz":"America/New_York"}')$$, 'P0001', 'invalid_time_zone', 'Only America/Chicago for now');
 reset role;
-select throws_ok($$select pg_temp.send('maya', 'v13', '{"ex":"fixed"}')$$, 'P0001', 'fixed_sessions_not_supported', 'Fixed sessions are Phase 1b');
+select lives_ok($$select pg_temp.send('maya', 'v13', '{"ex":"fixed"}')$$, 'Fixed-time activity can be planned at any time (G6)');
 reset role;
 select throws_ok($$select pg_temp.send('maya', 'v14', '{"ex":"nope"}')$$, 'P0001', 'experience_not_found', 'Unknown experience');
 reset role;
@@ -129,9 +129,9 @@ select throws_ok($$select pg_temp.send('outsider', 'v15')$$, '42501', 'not_a_mem
 reset role;
 select throws_ok($$select pg_temp.send('maya', 'v16', '{"group":"old"}')$$, 'P0001', 'group_archived', 'Archived group');
 reset role;
-select is((select count(*) from plans), 3::bigint, 'Only the plans that passed validation exist (k1, v5, v8)');
-select is((select count(*) from private.send_plan_requests), 3::bigint, 'No request log rows for failed sends');
-select is((select count(*) from rsvps), 5::bigint, 'No stray invitations from failures: 3 for k1, 1 each for v5 and v8');
+select is((select count(*) from plans), 4::bigint, 'Only the plans that passed validation exist (k1, v5, v8, v13)');
+select is((select count(*) from private.send_plan_requests), 4::bigint, 'No request log rows for failed sends');
+select is((select count(*) from rsvps), 6::bigint, 'No stray invitations from failures: 3 for k1, 1 each for v5, v8 and v13');
 
 -- Organizer alone is allowed
 select lives_ok($$select pg_temp.send('c', 'solo')$$, 'Organizer-only plan is allowed');

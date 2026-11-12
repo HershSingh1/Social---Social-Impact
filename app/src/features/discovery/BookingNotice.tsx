@@ -4,7 +4,7 @@ import { Button, Card, Label } from '@/ui';
 import { space, type } from '@/ui/theme';
 
 export function BookingNotice({ required, providerName, url }: {
-  required: boolean; providerName?: string | null; url?: string | null;
+  required: boolean | null; providerName?: string | null; url?: string | null;
 }) {
   if (!required) return <Card>
     <Label style={type.headline}>No booking needed</Label>

@@ -182,7 +182,7 @@ Nov 8, 2026 · @Noah
 
 - **Who:** account holders. A draft starts from Plan this (P0-10) or from Start a plan on Detail.
 - **Fields:** group; recipients (members, preselected, each can be unticked; the organizer alone is allowed and shows "No other invitees yet"); date; start and end time; meeting point (1–200 characters, prefilled from the experience); note (up to 500 characters, optional).
-- **Time rules:** start must be in the future and end after start. Fixed-session experiences offer only their listed sessions. Flexible experiences must fit their known hours; if hours are unknown, show "Hours unverified" and allow it. All times show in America/Chicago with the zone named on Review.
+- **Time rules:** start must be in the future and end after start. Fixed-session experiences show their listed sessions; any time can be sent (G6). Flexible experiences must fit their known hours; if hours are unknown, show "Hours unverified" and allow it. All times show in America/Chicago with the zone named on Review.
 - **Unknown facts (Pilot):** if price or booking is unknown, Send requires ticking "I understand the price/booking is unconfirmed".
 - **Review:** one summary card with What, When, Where, Who, Cost and Booking, then Send invitation.
 - **Draft saving:** drafts are kept on the phone with their request ID and labeled "Saved on this phone"; they don't sync to other phones, and only the organizer sees them (Plans hub → Drafts). Send needs a connection.
@@ -482,7 +482,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | `groups` | `id`, `name`, `owner_id`, `archived_at`, `client_key` (unique) | P0 |
 | `group_members` | `group_id`, `user_id`, `role` (owner, member), `joined_at`, `removed_at`, `blocked`; unique (group, user) | P0 |
 | `join_codes` | `code` (6 chars, no 0/O/1/I), `group_id`, `expires_at`, `revoked_at` | P0 |
-| `experiences` | `id`, `name`, `category`, `description`, `lat`, `lng`, `area`, `image_url`, `address`, `provider_name`, `price_kind`, `price_min`, `price_max`, `timing_kind`, `sessions` (JSON), `hours_text`, `duration_min`, `meeting_point`, `booking_required`, `booking_url`, `booking_url_referral`, `source`, `checked_on`, `status`, `version` | P0 (referral P2) |
+| `experiences` | `id`, `name`, `category`, `description`, `lat`, `lng`, `area`, `image_url`, `address`, `provider_name`, `price_kind`, `price_min`, `price_max`, `timing_kind`, `sessions` (JSON), `hours_text`, `duration_min`, `meeting_point`, `booking_required` (null = unknown, G15), `booking_url`, `booking_url_referral`, `source`, `checked_on`, `status`, `version` | P0 (referral P2) |
 | `saves` | `experience_id`, `user_id`, `group_id` (null = personal); unique (experience, user, group) | P0 |
 | `picks` | `id`, `group_id`, `organizer_id`, `client_key` (unique), `title`, `created_at`, `closed_at`, `deadline`, `starred_option_id`, `state` (open, closed, planned, cancelled), `winner_option_id`, `tie_rule`, `override_option_id` | P0 |
 | `pick_options` | `id`, `pick_id`, `experience_id`, `proposed_start`, `position` | P0 |
@@ -491,7 +491,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | `pick_voter_status` | `pick_id`, `user_id`, `complete`; unique (pick, user), server-maintained | P0 |
 | `join_attempts` | `user_id` (primary key), `window_start`, `attempts`, `blocked_until`; server-only counters, no raw codes | P0 |
 | `plans` | `id`, `group_id`, `organizer_id`, `experience_id`, `pick_id`, `state` (draft, sent, cancelled), `current_revision`, `client_key` (unique), `cancel_reason`, `experience_name`, `experience_category` (snapshots), `updated_at`, `repeat_rule` | P0 (repeat P2) |
-| `plan_revisions` | `plan_id`, `revision`, `start_at`, `end_at` (UTC), `time_zone`, `meeting_point`, `note`, `price_snapshot`, `booking_required`; unique (plan, revision) | P0 |
+| `plan_revisions` | `plan_id`, `revision`, `start_at`, `end_at` (UTC), `time_zone`, `meeting_point`, `note`, `price_snapshot`, `booking_required` (null = unknown); unique (plan, revision) | P0 |
 | `rsvps` | `plan_id`, `user_id`, `status` (going, cant\_go, awaiting, needs\_reconfirm), `revision`, `removed_at`; unique (plan, user) | P0 |
 | `plan_links` | `token`, `plan_id`, `expires_at`, `revoked_at` | P0 |
 | `events` | `id`, `user_id`, `name`, `props` (JSON), `created_at`; insert-only, written through `log_event` | P0 |
@@ -518,7 +518,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | `create_pick(group_id, options[], deadline, starred)`, `add_option(pick_id, …)` | Opens a pick | Account and member; 2–5 options; one open pick per group; deadline 1 h to 7 days | P0 |
 | `cast_vote(option_id, value)` | Upserts or clears one vote | Member; pick open | P0 |
 | `close_pick(pick_id)`, `close_due_picks()` | Scores, stores winner and `tie_rule` | Organizer or cron; runs once. Order: score desc, No asc, starred first, position asc | P0 |
-| `send_plan(client_key, …)` | Plan, revision 1, RSVPs | Same key returns the same plan; organizer Going, others Awaiting reply | P0 |
+| `send_plan(client_key, …, acknowledged)` | Plan, revision 1, RSVPs | Same key returns the same plan; organizer Going, others Awaiting reply; unknown price or booking needs `acknowledged` (G15) | P0 |
 | `respond(plan_id, revision, status)` | Sets caller's RSVP | Invitee; plan Sent; before start; revision current, else `stale_revision` | P0 |
 | `edit_plan(plan_id, changes)` | Minor edit or new revision | Organizer; material fields create a revision and flip Going to Needs reconfirmation; returns that count | P0 |
 | `cancel_plan(plan_id, reason)` | Cancels | Organizer; wins over concurrent RSVPs | P0 |

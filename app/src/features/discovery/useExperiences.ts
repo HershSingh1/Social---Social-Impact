@@ -13,7 +13,7 @@ export type Experience = Filterable & {
   image_url: string | null;
   timing_kind: 'fixed' | 'flexible' | 'unknown';
   hours_text: string | null;
-  booking_required: boolean;
+  booking_required: boolean | null;
 };
 
 const COLUMNS = 'id, name, category, description, lat, lng, area, image_url, price_kind, price_min, price_max, timing_kind, hours_text, booking_required';

@@ -8,7 +8,7 @@ export type Invitee = { userId: string; name: string; status: RsvpStatus; isOrga
 export type Price = { kind: string; min: number | null; max: number | null; previous?: Omit<Price, 'previous'> };
 export type Revision = { revision: number; startAt: string; endAt: string; meetingPoint: string; note: string | null;
   /** `previous` is set when the catalog changed the price after the plan was sent (TEC-93). */
-  price: Price; bookingRequired: boolean };
+  price: Price; bookingRequired: boolean | null };
 export type Plan = {
   id: string; name: string; organizerId: string; state: 'sent' | 'cancelled' | 'draft'; cancelReason: string | null;
   /** For "Start a new plan from it". The experience is null once its listing is removed. */
@@ -39,7 +39,7 @@ export function priceText({ kind, min, max }: Pick<Price, 'kind' | 'min' | 'max'
 }
 
 type RevisionRow = { revision: number; start_at: string; end_at: string; meeting_point: string; note: string | null;
-  price_snapshot: { kind: string; min: number | null; max: number | null }; booking_required: boolean };
+  price_snapshot: { kind: string; min: number | null; max: number | null }; booking_required: boolean | null };
 const toRevision = (r: RevisionRow): Revision => ({
   revision: r.revision, startAt: r.start_at, endAt: r.end_at, meetingPoint: r.meeting_point, note: r.note,
   price: r.price_snapshot, bookingRequired: r.booking_required,
