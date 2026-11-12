@@ -8,6 +8,7 @@ type Props = {
   userId: string;
   onCreate: () => void;
   onJoin: () => void;
+  onSettings?: () => void;
   onOpenGroup: (groupId: string) => void;
 };
 
@@ -25,12 +26,15 @@ function GroupRow({ group, onPress }: { group: GroupSummary; onPress: () => void
 }
 
 // Friends tab: your groups and what's next in each ("Your groups" on Figma 2.1 Home, 28:3386).
-export function FriendsScreen({ userId, onCreate, onJoin, onOpenGroup }: Props) {
+export function FriendsScreen({ userId, onCreate, onJoin, onSettings, onOpenGroup }: Props) {
   const groups = useQuery({ queryKey: [...myGroupsKey, userId], queryFn: () => fetchMyGroups(userId), refetchInterval: 30_000 });
   const retry = () => { void groups.refetch(); };
 
   return <Screen>
-    <Label accessibilityRole="header" style={type.title1}>Your groups</Label>
+    <View style={styles.header}>
+      <Label accessibilityRole="header" style={type.title1}>Your groups</Label>
+      {onSettings && <Button label="Settings" variant="text" size="small" onPress={onSettings} />}
+    </View>
     <View style={styles.actions}>
       <View style={styles.flex}><Button label="Create group" size="small" onPress={onCreate} /></View>
       <View style={styles.flex}><Button label="Join with code" variant="secondary" size="small" onPress={onJoin} /></View>
@@ -48,6 +52,7 @@ export function FriendsScreen({ userId, onCreate, onJoin, onOpenGroup }: Props) 
 }
 
 const styles = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   flex: { flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: minTap, paddingVertical: space.xs },

@@ -66,3 +66,14 @@ export async function hasProfile(userId: string): Promise<boolean> {
   if (error) throw error;
   return Boolean((data as { display_name: string | null } | null)?.display_name);
 }
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
+  if (error) throw error;
+}
+
+export async function deleteAccount() {
+  const result = await supabase.rpc('delete_account');
+  if (result.error) throw result.error;
+  await signOut();
+}
