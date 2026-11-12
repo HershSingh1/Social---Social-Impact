@@ -23,6 +23,10 @@ function mockBuilder(table: string) {
   b.then = (resolve: (r: Result) => unknown) => Promise.resolve(result()).then(resolve);
   return b;
 }
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories can't use import
+jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({ router: { push: (href: string) => mockPush(href) } }));
 jest.mock('../../../lib/supabase', () => ({ supabase: {
   from: (table: string) => mockBuilder(table),
   rpc: (fn: string, args: Record<string, unknown>) => fn === 'respond' ? mockRespond(args)
@@ -41,6 +45,7 @@ const setCounts = (...n: [number, number, number, number]) => {
 };
 
 beforeEach(() => {
+  mockPush.mockReset();
   mockRespond.mockReset();
   mockStart = '2099-11-14T16:00:00Z';
   mockPlan = { id: 'p1', experience_name: 'Barton Springs', organizer_id: 'maya', state: 'sent', cancel_reason: null, current_revision: 1 };
@@ -113,4 +118,35 @@ test('after the start time, answers are locked', async () => {
   await show('jordan');
   expect(await screen.findByText('This plan has started, so answers are closed.')).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Going' })).toBeNull();
+});
+
+test('the organizer of a sent plan can cancel it', async () => {
+  await show('maya');
+  expect(await screen.findByRole('button', { name: 'Cancel plan' })).toBeTruthy();
+});
+
+test('an invitee cannot cancel a plan', async () => {
+  await show('jordan');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByRole('button', { name: 'Cancel plan' })).toBeNull();
+});
+
+test('a cancelled plan says who cancelled and why, and closes answers and edits', async () => {
+  mockPlan = { ...mockPlan, state: 'cancelled', cancel_reason: 'Weather', group_id: 'g1', experience_id: 'e1' };
+  await show('jordan');
+  await screen.findByText('Who’s coming', {}, { timeout: 3000 });
+  expect(await screen.findByText('Maya cancelled this plan: Weather.')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Going' }).props.accessibilityState.disabled).toBe(true);
+  expect(screen.getByRole('button', { name: 'Can’t go' }).props.accessibilityState.disabled).toBe(true);
+  expect(screen.queryByRole('button', { name: 'Edit plan' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Cancel plan' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Start a new plan from it' })).toBeNull();
+});
+
+test('the organizer can start a new plan from a cancelled one, with a fresh draft', async () => {
+  mockPlan = { ...mockPlan, state: 'cancelled', cancel_reason: 'Venue closed', group_id: 'g1', experience_id: 'e1' };
+  await show('maya');
+  await screen.findByText('Maya cancelled this plan: Venue closed.', {}, { timeout: 3000 });
+  await tap('Start a new plan from it');
+  expect(mockPush).toHaveBeenCalledWith('/plan/new?group=g1&experience=e1');
 });

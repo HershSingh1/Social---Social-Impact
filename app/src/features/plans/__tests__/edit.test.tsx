@@ -20,6 +20,8 @@ function mockBuilder(table: string) {
   b.then = (resolve: (r: Result) => unknown) => Promise.resolve(result()).then(resolve);
   return b;
 }
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories can't use import
+jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('../../../lib/supabase', () => ({ supabase: {
   from: (table: string) => mockBuilder(table),
   rpc: (fn: string, args: Record<string, unknown>) => fn === 'get_profile_cards'
