@@ -25,7 +25,12 @@ const pick = (change: Partial<PickDetail> = {}): PickDetail => ({
   voters: [{ id: 'maya', name: 'Maya', complete: true }, { id: 'jordan', name: 'Jordan', complete: true }], ...change,
 });
 
-const handlers = () => ({ onPlanThis: jest.fn(), onOpenPlan: jest.fn(), onChanged: jest.fn() });
+const handlers = () => ({
+  onPlanThis: jest.fn<(optionId: string) => void>(),
+  onOverride: jest.fn<(optionId: string) => Promise<void>>().mockResolvedValue(),
+  onOpenPlan: jest.fn<(planId: string) => void>(),
+  onChanged: jest.fn<() => void>(),
+});
 const show = async (p: PickDetail, viewer: string, h = handlers()) => { await render(<PickResultScreen pick={p} viewerId={viewer} {...h} />); return h; };
 const tap = (name: string) => act(async () => fireEvent.press(screen.getByRole('button', { name })));
 
@@ -66,6 +71,37 @@ describe('result screen', () => {
     expect(screen.getByText('Maya will send a plan.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /^Plan / })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Cancel pick' })).toBeNull();
+  });
+
+  test('the organizer can choose another option and every member sees the override line', async () => {
+    const h = await show(pick(), 'maya');
+    await tap('Plan Clay and conversation instead of the winner');
+    expect(h.onOverride).toHaveBeenCalledWith('c');
+    expect(h.onPlanThis).toHaveBeenCalledWith('c');
+    await screen.unmount();
+    await show(pick({ overrideOptionId: 'c' }), 'jordan');
+    expect(screen.getByText('Maya chose Clay and conversation instead of the vote winner, Sketch and stroll.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /instead of the winner/ })).toBeNull();
+  });
+
+  test('Plan this uses the override, and the organizer can go back to the vote winner', async () => {
+    const h = await show(pick({ overrideOptionId: 'c' }), 'maya');
+    expect(screen.getByText('You chose Clay and conversation instead of the vote winner, Sketch and stroll.')).toBeTruthy();
+    expect(screen.getByLabelText(/Clay and conversation, chosen instead/)).toBeTruthy();
+    await tap('Plan Clay and conversation');
+    expect(h.onPlanThis).toHaveBeenCalledWith('c');
+    await tap('Use the vote winner, Sketch and stroll');
+    expect(h.onOverride).toHaveBeenCalledWith('s');
+  });
+
+  test('a failed override keeps the result on screen, shows an error and does not open a draft', async () => {
+    const h = handlers();
+    h.onOverride.mockRejectedValue(new Error('network'));
+    await show(pick(), 'maya', h);
+    await tap('Plan Barton Springs swim instead of the winner');
+    expect(screen.getByText('Couldn’t save your choice. Try again.')).toBeTruthy();
+    expect(h.onPlanThis).not.toHaveBeenCalled();
+    expect(screen.getByText('The group picked')).toBeTruthy();
   });
 
   test('nobody voted: the organizer chooses which option to plan', async () => {

@@ -26,6 +26,8 @@ export type PickDetail = {
   starredOptionId?: string;
   /** Set by the server when the pick closes (TEC-30); null when nobody voted. */
   winnerOptionId?: string;
+  /** A losing option the organizer chose to plan instead of the winner. */
+  overrideOptionId?: string;
   /** The server's sentence naming the rule that decided the winner. */
   tieRule?: string;
   /** The plan made from this pick, when the viewer is invited to it (RLS). */
@@ -100,7 +102,7 @@ export async function addOptionToPick(pickId: string, experienceId: string) {
 
 export async function fetchPick(id: string): Promise<PickDetail> {
   const { data: pick, error: pickError } = await supabase.from('picks')
-    .select('id,title,group_id,organizer_id,deadline,state,starred_option_id,winner_option_id,tie_rule,groups(name)').eq('id', id).single();
+    .select('id,title,group_id,organizer_id,deadline,state,starred_option_id,winner_option_id,override_option_id,tie_rule,groups(name)').eq('id', id).single();
   fail(pickError);
   if (!pick) throw new Error('Pick not found.');
   const [{ data: optionRows, error: optionError }, { data: statusRows, error: statusError }, { data: memberRows, error: memberError }, { data: planRow }] = await Promise.all([
@@ -131,6 +133,7 @@ export async function fetchPick(id: string): Promise<PickDetail> {
   return { id: pick.id, title: pick.title, groupId: pick.group_id, groupName: group?.name ?? 'Group',
     organizerId: pick.organizer_id, deadline: pick.deadline, state: pick.state,
     starredOptionId: pick.starred_option_id ?? undefined, winnerOptionId: pick.winner_option_id ?? undefined,
+    overrideOptionId: pick.override_option_id ?? undefined,
     tieRule: pick.tie_rule ?? undefined, planId: (planRow as { id: string } | null)?.id, options,
     voters: memberIds.map(userId => ({ id: userId, name: profileMap.get(userId)?.display_name ?? 'Member',
       avatar: profileMap.get(userId)?.avatar_path ?? undefined, complete: status.get(userId) ?? false })) };
@@ -156,6 +159,12 @@ async function organizerCall(fn: 'close_pick' | 'cancel_pick', pickId: string) {
 export const closePick = (pickId: string) => organizerCall('close_pick', pickId);
 /** Cancel an open or closed pick before it becomes a plan. */
 export const cancelPick = (pickId: string) => organizerCall('cancel_pick', pickId);
+
+/** Record that the organizer is planning a losing option instead of the vote winner. */
+export async function overridePick(pickId: string, optionId: string) {
+  const { error } = await supabase.rpc('override_pick', { pick_id: pickId, option_id: optionId });
+  fail(error);
+}
 
 export function usePick(id: string) {
   const client = useQueryClient();

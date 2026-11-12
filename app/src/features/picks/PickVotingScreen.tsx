@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { AvatarStack, Button, Card, Chip, ErrorState, Label, Loading, Screen, Tag } from '@/ui';
 import { color, radius, space, type } from '@/ui/theme';
 import { useAuth } from '@/features/auth';
-import { addOptionToPick, castVote, fetchExperience, pickKey, usePick, type PickDetail } from './api';
+import { addOptionToPick, castVote, fetchExperience, overridePick, pickKey, usePick, type PickDetail } from './api';
 import { planThisPath, toggledVote, votePoints, type VoteValue } from './model';
 import { PickOrganizerActions } from './PickOrganizerActions';
 import { PickResultScreen } from './PickResultScreen';
@@ -43,6 +43,7 @@ export function PickVotingScreen() {
     <View style={styles.center}><Label accessibilityRole="header" style={type.title2}>Result</Label><Label style={styles.secondary}>{pick.title}</Label></View>
     <PickResultScreen pick={pick} viewerId={viewerId} onChanged={refresh}
       onOpenPlan={planId => router.push(`/plan/${planId}`)}
+      onOverride={async optionId => { await overridePick(pick.id, optionId); await query.refetch(); }}
       onPlanThis={optionId => { const option = pick.options.find(o => o.id === optionId); if (option) router.push(planThisPath(pick, option) as never); }} />
   </Screen>;
   return <Screen>
