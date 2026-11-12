@@ -86,7 +86,7 @@ test('Group page: members, join code, no open vote, the invited plan and the hid
   mockTables.groups = ok({ name: 'Saturday crew' });
   mockTables.group_members = ok([{ user_id: 'maya', role: 'owner' }, { user_id: 'jordan', role: 'member' }]);
   const onOpenPlan = jest.fn();
-  await render(wrap(<GroupDetailScreen groupId="g1" onOpenPick={() => {}} onOpenPlan={onOpenPlan} />));
+  await render(wrap(<GroupDetailScreen groupId="g1" userId="jordan" onOpenPick={() => {}} onOpenPlan={onOpenPlan} onBack={() => {}} />));
   expect(await screen.findByText('2 members')).toBeTruthy();
   expect(screen.getByText('K7Q 2MX')).toBeTruthy();
   expect(screen.getByText('No vote open right now.')).toBeTruthy();
