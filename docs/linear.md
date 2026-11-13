@@ -15,7 +15,7 @@ Decisions and the three-act demo script: Decision Register, https://claude.ai/ar
 | Rehearsal and demo | week of Dec 14 | All three acts | TEC-78 |
 | P2 revenue (on hold) | none | P2-06…10 (TEC-70…74) | none |
 
-Each phase's code starts only after the previous phone check passes. Design can run ahead (PRO-11).
+Phone checks are left out for now (decision D13), so a phase's code does not wait for one. The phone-check issues stay open. Design can run ahead (PRO-11).
 
 ## Setup
 TEC-1 Supabase dev project · TEC-3 core database and access rules · TEC-4 phone test builds · TEC-5 Linear GitHub integration · TEC-6 Figma tokens + UI kit · PRO-11 missing Figma frames

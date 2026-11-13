@@ -16,7 +16,7 @@ These are the working rules for every AI coding agent on this repo (Codex, Claud
 There are no guests. Every user signs in with Apple, Google or an email code before anything works. The spec's guest rules are superseded (`docs/spec-decisions.md` D1 and D2), so never add anonymous auth, `is_guest`, or guest UI.
 
 ## Scope now
-We build in three phases (decision D3). Phase 1 is all of P0, split into 1a (the core path) and 1b (the rest). Phase 2 is P1. Phase 3 is P2 group memory, P2-01 to P2-05. Each phase passes a check on real phones before the next phase's code starts, though design can run ahead.
+We build in three phases (decision D3). Phase 1 is all of P0, split into 1a (the core path) and 1b (the rest). Phase 2 is P1. Phase 3 is P2 group memory, P2-01 to P2-05. Phone checks on real phones are left out for now (decision D13), so a phase's code no longer waits on one, and design can run ahead.
 
 Not in scope, so don't build them:
 - P2 revenue (P2-06 to P2-10). On hold.
