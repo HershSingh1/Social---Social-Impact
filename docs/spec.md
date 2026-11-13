@@ -84,7 +84,7 @@ Nov 8, 2026 · @Noah
 - **Who:** anyone. Required to create a group, start a pick or plan, save, or suggest a listing; the app asks to sign in at that moment and returns to the same step afterwards.
 - **Methods:** Sign in with Apple; email one-time code (6 digits, valid 10 minutes, at most 5 tries). Google arrives in P1 (P1-08).
 - **Guest upgrade:** a guest who signs in keeps the same user ID, so memberships, votes and RSVPs stay. If that Apple ID or email already belongs to another account, show "This sign-in already has an account" and offer to sign in to that account instead; the guest's activity stays with the guest.
-- **Profile:** display name required; avatar optional (JPEG, PNG or WebP up to 10 MB, cropped square).
+- **Profile:** onboarding follows the Figma frames (D11, F1): full name (stored as `display_name`), username, age and city, then "What are you into?" interests and typical spend (F2), then Calendar & Permissions (F7). Only the city is shared with groups. Avatar optional (JPEG, PNG or WebP up to 10 MB, cropped square).
 - **Account deletion (Pilot):** Settings → Delete account removes the profile, saves, votes and RSVPs, and hands each owned group to its longest-standing member (or archives it if nobody else is in it). Sent plans they organized are cancelled with the reason "Organizer deleted their account". Required by the App Store for guests too.
 - **Done when:** a guest who voted and RSVP'd signs in with Apple and still sees their vote and answer; a signed-out person who taps Create group signs in and lands back on the Create group sheet.
 
@@ -260,7 +260,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 - **Who:** account holders, from the + in the Map search bar.
 - **Form:** name (1–100), description (20–2,000), location or meeting point, timing (Fixed sessions with session list, or Flexible hours with hours text), duration, price status (Exact or Estimated with amount, Free, Unknown), source link (must start with http:// or https://), optional image (JPEG, PNG or WebP up to 10 MB). Errors show under each field and nothing typed is lost.
 - **States:** Pending review → Approved, Needs changes (with reason) or Rejected (with reason). Needs changes can be edited and resubmitted. Editing an approved listing creates a new pending version while the current one stays live.
-- **Review queue:** a restricted admin view for named team reviewers. Checks: in Austin, usable location and timing, honest price label, working source link, not a duplicate, permission to use the image. Duplicates are merged into the existing listing.
+- **Review queue:** a restricted admin view for admins (D12). Who counts as an admin is not decided yet. Checks: in Austin, usable location and timing, honest price label, working source link, not a duplicate, permission to use the image. Duplicates are merged into the existing listing.
 - **Report outdated info:** a link on Detail records the issue and the listing version, and replies "Thanks, a reviewer will check it"; no promised response time.
 - **Done when:** a submission with three errors keeps all typed text; an approved submission appears on the map; resubmitting the same draft twice creates one submission.
 
@@ -478,7 +478,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 
 | Table | Key columns | Phase |
 | --- | --- | --- |
-| `profiles` | `id` (auth user ID), `display_name` (null until first set), `avatar_path`, `budget_cap`, `transport` | P0 |
+| `profiles` | `id` (auth user ID), `display_name` (null until first set), `username` (unique), `city`, `age`, `avatar_path`, `budget_cap`, `transport` | P0 |
 | `groups` | `id`, `name`, `owner_id`, `archived_at`, `client_key` (unique) | P0 |
 | `group_members` | `group_id`, `user_id`, `role` (owner, member), `joined_at`, `removed_at`, `blocked`; unique (group, user) | P0 |
 | `join_codes` | `code` (6 chars, no 0/O/1/I), `group_id`, `expires_at`, `revoked_at` | P0 |
@@ -497,16 +497,16 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 | `events` | `id`, `user_id`, `name`, `props` (JSON), `created_at`; insert-only, written through `log_event` | P0 |
 | `submissions` | `id`, `author_id`, `experience_id` (for edits), `payload` (JSON), `state`, `reason`, `reviewer_id`, `client_key` | P0 |
 | `listing_reports` | `experience_id`, `version`, `user_id`, `issue`, `created_at` | P0 |
-| `availability` | `option_id`, `user_id`, `status` (free, busy), `source` (manual, calendar) | P1 |
+| `availability` | `option_id`, `user_id`, `status` (free, busy), `source` (manual, calendar), `updated_at` | P1 |
 | `calendar_shares` | `user_id`, `group_id`, `enabled` | P1 |
 | `push_tokens`, `notification_prefs`, `notification_log` | device token per user; on/off per type; one row per sent notification (for de-duplication) | P1 |
 | `interests` | `user_id`, `category`, `answer` (yes, maybe, no) | P1 |
 | `outing_reports`, `attendance` | organizer's Happened / Didn't / Not sure; each person's Yes / No | P2 |
 | `album_items` | `plan_id`, `user_id`, `storage_path`, `audience` (plan, group), `note`, `hidden` | P2 |
 | `feedback`, `preferences`, `bucket_items` | rating, tags, shared flag; private preferences; group bucket list | P2 |
-| `partners`, `partner_experiences` | business, contact, Stripe customer ID, `status` (trial, active, past\_due, cancelled) | P2 |
+| `partners`, `partner_experiences`, `partner_stats_monthly` | business, contact, Stripe customer ID, `status` (trial, active, past\_due, cancelled); monthly counts for partners | P2 |
 | `offers`, `offer_codes` | offer terms and limits; one code per plan per offer, `redeemed_at` | P2 |
-| `sponsorships`, `sponsor_stats_daily`, `referral_clicks_daily`, `sponsor_hides` | weekly slots; daily counts without user IDs; per-user hides for 30 days | P2 |
+| `sponsorships`, `sponsor_impressions`, `sponsor_clicks`, `referral_programs`, `referral_clicks_daily`, `sponsor_hides` | weekly slots; daily counts without user IDs; referral provider, terms link and rate; per-user hides for 30 days | P2 |
 
 ### Functions
 
