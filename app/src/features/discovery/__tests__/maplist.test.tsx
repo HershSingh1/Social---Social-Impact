@@ -6,6 +6,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FiltersProvider } from '../FiltersContext';
 import { MapListScreen } from '../MapListScreen';
 import { matchesSearch } from '../search';
+import { myGroupsKey } from '../../groups/overview';
+import { savesKey } from '../saves';
 import { EXPERIENCES_KEY, type Experience } from '../useExperiences';
 
 const mockAnimate = jest.fn();
@@ -140,4 +142,25 @@ test('moving the map waits for Search this area, then Map and List share the app
   await press('checkbox', 'In this area');
   expect(screen.getByText('Barton Springs Pool')).toBeTruthy();
   expect(screen.queryByRole('checkbox', { name: 'In this area' })).toBeNull();
+});
+
+test('context chips switch between all of Austin, my saves and a group', async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  client.setQueryData(EXPERIENCES_KEY, CATALOG);
+  client.setQueryData([...savesKey, 'me'], [
+    { experience_id: 'a', user_id: 'me', group_id: null },
+    { experience_id: 'c', user_id: 'maya', group_id: 'g1' },
+  ]);
+  client.setQueryData([...myGroupsKey, 'me'], [{ id: 'g1', name: 'Saturday crew', memberCount: 2, faces: [], next: '' }]);
+  await render(<SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}>
+    <QueryClientProvider client={client}><FiltersProvider><MapListScreen onOpen={onOpen} userId="me" /></FiltersProvider></QueryClientProvider>
+  </SafeAreaProvider>);
+  expect(screen.getByRole('checkbox', { name: 'Explore Austin' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Pin Clay and conversation' })).toBeTruthy();
+  await press('checkbox', 'My saves');
+  expect(screen.getByRole('button', { name: 'Pin Barton Springs Pool' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Pin Clay and conversation' })).toBeNull();
+  await press('checkbox', 'Saturday crew');
+  expect(screen.getByRole('button', { name: 'Pin Sketch and stroll' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Pin Barton Springs Pool' })).toBeNull();
 });

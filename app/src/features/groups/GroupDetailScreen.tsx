@@ -8,6 +8,7 @@ import { closesIn, formatWhen } from '../../lib/time';
 import { formatCode, rosterKey, shareText, spokenCode } from './api';
 import { ManageSheet, type Action } from './GroupManage';
 import { MemberRow, NO_LONGER_IN_GROUP } from './GroupRosterScreen';
+import { SavedIdeas } from './SavedIdeas';
 import {
   allowBack, fetchRemoved, leaveGroup, regenerateCode, removedKey, removeMember, revokeCode, transferOwner,
 } from './manage';
@@ -19,6 +20,7 @@ type Props = {
   userId: string;
   onOpenPick: (pickId: string) => void;
   onOpenPlan: (planId: string) => void;
+  onOpenExperience?: (experienceId: string) => void;
   /** After leaving, or from the "no longer in this group" state. */
   onBack: () => void;
 };
@@ -31,8 +33,8 @@ function LinkRow({ title, detail, onPress }: { title: string; detail: string; on
 }
 
 // Group page (Figma 2.4 Group Hub, 28:3591, cut to P0): members, join code, the open vote and the plans
-// you're invited to. Ideas and Memories tabs are P0-07 and P2.
-export function GroupDetailScreen({ groupId, userId, onOpenPick, onOpenPlan, onBack }: Props) {
+// you're invited to. Saved ideas are P0-07; Memories is P2.
+export function GroupDetailScreen({ groupId, userId, onOpenPick, onOpenPlan, onOpenExperience, onBack }: Props) {
   const queryClient = useQueryClient();
   const roster = useGroupRoster(groupId);
   const extras = useQuery({ queryKey: groupExtrasKey(groupId), queryFn: () => fetchGroupExtras(groupId), refetchInterval: 30_000 });
@@ -94,6 +96,11 @@ export function GroupDetailScreen({ groupId, userId, onOpenPick, onOpenPlan, onB
         ? <Label style={styles.secondary}>No upcoming plans you’re invited to.</Label>
         : plans.map(plan => <LinkRow key={plan.id} title={plan.name} detail={formatWhen(plan.startAt)} onPress={() => onOpenPlan(plan.id)} />)}
       <Label style={styles.caption}>Plans you weren’t invited to stay hidden.</Label>
+    </Card>
+
+    <Card>
+      <Label accessibilityRole="header" style={type.title2}>Saved ideas</Label>
+      <SavedIdeas groupId={groupId} userId={userId} onOpenExperience={id => onOpenExperience?.(id)} />
     </Card>
 
     <Card>
