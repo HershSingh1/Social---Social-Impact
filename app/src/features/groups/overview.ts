@@ -9,7 +9,7 @@ export type GroupExtras = { code: { code: string; expiresAt: string } | null; op
 
 const check = <T>({ data, error }: { data: T | null; error: unknown }): T => { if (error) throw error; return data as T; };
 
-async function names(ids: string[]): Promise<Map<string, string>> {
+export async function names(ids: string[]): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
   const cards = check(await supabase.rpc('get_profile_cards', { user_ids: ids })) as { user_id: string; display_name: string }[];
   return new Map((cards ?? []).map(card => [card.user_id, card.display_name]));

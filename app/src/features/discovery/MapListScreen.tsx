@@ -3,15 +3,17 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Chip, Empty, Label, Tag, TextField } from '../../ui';
+import { Button, Card, Chip, Empty, ErrorState, Label, Loading, Tag, TextField } from '../../ui';
 import { color, minTap, radius, shadow, size, space, type } from '../../ui/theme';
+import { useMyGroups } from '../groups/useMyGroups';
 import { DiscoveryResults } from './DiscoveryResults';
 import { FilterBar } from './FilterBar';
 import { type AreaSearchAction, filterToRegion, INITIAL_AREA_SEARCH, updateAreaSearch } from './area';
+import { contextIds, EXPLORE, type MapContext, useSaves } from './saves';
 import { AUSTIN, matchesSearch, priceLabel, SEARCH_DELAY_MS, timingLabel } from './search';
 import type { Experience } from './useExperiences';
 
-type Props = { onOpen: (experienceId: string) => void };
+type Props = { onOpen: (experienceId: string) => void; userId?: string };
 type Mode = 'map' | 'list';
 
 function Summary({ item }: { item: Experience }) {
@@ -85,11 +87,20 @@ function ListPane({ items, selectedId, onOpen }: { items: Experience[]; selected
 
 // Map tab (P0-04): Map and List over the same filtered results. Search, filters and the selected pin are kept
 // when switching between them. Figma 4.3 Map View (28:4763) and 4.1 Discover Feed (28:4626).
-export function MapListScreen({ onOpen }: Props) {
+export function MapListScreen({ onOpen, userId }: Props) {
   const [mode, setMode] = useState<Mode>('map');
   const [typed, setTyped] = useState('');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string>();
+  const [context, setContext] = useState<MapContext>(EXPLORE);
+  const saves = useSaves(userId);
+  const groups = useMyGroups(userId);
+  const groupList = groups.data ?? [];
+  // A group you left, or that was archived, drops out of the chips; fall back to the whole catalog.
+  const activeContext: MapContext = context.kind === 'group' && groups.data && !groupList.some(g => g.id === context.groupId) ? EXPLORE : context;
+  const allowed = userId && saves.data ? contextIds(saves.data, userId, activeContext) : null;
+  const contextName = activeContext.kind === 'mine' ? 'My saves'
+    : activeContext.kind === 'group' ? groupList.find(g => g.id === activeContext.groupId)?.name ?? 'this group' : '';
   const [areaSearch, dispatchArea] = useReducer(updateAreaSearch, INITIAL_AREA_SEARCH);
 
   useEffect(() => {
@@ -101,6 +112,13 @@ export function MapListScreen({ onOpen }: Props) {
     <View style={styles.header}>
       <TextField label="Search" value={typed} onChangeText={setTyped} placeholder="Name, area or activity"
         returnKeyType="search" autoCorrect={false} clearButtonMode="while-editing" />
+      {userId && <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="Show">
+        <Chip label="Explore Austin" selected={activeContext.kind === 'explore'} onPress={() => setContext(EXPLORE)} />
+        <Chip label="My saves" selected={activeContext.kind === 'mine'} onPress={() => setContext({ kind: 'mine' })} />
+        {groupList.map(group => <Chip key={group.id} label={group.name}
+          selected={activeContext.kind === 'group' && activeContext.groupId === group.id}
+          onPress={() => setContext({ kind: 'group', groupId: group.id })} />)}
+      </View>}
       <FilterBar />
       <View style={styles.toggle} accessibilityRole="radiogroup">
         <Chip label="Map" selected={mode === 'map'} onPress={() => setMode('map')} />
@@ -109,22 +127,35 @@ export function MapListScreen({ onOpen }: Props) {
       {areaSearch.applied && <Chip label="In this area" selected onPress={() => dispatchArea({ type: 'clear' })} />}
     </View>
     <View style={styles.flex}>
-      <DiscoveryResults>{results => <Results results={results} search={search} mode={mode} area={areaSearch.applied}
+      {activeContext.kind !== 'explore' && !saves.data
+        ? (saves.isError
+          ? <ErrorState message="Couldn’t load saved ideas." onRetry={async () => { await saves.refetch(); }} />
+          : <Loading label="Loading saved ideas…" />)
+        : <DiscoveryResults>{results => <Results results={results} allowed={allowed} contextName={contextName}
+          onExplore={() => setContext(EXPLORE)} search={search} mode={mode} area={areaSearch.applied}
         pendingArea={areaSearch.candidate} selectedId={selectedId} onSelect={setSelectedId} onOpen={onOpen}
-        onAreaAction={dispatchArea} onClearSearch={() => setTyped('')} />}</DiscoveryResults>
+        onAreaAction={dispatchArea} onClearSearch={() => setTyped('')} />}</DiscoveryResults>}
     </View>
   </SafeAreaView>;
 }
 
-function Results({ results, search, mode, area, pendingArea, selectedId, onSelect, onOpen, onAreaAction, onClearSearch }: {
-  results: Experience[]; search: string; mode: Mode; area?: Region; pendingArea?: Region; selectedId?: string;
+function Results({ results, allowed, contextName, onExplore, search, mode, area, pendingArea, selectedId, onSelect, onOpen, onAreaAction, onClearSearch }: {
+  results: Experience[]; allowed: Set<string> | null; contextName: string; onExplore: () => void; search: string; mode: Mode; area?: Region; pendingArea?: Region; selectedId?: string;
   onSelect: (id?: string) => void; onOpen: (id: string) => void;
   onAreaAction: (action: AreaSearchAction) => void; onClearSearch: () => void;
 }) {
+  const inContext = useMemo(() => (allowed ? results.filter(result => allowed.has(result.id)) : results), [allowed, results]);
   const items = useMemo(() => filterToRegion(
-    search ? results.filter(result => matchesSearch(result, search)) : results,
+    search ? inContext.filter(result => matchesSearch(result, search)) : inContext,
     area,
-  ), [area, results, search]);
+  ), [area, inContext, search]);
+  if (allowed && inContext.length === 0) {
+    return <View style={styles.empty}>
+      <Empty title={allowed.size === 0 ? `Nothing saved in ${contextName} yet` : `Nothing in ${contextName} matches your filters`}
+        description={allowed.size === 0 ? 'Open an activity and tap Save to add it here.' : 'Clear a filter, or switch to Explore Austin.'} />
+      <Button label="Explore Austin" variant="secondary" onPress={onExplore} />
+    </View>;
+  }
   if (items.length === 0) {
     return <View style={styles.empty}>
       <Empty title={search ? `Nothing matches “${search}”` : 'Nothing matches this area'}
@@ -145,6 +176,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   header: { paddingHorizontal: space.lg, paddingBottom: space.sm, gap: space.sm },
   toggle: { flexDirection: 'row', gap: space.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   overlay: { position: 'absolute', left: space.lg, right: space.lg, bottom: space.lg, top: space.lg, justifyContent: 'space-between' },
   locate: { alignSelf: 'flex-end' },
   searchArea: { alignSelf: 'center' },
