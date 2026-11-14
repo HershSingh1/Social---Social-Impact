@@ -74,6 +74,7 @@ Still open: S8 and W6 (marked Change, no detail yet), W5 (Discuss), and every P 
 | F4 | Join screen "Your name" field and "No account needed" copy. | Removed from the join screen (TEC-35). | Decided Nov 11 |
 | F5 | Activity, Memories & Profile section is mostly P2. | Only profile basics in P0. | Decided Nov 11 |
 | F6 | The Filters frame (4.2) has Date chips Today, Tomorrow, This weekend, Pick dates, a price slider, and no "Include unknown prices" switch. | Built from the spec: Any, This weekend, Next weekend, Pick a date (one day); price stays as chips (TEC-38); the switch sits under Price, a switch like the frame's location toggle. | Default — TEC-84 |
+| F7 | No Figma frame for the Save sheet, the group Saved ideas list or the Map context-chip row (PRO-20 is still open). 4.3 Map View shows only a group dropdown and a "saved" category circle. | Built from P0-04 and P0-07 with existing components: a bookmark button on Detail opens a sheet of switches (Save for me, Save to each group); Saved ideas is a card on the group page; chips are Explore Austin, My saves and one per group above the filters. Restyle when PRO-20 lands. | Default - TEC-87 |
 
 ## Linear
 

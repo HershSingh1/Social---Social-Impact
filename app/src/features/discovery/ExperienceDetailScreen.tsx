@@ -6,9 +6,12 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, ErrorState, Label, Loading, Tag } from '@/ui';
 import { color, inset, minTap, radius, shadow, space, type } from '@/ui/theme';
+import { useAuth } from '@/features/auth';
 import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { BookingNotice } from './BookingNotice';
+import { SaveSheet } from './SaveSheet';
+import { isSavedAnywhere, useSaves } from './saves';
 import {
   type Experience, formatCheckedOn, formatDuration, formatLocation, formatPrice, formatTiming, sourceUrl,
 } from './experience';
@@ -36,7 +39,20 @@ function BackButton() {
   </Pressable>;
 }
 
-export function ExperienceDetail({ experience }: { experience: Experience }) {
+function SaveButton({ experience, userId }: { experience: Experience; userId: string }) {
+  const [open, setOpen] = useState(false);
+  const saves = useSaves(userId);
+  const saved = !!saves.data && isSavedAnywhere(saves.data, userId, experience.id);
+  return <>
+    <Pressable accessibilityRole="button" accessibilityLabel={saved ? 'Saved. Change where this is saved' : 'Save this activity'}
+      onPress={() => setOpen(true)} style={styles.saveHit}>
+      <View style={styles.backCircle}><Label style={type.title2}>{saved ? '★' : '☆'}</Label></View>
+    </Pressable>
+    <SaveSheet visible={open} onClose={() => setOpen(false)} experienceId={experience.id} experienceName={experience.name} userId={userId} />
+  </>;
+}
+
+export function ExperienceDetail({ experience, userId }: { experience: Experience; userId?: string }) {
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => {
     if (experience.status === 'published') logEvent('experience_viewed', { experience_id: experience.id });
@@ -63,6 +79,7 @@ export function ExperienceDetail({ experience }: { experience: Experience }) {
             <Label style={type.title1}>{experience.category}</Label>
           </View>}
         <BackButton />
+        {userId && <SaveButton experience={experience} userId={userId} />}
       </View>
 
       <View style={styles.body}>
@@ -96,6 +113,7 @@ export function ExperienceDetail({ experience }: { experience: Experience }) {
 }
 
 export default function ExperienceDetailScreen() {
+  const { session } = useAuth();
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const query = useQuery({ queryKey: ['experience', id], enabled: Boolean(id), queryFn: () => loadExperience(id!) });
@@ -103,7 +121,7 @@ export default function ExperienceDetailScreen() {
     {!id ? <ErrorState message="This activity link is incomplete." onRetry={() => router.back()} />
       : query.isLoading ? <Loading label="Loading activity…" />
         : query.error ? <ErrorState message="Couldn’t load this activity." onRetry={async () => { await query.refetch(); }} />
-          : query.data ? <ExperienceDetail experience={query.data} />
+          : query.data ? <ExperienceDetail experience={query.data} userId={session?.user.id} />
             : <View style={styles.removed}><BackButton /><Label accessibilityRole="header" style={type.title1}>This listing was removed</Label></View>}
   </SafeAreaView>;
 }
@@ -114,6 +132,7 @@ const styles = StyleSheet.create({
   heroImage: { width: '100%', height: '100%' },
   heroPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: inset.screen, backgroundColor: color.orangeSoft },
   backHit: { position: 'absolute', top: space.md, left: space.lg, minWidth: minTap, minHeight: minTap, justifyContent: 'center' },
+  saveHit: { position: 'absolute', top: space.md, right: space.lg, minWidth: minTap, minHeight: minTap, alignItems: 'flex-end', justifyContent: 'center' },
   backCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: color.bg, alignItems: 'center', justifyContent: 'center', boxShadow: [...shadow.card] },
   body: { paddingHorizontal: inset.screen, paddingTop: space.md, gap: space.md },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
