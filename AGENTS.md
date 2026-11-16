@@ -16,11 +16,10 @@ These are the working rules for every AI coding agent on this repo (Codex, Claud
 There are no guests. Every user signs in with Apple, Google or an email code before anything works. The spec's guest rules are superseded (`docs/spec-decisions.md` D1 and D2), so never add anonymous auth, `is_guest`, or guest UI.
 
 ## Scope now
-We build in three phases (decision D3). Phase 1 is all of P0, split into 1a (the core path) and 1b (the rest). Phase 2 is P1. Phase 3 is P2 group memory, P2-01 to P2-05. Each phase passes a check on real phones before the next phase's code starts, though design can run ahead.
+We build in three phases (decision D3). Phase 1 is all of P0, split into 1a (the core path) and 1b (the rest). Phase 2 is P1. Phase 3 is P2 group memory, P2-01 to P2-05, plus niche spots (decision D8: local spots added by users; no build issue starts until its requirement is written). `docs/completion-plan.md` lists what is left and the order of work. Each phase passes a check on real phones before the next phase's code starts, though design can run ahead.
 
 Not in scope, so don't build them:
 - P2 revenue (P2-06 to P2-10). On hold.
-- Niche spots (decision D8): community-uploaded, lesser-known spots. Noted for P2, not yet specified.
 - The demo itself. The team designs the demo, its script and its date (decision D7). Agents don't plan, script or schedule it, and shouldn't optimize work around a demo storyline.
 
 ## Stack and layout

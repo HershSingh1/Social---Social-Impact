@@ -2,6 +2,8 @@
 
 Project: **Sidequest P0–P2** (https://linear.app/social-impact-finance/project/sidequest-p0-p2-0942a624f45e). Build work is in team Tech (`TEC-`), decisions and design in Product & Design (`PRO-`). Linear is the source of truth for status; this file only says where things are. Every issue opens with an **In plain words** summary.
 
+What is left, what blocks it and the order of work: `docs/completion-plan.md`.
+
 Decisions and the three-act demo script: Decision Register, https://claude.ai/artifact/5RqNeJLkWgALx3AzjdRdbK
 
 ## Phases (milestones)
