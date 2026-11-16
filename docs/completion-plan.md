@@ -2,7 +2,7 @@
 
 Written Nov 16, 2026 against `v2-figma` at 21f3a26. Linear stays the source of truth for status; this file says what is left, what is in the way, and the order to do it in.
 
-**In plain words.** Almost all of P0 is built. What is left of P0 is a profile screen, the "suggest a listing" screens, profile photos, the move to the Figma navigation, and a short list of bugs. P1 and P2 memory have not been started, and they can't be handed to agents yet because the team has decisions to make and the screens have no Figma frames. This plan lists those decisions with a proposed answer for each, says what people need to do and in what order, and then gives a work order for agents.
+**In plain words.** Almost all of P0 is built. What is left of P0 is a profile screen, the "suggest a listing" screens, profile photos, the move to the Figma navigation, and a short list of bugs. P1 and P2 memory have not been started. The open decisions were made on Nov 16, so backend work can start; app work waits on Figma frames, which are listed in a brief for the designer. This plan says what is in the way, what people need to do and in what order, and gives a work order for agents.
 
 **Scope.** P0, P1 (P1-01 to P1-07), P2 group memory (P2-01 to P2-05) and niche spots (D8, now in Phase 3). P2 revenue (P2-06 to P2-10) stays on hold. iOS only (D9). "Testable build" means an iPhone build against the dev Supabase project plus a simulator check per phase. It is not the demo: the team owns the demo's script and date (D7).
 
@@ -12,40 +12,26 @@ Written Nov 16, 2026 against `v2-figma` at 21f3a26. Linear stays the source of t
 | --- | --- |
 | P0 backend | Done. 23 migrations; every function has a pgTAP test. One bug and some tightening left (part C). |
 | P0 app | P0-01 to P0-16 built. Missing: profile screen (P0-17), all of P0-18, profile photos, the Figma navigation (TEC-111 to 117). |
-| P1 (TEC-58 to 64) | Not started. Single parent issues, no backend, no frames. |
+| P1 (TEC-58 to 64) | Not started. Single parent issues, no backend. Some first-draft frames. |
 | P2 memory (TEC-65 to 69) | Not started. Same. |
 | Niche spots (PRO-12) | No requirement written. |
 | Build and checks | No CI. No TestFlight profile. Hosted Supabase checklist in `docs/dev-project.md` unticked. All phone checks pending. |
 
 ## A. What is in the way
 
-### A1. Decisions the team needs to make
+### A1. Decisions
 
-Agents can't start an issue until the decisions it depends on are recorded in `docs/spec-decisions.md`. Each row has a proposed default so the team can accept or change it in one sitting.
+Decided Nov 16 and recorded in `docs/spec-decisions.md` ("Decisions for the P0 close-out, P1, P2 memory and niche spots"): D12 (who is an admin), F4, F6, G14, G17, R1 and N1 to N11. Function names and tables for each P1 and P2 requirement are in those rows. Nothing in this list blocks an agent any more.
 
-| # | Question | Proposed default | Blocks |
-| --- | --- | --- | --- |
-| — | PR #71 is not merged (D11 Figma navigation, D12 admins review listings, D13 phone checks don't block, F1 username, F2 interests, F4, F8, G12) | Merge it | TEC-111 to 117; whether phases wait on phone checks |
-| D12 | Who is an admin? Nobody is in `private.reviewers` | Name one person now | P0-18 review queue, niche spots |
-| G14 | Where profile photos are stored (never recorded) | Public-read `avatars` bucket, path `<user id>/<file>`, owner-only upload | Profile photos |
-| G17, F6 | Sign-off on the date filter and filter layout defaults | Accept; already built in TEC-84 | P0-05 |
-| R1 | Four functions aren't safe to retry: `toggle_save`, `log_event`, `regenerate_code`; `create_pick` lets the request ID be left out. Fixing them changes signatures (rule 2) | `set_save(experience_id, group_id, saved boolean)` replaces the toggle; require `client_key` on `create_pick`; leave `log_event` and `regenerate_code` as they are | Part C item 15 |
-| N1 | P1-01 says the group sees counts, not who is busy. P1-02 says others see Free/Busy/Unknown per person | Counts only, same as vote privacy (C1) | P1-01, P1-02 |
-| N2 | P1-01 says the organizer turns availability on, but picks have no such setting | Add `picks.availability_enabled` and an optional last parameter on `create_pick` | P1-01 |
-| N3 | P1-02 "Unknown after 10 minutes" needs a sweep job | Drop the 10-minute rule; turning calendar sharing off deletes the calendar answers | P1-02 |
-| N4 | P1-04 needs functions the spec doesn't list | Add `register_push_token`, `set_notification_pref`, `nudge(plan_id, user_ids)` and an outbox table that the `notify` function reads | P1-04 |
-| N5 | C5 says budget is used only after opt-in, but there is no opt-in column. With few members a hidden-by-budget result can still hint at someone's cap | Add `profiles.budget_opt_in`; keep the 3-person floor; team accepts or tightens it | P1-05 |
-| N6 | Figma 1.4 "What are you into?" overlaps the P1-06 quiz | 1.4 is the first run of the quiz; TEC-115 is its backend | TEC-115, P1-06 |
-| N7 | Plans are private to invitees, but P2-01 history and P2-03 summaries show plan data to the group | Group sees totals only, through `group_history` and `feedback_summary` | P2-01, P2-03 |
-| N8 | The album table is described two ways, and delete, report and share functions are missing | Keep `kind`; add `album_reports`, `delete_album_item`, `report_album_item`, `share_album_item` | P2-02 |
-| N9 | P2-04 "creates a new draft 7 days before" conflicts with C2 (drafts live on the phone) | The server marks the repeat as due and notifies; the phone builds the draft | P2-04 |
-| N10 | P2-05 seasonal collections have no table and no curator | Add `collections` and `collection_items`; an admin curates | P2-05 |
-| N11 | Niche spots have no requirement | See "Niche spots" in part D | Niche spots |
-| — | Legal: Terms, Privacy Policy, content policy for photos | Needed before the album or user-added spots ship | P2-02, niche spots |
+Still for people:
+- Legal: Terms, Privacy Policy and a content policy for photos, before the album (P2-02) or niche spots (P2-11) ship.
+- Add the first admin to `private.reviewers` on the dev project.
 
 ### A2. Design
 
-Under D11 a screen without a Figma frame isn't built. Open now: PRO-11, PRO-15 to PRO-20, TEC-109. About 15 P1 and P2 screens have no frame at all. Design is the slowest path in this plan: backend work can run ahead of it, app work can't.
+Under D11 a screen without a Figma frame isn't built. The Figma file has 31 frames, including first drafts for several P1 and P2 screens (3.2 quiz, 3.3 and 3.4 availability, 6.1 Activity, 6.2 album, 6.3 profile, 6.4 bucket list, 6.5 calendar and notifications, 4.6 post an event). Some of those show things the decisions rule out (naming who is busy, public reviews, group suggestions), so they need changes before agents build from them. Other screens have no frame at all: settings, owner controls, plan link, cancel, save sheet, the suggest form's review queue, did-it-happen, feedback, plan again, contact invites.
+
+The design brief lists every frame to add or change, in priority order: https://claude.ai/artifact/VN8MCuQPyH2r7WbQsWMQiq
 
 ### A3. Accounts and setup
 
@@ -75,8 +61,8 @@ All 100 catalog rows are `PLACEHOLDER:` rows with no image and no `checked_on` (
 
 ## B. What people need to do, in order
 
-1. **Merge PR #71**, then close PRO-22, PRO-7, PRO-9 and PRO-10. Commit the claim-protocol edits to `AGENTS.md` and `docs/linear.md`.
-2. **Hold one decision session** on A1. Record each answer as a row in `docs/spec-decisions.md`.
+1. **PR #71 is merged.** Close PRO-22, PRO-7, PRO-9 and PRO-10 if still open. Commit the claim-protocol edits to `AGENTS.md` and `docs/linear.md`.
+2. **Read the Nov 16 decisions** in `docs/spec-decisions.md` and reopen any you disagree with.
 3. **Designer:** frames in this order.
    1. P0: PRO-15 to PRO-20, TEC-109.
    2. P1: availability on a pick, calendar settings, notification settings, quiz, contact picker.
@@ -114,14 +100,14 @@ Patterns to copy:
 | 5 | new | One backend migration: `edit_plan` limits, voter cleanup on leave, archived groups not counted | nothing |
 | 6 | new | Plans hub Realtime filters | nothing |
 | 7 | new | Google block in `supabase/config.toml`; remove the Apple plugin from `app.config.js` | nothing |
-| 8 | TEC-112 | Bottom bar. Rewrites `(tabs)/_layout.tsx`, so it lands on its own before items 10 and 11 | PR #71 |
-| 9 | TEC-114, TEC-115 | Username and interests backend | PR #71, N6 |
+| 8 | TEC-112 | Bottom bar. Rewrites `(tabs)/_layout.tsx`, so it lands on its own before items 10 and 11 | nothing |
+| 9 | TEC-114, TEC-115 | Username and interests backend | nothing |
 | 10 | TEC-111, 113, 116, 117 | Map, Home, welcome and join, onboarding per Figma | items 8 and 9 |
 | 11 | TEC-98 (app) | Profile screen: budget, how you get around, edit profile | TEC-109 frame, item 8 |
-| 12 | new, two issues | Storage buckets; profile photo upload with `expo-image-picker` | G14 |
-| 13 | TEC-100 | Suggest form, report outdated info, reviewer queue | PRO-15 frame, D12, item 12 |
+| 12 | new, two issues | Storage buckets; profile photo upload with `expo-image-picker` | nothing |
+| 13 | TEC-100 | Suggest form, report outdated info, reviewer queue | PRO-15 frame, item 12 |
 | 14 | new | P0-15: provider link on Review and Plan; warning when a session is no longer listed | nothing |
-| 15 | new | Retry-safe functions | R1 |
+| 15 | new | Retry-safe functions (`set_save`, required `client_key` on `create_pick`) | nothing |
 
 Items 1 to 7 and 14 can start now and don't touch each other's files, except that 1 and 14 both touch plan screens: run 14 after 1.
 
@@ -145,18 +131,18 @@ Backend first, then the app once the frame exists. "Phone only" means agents can
 | P2-05 Bucket list | `bucket_items`, `toggle_bucket_item` (same shape as saves), `collections` | Bucket tab next to Saved ideas; collection chip on the map | |
 | Niche spots | A marker on `submissions` and `experiences` for user-added spots; the rest reuses `submit_listing`, `review_submission`, `report_listing` and `get_profile_cards` | "Add a spot" from the + button, reusing the TEC-100 form; a Local spots chip and badge on map, list and detail | photo |
 
-### Niche spots (proposed answer to N11)
+### Niche spots (P2-11)
 
 A niche spot is a lesser-known place that a signed-in user adds. It goes through the same review queue as a P0-18 suggestion. Once an admin approves it, it appears in the catalog marked as a local spot, with the name of the person who added it. Anyone can report it; the author can ask for it to be removed. It is free, and it doesn't depend on P2 revenue.
 
-Before agents start: the team confirms this, a short requirement goes into `docs/spec.md` (proposed ID P2-11), the designer adds frames for the entry point, the badge and the filter, and TEC-100 and the storage buckets have landed. Then split PRO-12 into one backend, one app and one design issue.
+Before agents start: the designer adapts frame 4.6 and adds the label and filter, and TEC-100 and the storage buckets have landed. Then split PRO-12 into one backend, one app and one design issue.
 
 ### Order of work
 
 | Wave | What runs |
 | --- | --- |
-| 0 (people) | Part B steps 1 to 5 |
-| 1 (now) | Part C items 1 to 7 and 14; CI; the TestFlight profile; TEC-114 and TEC-115 once N6 is answered; TEC-112 on its own |
+| 0 (people) | Part B steps 3 to 5 |
+| 1 (now) | Part C items 1 to 7 and 14; CI; the TestFlight profile; TEC-114, TEC-115 and item 15; TEC-112 on its own |
 | 2 | Part C items 10 to 13; backend for P1-01, P1-02, P1-04 (first two PRs), P1-05 |
 | 3 | P1 app work; backend for P2-01, P2-03, P2-05 |
 | 4 | P2 app work, P2-02, P2-04, niche spots |

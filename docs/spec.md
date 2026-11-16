@@ -381,6 +381,20 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 - **Seasonal picks:** a team-curated collection on Map ("Fall in Austin", "Holiday lights") with a curator name, date range and review date. Experiences out of season or with no upcoming sessions are hidden.
 - **Done when:** a seasonal collection disappears from Map after its end date without a code change.
 
+### P2-11 Niche spots
+
+Added Nov 16 (D8, N11 in `spec-decisions.md`).
+
+- **Who:** account holders, from the + button.
+- **What it is:** a lesser-known local place that a person adds themselves. It uses the P0-18 form, review queue and states, marked as a local spot.
+- **After approval:** it appears on Map and List like any other experience, with a "Local spot" label and "Added by {name}". A Local spots filter shows only these.
+- **Control:** anyone can report it (P0-18 Report outdated info). The author can edit it (a new pending version) or ask for it to be removed; an admin removes it.
+- **Rules:** free to add and to view. Never a paid placement. A photo needs the author's confirmation that they may share it.
+- **Data:** `submissions.kind` (`listing` or `local_spot`); `experiences.origin` (`catalog` or `local_spot`) and `experiences.added_by`.
+- **Done when:** an approved local spot shows on the map with its label and author; a rejected one never appears; the Local spots filter hides every catalog row.
+
+**Nov 16 decisions for P1 and P2.** Where the P1 and P2 text above differs from rows N1 to N10 in `docs/spec-decisions.md`, those rows win: availability shows counts only and is answered per time option; the 10-minute Unknown rule is dropped; repeating plans notify the organizer instead of creating a server draft; albums have no public reviews.
+
 ## P2: Revenue
 
 **Sidequest earns from local businesses that want groups to come to them, not from users.** Every group plan is a booking of 3–8 people, which is what venues pay for. The app stays free for users, never sells personal data, and never processes ticket or venue payments. Prices below are proposals to test with venues, not decisions.
