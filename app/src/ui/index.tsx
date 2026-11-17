@@ -127,12 +127,15 @@ export function Tag({ label, variant = 'neutral' }: { label: string; variant?: '
   </View>;
 }
 
-export function Screen({ children }: { children: ReactNode }) {
-  return <SafeAreaView style={styles.screen}>
+// `tinted` is the pink fade behind the onboarding frames (Figma 1.1 and 1.2). `footer` is a bar pinned under the
+// scrolling content, with a line above it, as on Join with Code.
+export function Screen({ children, tinted = false, footer }: { children: ReactNode; tinted?: boolean; footer?: ReactNode }) {
+  return <SafeAreaView style={[styles.screen, tinted && styles.tinted]}>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {children}
       </ScrollView>
+      {footer && <View style={styles.footerBar}>{footer}</View>}
     </KeyboardAvoidingView>
   </SafeAreaView>;
 }
@@ -213,6 +216,9 @@ const styles = StyleSheet.create({
   tag_dark: { backgroundColor: color.primary },
   tag_outline: { borderWidth: 1, borderColor: color.lineStrong },
   screen: { flex: 1, backgroundColor: color.bg },
+  tinted: { experimental_backgroundImage: `linear-gradient(${color.greenSoft}, ${color.bg})` },
+  footerBar: { paddingHorizontal: inset.screen, paddingVertical: space.lg, backgroundColor: color.bg,
+    borderTopWidth: 1, borderTopColor: color.line },
   content: { paddingHorizontal: inset.screen, paddingVertical: space.lg, gap: space.lg, flexGrow: 1 },
   state: { padding: space.lg, gap: space.md },
   sheetRoot: { flex: 1, justifyContent: 'flex-end' },

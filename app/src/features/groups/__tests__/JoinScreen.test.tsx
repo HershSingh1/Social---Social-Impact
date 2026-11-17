@@ -74,3 +74,13 @@ test('a network error while checking says so, and the next edit checks again', a
   await typeCode('K7Q2MX');
   expect(screen.getByText('Created by Maya')).toBeTruthy();
 });
+
+test('there is no name field and no "No account needed" copy (F4, D1), and Back is a labeled button', async () => {
+  const onBack = jest.fn();
+  await render(<JoinScreen onBack={onBack} onJoined={() => {}} />);
+  expect(screen.queryByText(/Your name/)).toBeNull();
+  expect(screen.queryByText(/No account needed/)).toBeNull();
+  expect(screen.getByText('Enter the 6-character code a friend shared.')).toBeTruthy();
+  await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Back' })));
+  expect(onBack).toHaveBeenCalled();
+});

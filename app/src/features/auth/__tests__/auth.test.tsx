@@ -7,6 +7,7 @@ import { AuthProvider } from '../AuthProvider';
 import { EmailSignInScreen } from '../EmailSignInScreen';
 import { ProfileSetupScreen } from '../ProfileSetupScreen';
 import { SettingsScreen } from '../SettingsScreen';
+import { WelcomeScreen } from '../WelcomeScreen';
 
 type Result = { data?: unknown; error: { message: string; status?: number } | null };
 type AuthListener = (event: string, session: unknown) => void;
@@ -200,4 +201,15 @@ test('delete account can be cancelled without changing anything', async () => {
   await tap('Keep my account');
   expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy();
   expect(mockRpc).not.toHaveBeenCalled();
+});
+
+test('welcome offers Google and email code, no Apple, and keeps the join code request through sign-in', async () => {
+  const onEmail = jest.fn();
+  await render(<WelcomeScreen onEmail={onEmail} />);
+  expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Continue with email' })).toBeTruthy();
+  expect(screen.queryByText(/Apple/)).toBeNull();
+  await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Join a group with a code' })));
+  expect(await AsyncStorage.getItem('sidequest.pendingLink')).toBe('/join');
+  expect(onEmail).toHaveBeenCalled();
 });
