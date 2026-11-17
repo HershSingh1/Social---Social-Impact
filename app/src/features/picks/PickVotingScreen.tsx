@@ -6,7 +6,7 @@ import { AvatarStack, Button, Card, Chip, ErrorState, Label, Loading, Screen, Ta
 import { color, radius, space, type } from '@/ui/theme';
 import { useAuth } from '@/features/auth';
 import { addOptionToPick, castVote, fetchExperience, overridePick, pickKey, usePick, type PickDetail } from './api';
-import { planThisPath, toggledVote, votePoints, type VoteValue } from './model';
+import { deadlineLabel, planThisPath, toggledVote, votePoints, type VoteValue } from './model';
 import { PickOrganizerActions } from './PickOrganizerActions';
 import { PickResultScreen } from './PickResultScreen';
 
@@ -48,7 +48,7 @@ export function PickVotingScreen() {
   </Screen>;
   return <Screen>
     <View style={styles.center}><Label accessibilityRole="header" style={type.title2}>Vote</Label><Label style={styles.secondary}>{pick.title}</Label></View>
-    <Card><View style={styles.row}><View style={styles.grow}><Label style={type.bodyStrong}>{closed ? 'Voting closed' : `Closes ${new Date(pick.deadline).toLocaleString()}`}</Label>
+    <Card><View style={styles.row}><View style={styles.grow}><Label style={type.bodyStrong}>{closed ? 'Voting closed' : deadlineLabel(pick.deadline)}</Label>
       <Label style={styles.secondary}>{complete.length} of {pick.voters.length} voted</Label></View>{closed && <Tag label="Voting closed" variant="dark" />}</View>
       {!!complete.length && <><AvatarStack people={complete.map(voter => ({ id: voter.id, name: voter.name, uri: voter.avatar }))} size="xs" />
         <Label style={styles.secondary}>{complete.map(voter => voter.name).join(', ')} voted</Label></>}
