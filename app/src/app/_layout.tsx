@@ -33,7 +33,10 @@ export default function RootLayout() {
                 <Stack.Screen name="pick/new" />
                 <Stack.Screen name="pick/[id]" />
                 <Stack.Screen name="settings" />
-                <Stack.Screen name="dev" />
+                {/* Developer screens (UI kit, filters demo) only exist in development builds. */}
+                <Stack.Protected guard={__DEV__}>
+                  <Stack.Screen name="dev" />
+                </Stack.Protected>
               </Stack.Protected>
             </Stack>}
           </AuthGate>
