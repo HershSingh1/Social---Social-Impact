@@ -326,6 +326,7 @@ Upcoming, In progress and Past are computed from the clock and not stored. Past 
 - **Behavior:** about 10 cards (one per activity type, such as "Pottery or crafts"); swipe or tap Yes, Maybe or No. Answers become the person's interests.
 - **Use in P1:** sorts the person's own Explore list (matching categories first) and labels them "Matches your interests". Nothing is shared with the group; group suggestions wait for P4.
 - **Done when:** skipping the quiz changes nothing; retaking it replaces the old answers.
+- **Storage (N6):** the `interests` table and `set_interests(answers jsonb)` already exist from Phase 1b (TEC-115), where onboarding Figma 1.4 writes them. The categories are the 17 chips on that frame; the quiz reuses them.
 
 ### P1-07 Contact invites
 
@@ -514,7 +515,7 @@ Added Nov 16 (D8, N11 in `spec-decisions.md`).
 | `availability` | `option_id`, `user_id`, `status` (free, busy), `source` (manual, calendar), `updated_at` | P1 |
 | `calendar_shares` | `user_id`, `group_id`, `enabled` | P1 |
 | `push_tokens`, `notification_prefs`, `notification_log` | device token per user; on/off per type; one row per sent notification (for de-duplication) | P1 |
-| `interests` | `user_id`, `category`, `answer` (yes, maybe, no) | P1 |
+| `interests` | `user_id`, `category`, `answer` (yes, maybe, no) | P0 (Phase 1b, N6) |
 | `outing_reports`, `attendance` | organizer's Happened / Didn't / Not sure; each person's Yes / No | P2 |
 | `album_items` | `plan_id`, `user_id`, `storage_path`, `audience` (plan, group), `note`, `hidden` | P2 |
 | `feedback`, `preferences`, `bucket_items` | rating, tags, shared flag; private preferences; group bucket list | P2 |
