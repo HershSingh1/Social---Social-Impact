@@ -101,11 +101,26 @@ select throws_ok($$select pg_temp.edit('maya', '{"meeting_point":"  "}')$$, 'P00
 reset role;
 select throws_ok($$select pg_temp.edit('maya', '[]')$$, 'P0001', 'invalid_changes', 'Changes must be an object');
 reset role;
+-- Same limits as send_plan: meeting point 1 to 200 characters (after trimming), note up to 500
+select throws_ok(format($$select pg_temp.edit('maya', %L)$$, jsonb_build_object('meeting_point', repeat('m', 201))),
+  'P0001', 'invalid_meeting_point', 'Meeting point over 200 characters rejected');
+reset role;
+select throws_ok(format($$select pg_temp.edit('maya', %L)$$, jsonb_build_object('note', repeat('n', 501))),
+  'P0001', 'invalid_note', 'Note over 500 characters rejected');
+reset role;
+select is((select note from plan_revisions where plan_id = pg_temp.id('p') and revision = 5), 'Rain plan: inside',
+  'Rejected note left the current revision alone');
+select is(pg_temp.edit('maya', jsonb_build_object('note', repeat('n', 500)))->>'changed', '["note"]', 'A 500-character note is accepted');
+reset role;
+select is(pg_temp.edit('maya', jsonb_build_object('meeting_point', '  ' || repeat('m', 200) || '  '))->>'revision', '6',
+  'A 200-character meeting point is accepted once trimmed');
+reset role;
+select is((select length(meeting_point) from plan_revisions where plan_id = pg_temp.id('p') and revision = 6), 200, 'Stored trimmed');
 select throws_ok($$select pg_temp.edit('maya', '{"end_local":"2000-01-01T10:00"}')$$, 'P0001', 'invalid_times', 'End before start rejected');
 reset role;
 select throws_ok($$select pg_temp.edit('maya', '{"start_local":"2000-01-01T10:00","end_local":"2000-01-01T11:00"}')$$, 'P0001', 'invalid_times', 'Start in the past rejected');
 reset role;
-select is((select current_revision from plans where id = pg_temp.id('p')), 5, 'Rejected edits created no revision');
+select is((select current_revision from plans where id = pg_temp.id('p')), 6, 'Rejected edits created no revision');
 
 -- Access
 select throws_ok($$select pg_temp.edit('a', '{"note":"x"}')$$, '42501', 'not_organizer', 'Invitee cannot edit');
@@ -139,11 +154,11 @@ select pg_temp.as_user('maya');
 select throws_ok($$select public.edit_plan(pg_temp.id('draft'), '{"note":"x"}')$$, '42501', 'not_organizer', 'send_plan, not edit_plan, handles drafts');
 reset role;
 update plan_revisions set start_at = now() - interval '1 minute', end_at = now() + interval '1 hour'
-  where plan_id = pg_temp.id('p') and revision = 5;
+  where plan_id = pg_temp.id('p') and revision = 6;
 select throws_ok($$select pg_temp.edit('maya', '{"note":"late"}')$$, 'P0001', 'plan_started', 'Refused once the plan has started');
 reset role;
 update plan_revisions set start_at = now() + interval '1 day', end_at = now() + interval '2 days'
-  where plan_id = pg_temp.id('p') and revision = 5;
+  where plan_id = pg_temp.id('p') and revision = 6;
 update plans set state = 'cancelled', cancel_reason = 'Weather' where id = pg_temp.id('p');
 select throws_ok($$select pg_temp.edit('maya', '{"note":"late"}')$$, 'P0001', 'plan_cancelled', 'Cancelled plan refuses edits');
 reset role;
