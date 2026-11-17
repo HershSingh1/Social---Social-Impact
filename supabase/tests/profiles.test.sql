@@ -45,7 +45,7 @@ reset role;
 select is((select display_name from profiles where id = pg_temp.id('newbie')), 'Newbie 2', 'First profile unchanged by other');
 
 -- City and age (TEC-108, PRO-9 F1): optional, own-row only, never shared
-select has_function('public', 'set_profile', array['text', 'text', 'text', 'integer'], 'set_profile takes city and age');
+select has_function('public', 'set_profile', array['text', 'text', 'text', 'integer', 'text'], 'set_profile takes city, age and username');
 select hasnt_function('public', 'set_profile', array['text', 'text'], 'Old two-argument set_profile is gone');
 set local role authenticated;
 select pg_temp.as_user('newbie');
@@ -76,7 +76,57 @@ select is((select count(*) from profiles where id = pg_temp.id('newbie')), 0::bi
 reset role;
 select is(pg_get_function_result('public.get_profile_cards(uuid[])'::regprocedure),
   'TABLE(user_id uuid, display_name text, avatar_path text)', 'get_profile_cards does not return city or age');
-select ok(not has_function_privilege('anon', 'public.set_profile(text, text, text, integer)', 'EXECUTE'), 'Signed-out cannot execute the new set_profile');
+select ok(not has_function_privilege('anon', 'public.set_profile(text, text, text, integer, text)', 'EXECUTE'), 'Signed-out cannot execute the new set_profile');
+
+-- Username (TEC-114, F1): 3-20 letters, digits or underscore, unique ignoring case, kept when omitted, private
+select hasnt_function('public', 'set_profile', array['text', 'text', 'text', 'integer'], 'Old four-argument set_profile is gone');
+select is((select count(*) from pg_proc where proname = 'set_profile' and pronamespace = 'public'::regnamespace),
+  1::bigint, 'Only one set_profile remains');
+select ok((select prosecdef from pg_proc where oid = 'public.set_profile(text, text, text, integer, text)'::regprocedure),
+  'set_profile is still security definer');
+select ok(has_function_privilege('authenticated', 'public.set_profile(text, text, text, integer, text)', 'EXECUTE'),
+  'Signed-in users can execute the new set_profile');
+set local role authenticated;
+select pg_temp.as_user('newbie');
+select is((select username from profiles), null, 'Existing profile has no username');
+select lives_ok($$select public.set_profile('Newbie', username => '  Hershey_1  ')$$, 'Username saved by name');
+select is((select username from profiles), 'Hershey_1', 'Username is trimmed and stored as typed');
+select lives_ok($$select public.set_profile('Newbie', null, 'Austin', 20)$$, 'Saving without a username');
+select is((select username from profiles), 'Hershey_1', 'Omitted username is kept');
+select lives_ok($$select public.set_profile('Newbie', null, null, null, '   ')$$, 'Saving with a blank username');
+select is((select username from profiles), 'Hershey_1', 'Blank username is kept');
+select lives_ok($$select public.set_profile('Newbie', null, null, null, 'HERSHEY_1')$$, 'Own username can change case');
+select is((select username from profiles), 'HERSHEY_1', 'Case change stored');
+select lives_ok($$select public.set_profile('Newbie', null, null, null, 'abc')$$, '3 characters accepted');
+select lives_ok($$select public.set_profile('Newbie', null, null, null, repeat('a', 20))$$, '20 characters accepted');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, 'ab')$$, 'P0001', 'invalid_username', '2 characters rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, repeat('a', 21))$$, 'P0001', 'invalid_username', '21 characters rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, 'hey there')$$, 'P0001', 'invalid_username', 'Space rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, '@hershey')$$, 'P0001', 'invalid_username', '@ rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, 'jo.smith')$$, 'P0001', 'invalid_username', 'Dot rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, 'josé')$$, 'P0001', 'invalid_username', 'Accented letter rejected');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, 'Admin')$$, 'P0001', 'invalid_username', 'Reserved admin rejected, any case');
+select throws_ok($$select public.set_profile('Newbie', null, null, null, 'support')$$, 'P0001', 'invalid_username', 'Reserved support rejected');
+select lives_ok($$select public.set_profile('Newbie', null, null, null, 'Hershey')$$, 'Username set again');
+
+reset role;
+set local role authenticated;
+select pg_temp.as_user('other');
+select is((select username from profiles), null, 'Other has no username either');
+select is((select count(*) from profiles where id = pg_temp.id('newbie')), 0::bigint, 'Other users cannot read the username');
+select throws_ok($$select public.set_profile('Other', null, null, null, 'hershey')$$, 'P0001', 'username_taken', 'Taken name rejected ignoring case');
+select is((select display_name from profiles), 'Other', 'A taken username changes nothing');
+select lives_ok($$select public.set_profile('Other', null, null, null, 'other_one')$$, 'A free name is accepted');
+reset role;
+select is((select count(*) from profiles where username is null), 0::bigint, 'Both named now');
+insert into auth.users (id) values (pg_temp.id('third'));
+select is((select count(*) from profiles where username is null), 1::bigint, 'New sign-ups start with no username');
+update profiles set username = null where id = pg_temp.id('other');
+select is((select count(*) from profiles where username is null), 2::bigint, 'Two people can both have no username');
+select throws_ok($$update profiles set username = 'HERSHEY' where id = pg_temp.id('third')$$, '23505', null,
+  'Index rejects a case-only duplicate');
+select is(pg_get_function_result('public.get_profile_cards(uuid[])'::regprocedure),
+  'TABLE(user_id uuid, display_name text, avatar_path text)', 'get_profile_cards does not return the username');
 
 -- Anonymous sign-ins are off in config.toml; anonymous JWTs and signed-out clients can call no RPC
 set local role authenticated;
