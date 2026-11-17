@@ -139,6 +139,25 @@ select is((select yes from option_tallies where option_id = (select id from opt 
 reset role;
 select is((select count(*) from votes where option_id = (select id from opt where position = 1)), 6::bigint, 'Tally matches vote rows');
 
+-- Leaving or being removed takes the person off "N of M voted" for open picks; closed picks keep their record
+insert into picks (id, group_id, organizer_id, client_key, deadline, state, closed_at)
+  values (pg_temp.id('old_pick'), pg_temp.id('g'), pg_temp.id('maya'), pg_temp.id('old_pick'), now() - interval '1 day', 'closed', now());
+insert into pick_voter_status (pick_id, user_id, complete) select pg_temp.id('old_pick'), pg_temp.id(n), true from unnest(array['u4','u5']) n;
+select is((select count(*) from pick_voter_status where pick_id = (select id from the_pick)), 7::bigint, 'Open pick lists 7 voters');
+set local role authenticated;
+select pg_temp.as_user('u4');
+select public.leave_group(pg_temp.id('g'));
+select pg_temp.as_user('maya');
+select public.remove_member(pg_temp.id('g'), pg_temp.id('u5'));
+reset role;
+select is((select count(*) from pick_voter_status where pick_id = (select id from the_pick)), 5::bigint, 'Open pick lists 5 voters after one leaves and one is removed');
+select is((select count(*) from pick_voter_status where pick_id = (select id from the_pick) and user_id in (pg_temp.id('u4'), pg_temp.id('u5'))),
+  0::bigint, 'Leaver and removed member are gone from the open pick');
+select is((select count(*) from pick_voter_status where pick_id = pg_temp.id('old_pick')), 2::bigint, 'Closed pick keeps its voter rows');
+delete from group_members where group_id = pg_temp.id('g') and user_id = pg_temp.id('late');
+select is((select count(*) from pick_voter_status where pick_id = (select id from the_pick) and user_id = pg_temp.id('late')),
+  0::bigint, 'Deleting a membership row clears it too');
+
 -- Adding an option makes everyone not fully voted again
 update pick_voter_status set complete = true where pick_id = (select id from the_pick2);
 set local role authenticated;

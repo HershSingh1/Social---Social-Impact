@@ -104,6 +104,12 @@ insert into join_codes (code, group_id, expires_at) values ('XYZ789', pg_temp.id
 set local role authenticated;
 select pg_temp.as_user('many');
 select is(public.join_group('XYZ789') ->> 'error', 'too_many_groups', 'Member of 20 groups cannot join a 21st');
+-- Archived groups don't count toward the limit, the same as create_group
+reset role;
+update groups set archived_at = now() where id = pg_temp.id('x1');
+set local role authenticated;
+select pg_temp.as_user('many');
+select is(public.join_group('XYZ789') ->> 'ok', 'true', 'With one of the 20 archived, joining another group works');
 
 -- Security
 reset role;
