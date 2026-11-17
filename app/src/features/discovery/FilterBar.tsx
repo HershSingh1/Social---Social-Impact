@@ -34,7 +34,7 @@ function DayPicker({ day, onChange }: { day: string; onChange: (day: string) => 
   </View>;
 }
 
-function FilterSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+export function FilterSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, clear } = useFilters();
   const picked = typeof filters.date === 'object' ? filters.date.day : null;
   const { results } = useDiscovery();

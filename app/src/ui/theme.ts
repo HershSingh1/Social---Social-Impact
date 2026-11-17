@@ -82,6 +82,12 @@ export const size = {
   avatar: { xs: 24, sm: 32, md: 40, lg: 56, xl: 88 }, // Avatar sizes (4:182 to 4:190)
   grabber: { width: 36, height: 5, radius: 3 }, // Bottom sheet handle (28:4877)
   tabIcon: 22, // bottom bar icons (2.1 Home 28:3386, 4.3 Map View 28:4763)
+  // Map View (28:4763), read off the frame at 100% zoom, so each is within about 2 pt.
+  mapButton: 40, // round list, search, filter and locate buttons
+  mapPin: 36, // photo pin; 44 when selected
+  mapPinSelected: 44,
+  categoryCircle: 46, // quick category circle under the chips
+  mapIcon: 18, // glyph inside a map button
   iconTile: 36, // rounded tile behind a row icon (2.1 Home 28:3386)
   homePhoto: 120, // height of the Up next photo (2.1 Home 28:3386)
 } as const;
