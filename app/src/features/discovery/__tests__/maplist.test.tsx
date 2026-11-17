@@ -21,8 +21,8 @@ jest.mock('react-native-maps', () => {
     return <View testID="map" accessibilityHint={JSON.stringify(initialRegion)}
       {...{ onTouchStart, onRegionChangeComplete }}>{children}</View>;
   });
-  function Marker({ title, onPress }: { title: string; onPress: (e: { stopPropagation: () => void }) => void }) {
-    return <Pressable accessibilityRole="button" accessibilityLabel={`Pin ${title}`} onPress={() => onPress({ stopPropagation: () => {} })} />;
+  function Marker({ accessibilityLabel, onPress }: { accessibilityLabel: string; onPress: (e: { stopPropagation: () => void }) => void }) {
+    return <Pressable accessibilityRole="button" accessibilityLabel={`Pin ${accessibilityLabel}`} onPress={() => onPress({ stopPropagation: () => {} })} />;
   }
   return { __esModule: true, default: MapView, Marker };
 });
@@ -52,6 +52,11 @@ async function show() {
 }
 const press = (role: 'button' | 'checkbox', name: string | RegExp) => act(async () => fireEvent.press(screen.getByRole(role, { name })));
 
+const search = async (text: string) => {
+  if (!screen.queryByLabelText('Search')) await press('button', 'Search activities');
+  await act(async () => { fireEvent.changeText(screen.getByLabelText('Search'), text); });
+};
+
 beforeEach(() => { jest.useFakeTimers(); onOpen.mockReset(); mockAnimate.mockReset(); });
 
 test('search matches name, area and category, every word', () => {
@@ -73,22 +78,22 @@ test('a pin shows the preview card, and tapping the card opens Detail', async ()
 test('search waits 300 ms, and search and selection survive switching to the List', async () => {
   await show();
   await press('button', 'Pin Barton Springs Pool');
-  await act(async () => { fireEvent.changeText(screen.getByLabelText('Search'), 'pool'); });
+  await search('pool');
   expect(screen.getByRole('button', { name: 'Pin Sketch and stroll' })).toBeTruthy();
   await act(async () => { jest.advanceTimersByTime(300); });
   expect(screen.queryByRole('button', { name: 'Pin Sketch and stroll' })).toBeNull();
 
-  await press('checkbox', 'List');
+  await press('button', 'Show list');
   expect(screen.getByRole('button', { name: 'Barton Springs Pool, selected' })).toBeTruthy();
   expect(screen.queryByText('Sketch and stroll')).toBeNull();
-  await press('checkbox', 'Map');
+  await press('button', 'Show map');
   expect(screen.getByLabelText('Search').props.value).toBe('pool');
   expect(screen.getByText('Outdoors · Zilker')).toBeTruthy(); // the preview card is still open
 });
 
 test('no search match offers Clear search', async () => {
   await show();
-  await act(async () => { fireEvent.changeText(screen.getByLabelText('Search'), 'bowling'); });
+  await search('bowling');
   await act(async () => { jest.advanceTimersByTime(300); });
   expect(screen.getByText('Nothing matches “bowling”')).toBeTruthy();
   await press('button', 'Clear search');
@@ -135,7 +140,7 @@ test('moving the map waits for Search this area, then Map and List share the app
   expect(screen.getByRole('button', { name: 'Pin Clay and conversation' })).toBeTruthy();
   expect(screen.getByRole('checkbox', { name: 'In this area' })).toBeTruthy();
 
-  await press('checkbox', 'List');
+  await press('button', 'Show list');
   expect(screen.getByText('Clay and conversation')).toBeTruthy();
   expect(screen.queryByText('Barton Springs Pool')).toBeNull();
 
@@ -163,4 +168,33 @@ test('context chips switch between all of Austin, my saves and a group', async (
   await press('checkbox', 'Saturday crew');
   expect(screen.getByRole('button', { name: 'Pin Sketch and stroll' })).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Pin Barton Springs Pool' })).toBeNull();
+});
+
+test('the controls follow Figma 4.3: round buttons, a title and the category circles', async () => {
+  await show();
+  for (const name of ['Show list', 'Search activities', 'Filters', 'Locate me']) expect(screen.getByRole('button', { name })).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Austin.' })).toBeTruthy();
+  expect(screen.queryByLabelText('Search')).toBeNull(); // the field opens from the search button
+  expect(screen.getByRole('checkbox', { name: 'Outdoors' })).toBeTruthy();
+});
+
+test('a category circle and a quick filter narrow the pins, and tapping again clears them', async () => {
+  await show();
+  await press('checkbox', 'Outdoors');
+  expect(screen.getByRole('checkbox', { name: 'Outdoors' }).props.accessibilityState.checked).toBe(true);
+  expect(screen.getByRole('button', { name: 'Pin Barton Springs Pool' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Pin Sketch and stroll' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Filters, 1 applied' })).toBeTruthy();
+  await press('checkbox', 'Outdoors');
+  await press('checkbox', 'Free');
+  expect(screen.getByRole('button', { name: 'Pin Sketch and stroll' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Pin Barton Springs Pool' })).toBeNull();
+  await press('checkbox', 'Free');
+  expect(screen.getByRole('button', { name: 'Pin Barton Springs Pool' })).toBeTruthy();
+});
+
+test('the filter button opens the Filters sheet', async () => {
+  await show();
+  await press('button', 'Filters');
+  expect(screen.getByRole('button', { name: 'Close Filters' })).toBeTruthy();
 });
