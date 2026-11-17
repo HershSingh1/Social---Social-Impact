@@ -28,6 +28,6 @@ export function ProfileSetupScreen() {
       onSaved={async saved => { setPicks(saved); await advance(3); }} />;
   }
   if (step === 3) return <CalendarStep onBack={() => setStep(2)} onFinish={() => advance('done')} />;
-  return <ProfileStep initial={profile} onBack={() => { void signOut(); }}
+  return <ProfileStep initial={profile} userId={userId} onBack={() => { void signOut(); }}
     onSaved={async saved => { setProfile(saved); await advance(2); }} />;
 }

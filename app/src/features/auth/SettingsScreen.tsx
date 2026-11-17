@@ -1,11 +1,37 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Card, Label, Screen } from '../../ui';
+import { avatarUrl } from '../../lib/avatar';
+import { Button, Card, ErrorState, Label, Loading, Screen } from '../../ui';
 import { color, space, type } from '../../ui/theme';
-import { deleteAccount, signOut } from './api';
+import { deleteAccount, loadOwnProfile, saveAvatarPath, signOut, type OwnProfile } from './api';
+import { ProfilePhotoControl } from './ProfilePhotoControl';
+import { deleteProfilePhoto, uploadProfilePhoto, type ImageResult } from './photo';
+
+export const ownProfileKey = ['own-profile'] as const;
 
 export function SettingsScreen() {
   const [confirming, setConfirming] = useState(false);
+  const client = useQueryClient();
+  const profile = useQuery({ queryKey: ownProfileKey, queryFn: loadOwnProfile });
+
+  async function replacePhoto(current: OwnProfile, photo: ImageResult) {
+    const nextPath = await uploadProfilePhoto(current.userId, photo.uri);
+    try { await saveAvatarPath(current, nextPath); }
+    catch (error) { await deleteProfilePhoto(nextPath).catch(() => {}); throw error; }
+    client.setQueryData<OwnProfile>(ownProfileKey, { ...current, avatarPath: nextPath });
+    await deleteProfilePhoto(current.avatarPath).catch(() => {});
+  }
+
+  async function removePhoto(current: OwnProfile) {
+    await saveAvatarPath(current, null);
+    try { await deleteProfilePhoto(current.avatarPath); }
+    catch (error) {
+      await saveAvatarPath(current, current.avatarPath).catch(() => {});
+      throw error;
+    }
+    client.setQueryData<OwnProfile>(ownProfileKey, { ...current, avatarPath: null });
+  }
 
   if (confirming) return <Screen>
     <Label accessibilityRole="header" style={type.title1}>Delete your account?</Label>
@@ -23,6 +49,17 @@ export function SettingsScreen() {
 
   return <Screen>
     <Label accessibilityRole="header" style={type.title1}>Settings</Label>
+    <Card><View style={styles.photo}>
+      <Label style={type.headline}>Profile photo</Label>
+      {profile.isPending ? <Loading label="Loading your profile…" />
+        : profile.data ? <>
+          <ProfilePhotoControl name={profile.data.name} uri={avatarUrl(profile.data.avatarPath)}
+            canRemove={Boolean(profile.data.avatarPath)} onChoose={photo => replacePhoto(profile.data!, photo)}
+            onRemove={() => removePhoto(profile.data!)} />
+          <Label style={styles.muted}>Friends and people in your plans will see this photo.</Label>
+        </>
+        : <ErrorState message="Couldn’t load your profile photo." onRetry={async () => { await profile.refetch(); }} />}
+    </View></Card>
     <Card><View style={styles.copy}>
       <Label style={type.headline}>Account</Label>
       <Label style={styles.muted}>Signing out keeps your account and everything in it.</Label>
@@ -38,5 +75,6 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
   copy: { gap: space.sm },
+  photo: { gap: space.sm, alignItems: 'center' },
   muted: { color: color.textSecondary },
 });

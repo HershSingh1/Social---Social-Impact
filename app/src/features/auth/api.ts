@@ -73,7 +73,8 @@ export function usernameErrorFrom(error: unknown): string | null {
   return null;
 }
 
-type ProfileRow = { display_name: string; avatar_path: string | null; city: string | null; age: number | null };
+type ProfileRow = { display_name: string; avatar_path: string | null; city: string | null; age: number | null; username?: string | null };
+export type OwnProfile = { userId: string; name: string; avatarPath: string | null; city: string; age: string };
 
 export async function saveProfile({ name, username, city, age }: ProfileInput, avatarPath: string | null = null) {
   const { error } = await supabase.rpc('set_profile', {
@@ -89,6 +90,23 @@ export async function saveUsername(userId: string, username: string) {
   if (error) throw error;
   const row = data as ProfileRow;
   await saveProfile({ name: row.display_name, username, city: row.city ?? '', age: row.age === null ? '' : String(row.age) }, row.avatar_path);
+}
+
+export async function loadOwnProfile(): Promise<OwnProfile> {
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  if (!auth.user) throw new Error('not_authenticated');
+  const { data, error } = await supabase.from('profiles').select('display_name, avatar_path, city, age')
+    .eq('id', auth.user.id).single();
+  if (error) throw error;
+  const row = data as ProfileRow;
+  return { userId: auth.user.id, name: row.display_name, avatarPath: row.avatar_path,
+    city: row.city ?? '', age: row.age === null ? '' : String(row.age) };
+}
+
+/** Keeps the rest of the profile unchanged; a blank username tells the RPC to preserve it. */
+export async function saveAvatarPath(profile: OwnProfile, avatarPath: string | null): Promise<void> {
+  await saveProfile({ name: profile.name, username: '', city: profile.city, age: profile.age }, avatarPath);
 }
 
 export async function signOut() {

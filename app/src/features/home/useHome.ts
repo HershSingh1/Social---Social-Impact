@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
-import { myGroupsKey, names } from '../groups/overview';
+import { myGroupsKey, profileCards } from '../groups/overview';
 
-export type UpNextDetails = { imageUrl: string | null; going: { id: string; name: string }[]; goingCount: number };
+export type UpNextDetails = { imageUrl: string | null; going: { id: string; name: string; uri?: string }[]; goingCount: number };
 
 type RawDetails = {
   experience: { image_url: string | null } | { image_url: string | null }[] | null;
@@ -20,11 +20,11 @@ export async function fetchUpNextDetails(planId: string): Promise<UpNextDetails>
   const row = data as unknown as RawDetails | null;
   const experience = Array.isArray(row?.experience) ? row?.experience[0] : row?.experience;
   const goingIds = (row?.rsvps ?? []).filter(rsvp => rsvp.status === 'going' && rsvp.removed_at === null).map(rsvp => rsvp.user_id);
-  const nameOf = await names(goingIds.slice(0, 4));
+  const cardOf = await profileCards(goingIds.slice(0, 4));
   return {
     imageUrl: experience?.image_url ?? null,
     goingCount: goingIds.length,
-    going: goingIds.slice(0, 4).map(id => ({ id, name: nameOf.get(id) ?? 'Member' })),
+    going: goingIds.slice(0, 4).map(id => cardOf.get(id) ?? { id, name: 'Member' }),
   };
 }
 

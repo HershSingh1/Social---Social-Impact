@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Card, Empty, ErrorState, Label, Loading, Screen, Tag } from '../../ui';
+import { avatarUrl } from '../../lib/avatar';
 import { color, space, type } from '../../ui/theme';
 import type { Member } from './api';
 import { useGroupRoster } from './useGroupRoster';
@@ -9,8 +10,7 @@ export const NO_LONGER_IN_GROUP = 'You left or were removed, so its members, ide
 
 export function MemberRow({ member, children }: { member: Member; children?: ReactNode }) {
   return <View style={styles.row}>
-    {/* Photos need a storage URL, which isn't decided yet, so everyone shows an initial for now. */}
-    <Avatar name={member.name} />
+    <Avatar name={member.name} uri={avatarUrl(member.avatarPath)} />
     <Label style={[type.bodyStrong, styles.name]}>{member.name}</Label>
     {member.isOwner && <Tag label="Owner" variant="dark" />}
     {children}

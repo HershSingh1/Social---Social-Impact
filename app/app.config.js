@@ -17,6 +17,11 @@ module.exports = ({ config }) => {
     plugins: [
       ...(config.plugins ?? []),
       'expo-dev-client',
+      ['expo-image-picker', {
+        photosPermission: 'Allow Sidequest to choose a profile photo.',
+        cameraPermission: false,
+        microphonePermission: false,
+      }],
       ['react-native-maps', mapsKey ? { androidGoogleMapsApiKey: mapsKey } : {}], // key is backlogged (TEC-103); Android map is blank without it
     ],
     extra: { ...config.extra, ...(projectId ? { eas: { ...config.extra?.eas, projectId } } : {}) },

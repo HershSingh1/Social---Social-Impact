@@ -1,6 +1,7 @@
 import { beforeEach, expect, jest, test } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthGate, linkToPath } from '../AuthGate';
 import { AuthProvider } from '../AuthProvider';
@@ -14,6 +15,7 @@ type Result = { data?: unknown; error: { message: string; status?: number } | nu
 type AuthListener = (event: string, session: unknown) => void;
 const mockAuth = {
   getSession: jest.fn<() => Promise<{ data: { session: unknown } }>>(),
+  getUser: jest.fn<() => Promise<{ data: { user: { id: string } | null }; error: Error | null }>>(),
   onAuthStateChange: jest.fn((listener: AuthListener) => { mockListener = listener; return { data: { subscription: { unsubscribe: () => {} } } }; }),
   signInWithOtp: jest.fn<(args: unknown) => Promise<Result>>(),
   verifyOtp: jest.fn<(args: unknown) => Promise<Result>>(),
@@ -51,7 +53,12 @@ beforeEach(async () => {
   mockUrl = null;
   await AsyncStorage.clear();
   mockAuth.getSession.mockResolvedValue({ data: { session: null } });
+  mockAuth.getUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null });
 });
+
+const settings = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+  <SettingsScreen />
+</QueryClientProvider>);
 
 test('no session → signed out, so only the welcome and sign-in screens are open', async () => {
   await gate();
@@ -297,7 +304,7 @@ test('someone from before usernames is asked once with a modal, and saving keeps
 
 test('settings signs out locally', async () => {
   mockAuth.signOut.mockResolvedValue({ error: null });
-  await render(<SettingsScreen />);
+  await settings();
   await tap('Sign out');
   expect(mockAuth.signOut).toHaveBeenCalledWith({ scope: 'local' });
 });
@@ -314,7 +321,7 @@ test('a signed-out auth event returns the gate to welcome', async () => {
 test('delete account names what is deleted, confirms, then clears the local session', async () => {
   mockRpc.mockResolvedValue({ error: null });
   mockAuth.signOut.mockResolvedValue({ error: null });
-  await render(<SettingsScreen />);
+  await settings();
   await tap('Delete account');
   expect(screen.getByText(/profile, saves, votes, responses, and group memberships/)).toBeTruthy();
   expect(screen.getByText(/Plans you organized will be cancelled/)).toBeTruthy();
@@ -325,7 +332,7 @@ test('delete account names what is deleted, confirms, then clears the local sess
 });
 
 test('delete account can be cancelled without changing anything', async () => {
-  await render(<SettingsScreen />);
+  await settings();
   await tap('Delete account');
   await tap('Keep my account');
   expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy();
