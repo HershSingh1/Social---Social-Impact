@@ -1,18 +1,16 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, router, useLocalSearchParams } from 'expo-router';
+import { randomUUID } from 'expo-crypto';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Button, Card, Chip, Empty, ErrorState, Label, Loading, Screen, Tag, TextField } from '@/ui';
+import { Button, Card, Chip, Empty, ErrorState, Label, Loading, Screen, Tag } from '@/ui';
 import { color, minTap, space, type } from '@/ui/theme';
 import { clearDraft, createPick, fetchExperience, fetchGroups, loadDraft, saveDraft } from './api';
-import { addDraftOption, deadlineFor, EMPTY_DRAFT, removeDraftOption, validateDraft, type PickDraft } from './model';
-
-function makeClientKey() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, char => {
-    const random = Math.floor(Math.random() * 16); const value = char === 'x' ? random : (random & 3) | 8;
-    return value.toString(16);
-  });
-}
+import { TimeField } from '../plans/TimeField';
+import {
+  addDraftOption, deadlineFor, deadlineLabel, defaultCustomDeadline, defaultProposedStart, EMPTY_DRAFT, removeDraftOption,
+  validateDraft, withoutBadTimes, type PickDraft,
+} from './model';
 
 export function PickBuilderScreen() {
   const { experienceId } = useLocalSearchParams<{ experienceId?: string }>();
@@ -21,9 +19,9 @@ export function PickBuilderScreen() {
   const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState<string>();
   const [openPickId, setOpenPickId] = useState<string>();
-  const [clientKey] = useState(makeClientKey);
+  const [clientKey] = useState(randomUUID);
 
-  useEffect(() => { void loadDraft().then(value => { setDraft(value); setHydrated(true); }); }, []);
+  useEffect(() => { void loadDraft().then(value => { setDraft(withoutBadTimes(value)); setHydrated(true); }); }, []);
   useEffect(() => {
     if (!hydrated || !experienceId) return;
     void fetchExperience(experienceId).then(option => setDraft(current => addDraftOption(current, option))).catch(() => setError('Couldn’t add that activity. Try again.'));
@@ -32,6 +30,9 @@ export function PickBuilderScreen() {
   const effectiveDraft = useMemo(() => draft.groupId || groups.data?.length !== 1
     ? draft : { ...draft, groupId: groups.data[0].id }, [draft, groups.data]);
   const validation = useMemo(() => validateDraft(effectiveDraft), [effectiveDraft]);
+  const deadline = deadlineFor(draft);
+  const setProposedStart = (experienceId: string, proposedStart?: string) => setDraft(current => ({ ...current,
+    options: current.options.map(item => item.experienceId === experienceId ? { ...item, proposedStart } : item) }));
   const mutation = useMutation({ mutationFn: async () => {
     const deadline = deadlineFor(effectiveDraft); if (!deadline) throw new Error('Enter a valid deadline.');
     return createPick(effectiveDraft, clientKey, deadline);
@@ -60,10 +61,13 @@ export function PickBuilderScreen() {
           <Label style={type.bodyStrong}>{index + 1}. {option.name}</Label>{option.detail && <Label style={styles.secondary}>{option.detail}</Label>}
         </View><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${option.name}`} hitSlop={8}
           onPress={() => setDraft(current => removeDraftOption(current, option.experienceId))} style={styles.tap}><Label>Remove</Label></Pressable></View>
-        <TextField label="Proposed time (optional)" placeholder="2026-11-15T15:00:00-06:00"
-          error={option.proposedStart && Number.isNaN(new Date(option.proposedStart).getTime()) ? 'Enter a valid date and time.' : undefined}
-          value={option.proposedStart ?? ''} onChangeText={value => setDraft(current => ({ ...current,
-            options: current.options.map(item => item.experienceId === option.experienceId ? { ...item, proposedStart: value } : item) }))} />
+        {option.proposedStart ? <>
+          <TimeField label="Proposed time" value={option.proposedStart} onChange={d => setProposedStart(option.experienceId, d.toISOString())} />
+          <Pressable accessibilityRole="button" accessibilityLabel={`Remove the proposed time for ${option.name}`}
+            onPress={() => setProposedStart(option.experienceId)} style={styles.tap}><Label style={styles.link}>Remove time</Label></Pressable>
+        </> : <Pressable accessibilityRole="button" accessibilityLabel={`Add a proposed time for ${option.name}`}
+          onPress={() => setProposedStart(option.experienceId, defaultProposedStart())} style={styles.tap}>
+          <Label style={styles.link}>+ Add a proposed time (optional)</Label></Pressable>}
         <Chip label="Star as tie-break favorite" selected={draft.starredExperienceId === option.experienceId}
           onPress={() => setDraft(current => ({ ...current, starredExperienceId: current.starredExperienceId === option.experienceId ? undefined : option.experienceId }))} />
       </Card>)}
@@ -72,12 +76,13 @@ export function PickBuilderScreen() {
     <View style={styles.section}><Label style={type.title2}>Voting deadline</Label>
       <View style={styles.wrap}>{([6, 12, 24, 48] as const).map(hours => <Chip key={hours} label={`${hours} hours`}
         selected={draft.deadlineHours === hours} onPress={() => setDraft(current => ({ ...current, deadlineHours: hours }))} />)}
-        <Chip label="Custom" selected={draft.deadlineHours === 'custom'} onPress={() => setDraft(current => ({ ...current, deadlineHours: 'custom' }))} />
+        <Chip label="Custom" selected={draft.deadlineHours === 'custom'} onPress={() => setDraft(current => ({ ...current,
+          deadlineHours: 'custom', customDeadline: current.customDeadline ?? defaultCustomDeadline() }))} />
       </View>
-      {draft.deadlineHours === 'custom' && <TextField label="Custom deadline" placeholder="2026-11-16T21:00:00-06:00"
-        error={draft.customDeadline ? (!deadlineFor(draft) ? 'Enter a valid date and time.'
-          : validation?.startsWith('Deadline') ? validation : undefined) : undefined}
-        value={draft.customDeadline ?? ''} onChangeText={value => setDraft(current => ({ ...current, customDeadline: value }))} />}
+      {draft.deadlineHours === 'custom' && draft.customDeadline && <TimeField label="Custom deadline" value={draft.customDeadline}
+        error={validation?.startsWith('Deadline') ? validation : undefined}
+        onChange={d => setDraft(current => ({ ...current, customDeadline: d.toISOString() }))} />}
+      {deadline && <Label style={styles.secondary}>{deadlineLabel(deadline)}</Label>}
     </View>
     {(error || (validation && draft.options.length >= 2)) && <Label accessibilityRole="alert" style={styles.error}>{error ?? validation}</Label>}
     {openPickId && <Link href={experienceId ? `/pick/${openPickId}?addExperienceId=${experienceId}` : `/pick/${openPickId}`} asChild>
