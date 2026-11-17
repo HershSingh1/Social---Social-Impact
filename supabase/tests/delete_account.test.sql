@@ -71,6 +71,22 @@ insert into private.send_plan_requests (client_key, user_id, plan_id, payload_ha
   values (pg_temp.id('c1'), pg_temp.id('maya'), pg_temp.id('p_sent'), 'h');
 insert into join_attempts (user_id, window_start, attempts) values (pg_temp.id('maya'), now(), 2);
 
+-- Listings (P0-18): maya is a reviewer. e_maya went live from her approved suggestion; she also has a pending and
+-- a rejected one, reported e, and sent ann's suggestion back for changes.
+insert into private.reviewers (user_id) values (pg_temp.id('maya')), (pg_temp.id('ann'));
+insert into experiences (id, name, category, price_kind, timing_kind, source)
+  values (pg_temp.id('e_maya'), 'Kiln', 'art', 'free', 'flexible', 'https://example.com/kiln');
+insert into submissions (id, author_id, experience_id, payload, state, reason, reviewer_id, client_key) values
+  (pg_temp.id('s_approved'), pg_temp.id('maya'), pg_temp.id('e_maya'), '{}', 'approved',      null,    pg_temp.id('ann'),  pg_temp.id('sk1')),
+  (pg_temp.id('s_pending'),  pg_temp.id('maya'), null,                 '{}', 'pending',       null,    null,               pg_temp.id('sk2')),
+  (pg_temp.id('s_rejected'), pg_temp.id('maya'), null,                 '{}', 'rejected',      'Dupe',  pg_temp.id('ann'),  pg_temp.id('sk3')),
+  (pg_temp.id('s_ann'),      pg_temp.id('ann'),  null,                 '{}', 'needs_changes', 'Hours', pg_temp.id('maya'), pg_temp.id('sk4'));
+insert into private.submit_listing_requests (client_key, user_id, submission_id, payload_hash)
+  select pg_temp.id('sk' || n), pg_temp.id(u), pg_temp.id(s), 'h'
+  from (values (1, 'maya', 's_approved'), (2, 'maya', 's_pending'), (3, 'maya', 's_rejected'), (4, 'ann', 's_ann')) v(n, u, s);
+insert into listing_reports (experience_id, version, user_id, issue) values
+  (pg_temp.id('e'), 1, pg_temp.id('maya'), 'Closed now'), (pg_temp.id('e'), 1, pg_temp.id('ann'), 'Moved');
+
 -- Contract
 select has_function('public', 'delete_account', array[]::text[], 'delete_account() exists');
 select ok(not has_function_privilege('anon', 'public.delete_account()', 'execute'), 'anon cannot execute');
@@ -102,6 +118,20 @@ select is((select count(*) from pick_voter_status where user_id = pg_temp.id('ma
 select is((select count(*) from join_attempts where user_id = pg_temp.id('maya')), 0::bigint, 'Join-code counters removed');
 select is((select count(*) from private.send_plan_requests where user_id = pg_temp.id('maya')), 0::bigint, 'Send-plan requests removed');
 select is((select count(*) from profiles), 5::bigint, 'Nobody else is deleted');
+
+-- Listings (TEC-119)
+select is((select count(*) from submissions where author_id = pg_temp.id('maya') or id in (pg_temp.id('s_pending'), pg_temp.id('s_rejected'))),
+  0::bigint, 'Her pending and rejected suggestions are deleted');
+select is((select state || '|' || coalesce(author_id::text, 'none') from submissions where id = pg_temp.id('s_approved')),
+  'approved|none', 'Her approved suggestion stays, without an author');
+select is((select reviewer_id from submissions where id = pg_temp.id('s_approved')), pg_temp.id('ann'), 'Its reviewer is kept');
+select is((select state || '|' || reason || '|' || coalesce(reviewer_id::text, 'none') from submissions where id = pg_temp.id('s_ann')),
+  'needs_changes|Hours|none', 'A decision she made stands, without her as reviewer');
+select is((select count(*) from private.submit_listing_requests where user_id = pg_temp.id('maya')), 0::bigint, 'Her submit requests are removed');
+select is((select count(*) from private.submit_listing_requests where user_id = pg_temp.id('ann')), 1::bigint, 'Other people requests are kept');
+select is((select count(*) from listing_reports where user_id = pg_temp.id('maya')), 0::bigint, 'Her reports are removed');
+select is((select count(*) from listing_reports where user_id = pg_temp.id('ann')), 1::bigint, 'Other people reports are kept');
+select is((select count(*) from private.reviewers), 1::bigint, 'She is no longer a reviewer; ann still is');
 
 -- Owned groups (G8)
 select is((select owner_id from groups where id = pg_temp.id('g1')), pg_temp.id('zed'),
@@ -142,6 +172,8 @@ select is((select cancel_reason from plans where id = pg_temp.id('p_sent')), 'Or
 select pg_temp.as_user('zed');
 select is((select state || '|' || cancel_reason from plans where id = pg_temp.id('p_sent')), 'cancelled|Organizer deleted their account', 'Invitee zed sees the reason');
 select is((select count(*) from group_members where group_id = pg_temp.id('g1')), 4::bigint, 'zed reads the g1 roster (as the new owner)');
+
+select is((select status from experiences where id = pg_temp.id('e_maya')), 'published', 'The listing she suggested is still on the map (zed can read it)');
 
 -- Rows without an organizer cannot be driven by anyone else
 select throws_ok($$select public.cancel_pick(pg_temp.id('pk_planned'))$$, 'P0001', 'pick_not_cancellable', 'Nobody can cancel the orphaned planned pick');
