@@ -31,3 +31,10 @@ content_path = "./supabase/templates/email-code.html"
 [auth.email.template.confirmation]
 subject = "Your Sidequest sign-in code"
 content_path = "./supabase/templates/email-code.html"
+
+# Google is a P0 sign-in method (D2). Put both values in supabase/.env (see
+# supabase/.env.example); the hosted project is set in the dashboard (docs/dev-project.md).
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"

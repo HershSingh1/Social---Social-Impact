@@ -14,11 +14,9 @@ module.exports = ({ config }) => {
   }
   return {
     ...config,
-    ios: { ...config.ios, usesAppleSignIn: true },
     plugins: [
       ...(config.plugins ?? []),
       'expo-dev-client',
-      'expo-apple-authentication',
       ['react-native-maps', mapsKey ? { androidGoogleMapsApiKey: mapsKey } : {}], // key is backlogged (TEC-103); Android map is blank without it
     ],
     extra: { ...config.extra, ...(projectId ? { eas: { ...config.extra?.eas, projectId } } : {}) },
