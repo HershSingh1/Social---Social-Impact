@@ -1,9 +1,8 @@
 import { router } from 'expo-router';
-import { useAuth } from '@/features/auth';
-import { MapListScreen } from '@/features/discovery/MapListScreen';
+import PlansHubScreen from '@/features/plans/PlansHubScreen';
 
-export default function MapTab() {
-  const { session } = useAuth();
-  // Detail lives at /experience/[id] (TEC-39).
-  return <MapListScreen userId={session?.user.id} onOpen={id => router.push(`/experience/${id}`)} />;
+// Home tab. Until the Home screen from Figma 2.1 (28:3386) is built (TEC-113), it shows the Plans hub, with a link
+// to Your groups, which Figma also puts on Home.
+export default function HomeTab() {
+  return <PlansHubScreen onGroups={() => router.push('/groups')} />;
 }

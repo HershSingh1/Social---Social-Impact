@@ -8,5 +8,5 @@ export default function GroupRoute() {
   if (!session) return null; // the auth gate keeps signed-out people off this screen
   return <GroupDetailScreen groupId={id} userId={session.user.id} onOpenPick={pickId => router.push(`/pick/${pickId}`)}
     onOpenPlan={planId => router.push(`/plan/${planId}`)} onOpenExperience={id => router.push(`/experience/${id}`)}
-    onBack={() => (router.canGoBack() ? router.back() : router.replace('/friends'))} />;
+    onBack={() => (router.canGoBack() ? router.back() : router.replace('/groups'))} />;
 }

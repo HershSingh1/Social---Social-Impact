@@ -81,7 +81,8 @@ function PickRow({ item, onPress }: { item: PickHubItem; onPress: () => void }) 
   </Pressable>;
 }
 
-export default function PlansHubScreen() {
+// `onGroups` adds a link to Your groups while this screen stands in for Home (TEC-113).
+export default function PlansHubScreen({ onGroups }: { onGroups?: () => void }) {
   const router = useRouter();
   const query = usePlansHubQuery();
   const hub = useMemo(() => query.data && buildPlansHub(query.data), [query.data]);
@@ -95,13 +96,16 @@ export default function PlansHubScreen() {
   if (!hub) return <Screen><ErrorState message="Couldn’t load your plans." onRetry={async () => { await query.refetch(); }} /></Screen>;
 
   return <Screen>
-    <Label accessibilityRole="header" style={type.title1}>Plans</Label>
+    <View style={styles.header}>
+      <Label accessibilityRole="header" style={type.title1}>Plans</Label>
+      {onGroups && <Button label="Your groups" variant="text" size="small" onPress={onGroups} />}
+    </View>
     <Button label="Start a group pick" onPress={() => router.push('/pick/new')} />
     {query.isError && <ErrorState message="Couldn’t refresh your plans. Your last results are still here." onRetry={async () => { await query.refetch(); }} />}
     {hub.isEmpty && !drafts.data?.length ? <View style={styles.empty}>
       <Label accessibilityRole="header" style={type.title2}>No plans yet</Label>
       <Label style={styles.secondary}>Find something your group will enjoy, then turn it into a pick or plan.</Label>
-      <Button label="Find something to do" variant="secondary" onPress={() => router.navigate('/(tabs)')} />
+      <Button label="Find something to do" variant="secondary" onPress={() => router.navigate('/discover')} />
     </View> : <>
       <Section title="Needs your response" count={hub.needsResponse.length}>
         {hub.needsResponse.map(item => <PlanRow key={item.id} item={item} onPress={() => router.push(`/plan/${item.id}`)} />)}
@@ -129,6 +133,7 @@ export default function PlansHubScreen() {
 }
 
 const styles = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   section: { gap: space.sm },
   sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   hitArea: { minHeight: minTap, minWidth: minTap },

@@ -71,7 +71,7 @@ export function PickBuilderScreen() {
         <Chip label="Star as tie-break favorite" selected={draft.starredExperienceId === option.experienceId}
           onPress={() => setDraft(current => ({ ...current, starredExperienceId: current.starredExperienceId === option.experienceId ? undefined : option.experienceId }))} />
       </Card>)}
-      {draft.options.length < 5 && <Link href="/(tabs)" asChild><Pressable style={styles.tap}><Label style={styles.link}>+ Add another from Discover</Label></Pressable></Link>}
+      {draft.options.length < 5 && <Link href="/discover" asChild><Pressable style={styles.tap}><Label style={styles.link}>+ Add another from Discover</Label></Pressable></Link>}
     </View>
     <View style={styles.section}><Label style={type.title2}>Voting deadline</Label>
       <View style={styles.wrap}>{([6, 12, 24, 48] as const).map(hours => <Chip key={hours} label={`${hours} hours`}

@@ -9,6 +9,7 @@ type Props = {
   onCreate: () => void;
   onJoin: () => void;
   onSettings?: () => void;
+  onBack?: () => void;
   onOpenGroup: (groupId: string) => void;
 };
 
@@ -25,12 +26,13 @@ function GroupRow({ group, onPress }: { group: GroupSummary; onPress: () => void
   </Pressable>;
 }
 
-// Friends tab: your groups and what's next in each ("Your groups" on Figma 2.1 Home, 28:3386).
-export function FriendsScreen({ userId, onCreate, onJoin, onSettings, onOpenGroup }: Props) {
+// Your groups and what's next in each ("Your groups" on Figma 2.1 Home, 28:3386).
+export function FriendsScreen({ userId, onCreate, onJoin, onSettings, onBack, onOpenGroup }: Props) {
   const groups = useQuery({ queryKey: [...myGroupsKey, userId], queryFn: () => fetchMyGroups(userId), refetchInterval: 30_000 });
   const retry = () => { void groups.refetch(); };
 
   return <Screen>
+    {onBack && <Button label="Back" variant="text" size="small" onPress={onBack} />}
     <View style={styles.header}>
       <Label accessibilityRole="header" style={type.title1}>Your groups</Label>
       {onSettings && <Button label="Settings" variant="text" size="small" onPress={onSettings} />}
