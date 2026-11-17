@@ -88,6 +88,8 @@ export const size = {
   mapPinSelected: 44,
   categoryCircle: 46, // quick category circle under the chips
   mapIcon: 18, // glyph inside a map button
+  iconTile: 36, // rounded tile behind a row icon (2.1 Home 28:3386)
+  homePhoto: 120, // height of the Up next photo (2.1 Home 28:3386)
 } as const;
 
 // Shadows as measured in Figma, as React Native `boxShadow` layers (supported on RN 0.88).

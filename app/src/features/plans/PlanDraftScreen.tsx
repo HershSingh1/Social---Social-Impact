@@ -5,6 +5,7 @@ import { Button, Card, Chip, ErrorState, Label, Loading, Screen, Tag, TextField 
 import { color, minTap, radius, space, type } from '../../ui/theme';
 import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
+import { BookingNotice } from '../discovery/BookingNotice';
 import { bookingText } from './plan';
 import { TimeField } from './TimeField';
 import {
@@ -114,6 +115,7 @@ export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: 
     return <Screen>
       <Label accessibilityRole="header" style={type.title1}>Review your plan</Label>
       <Review draft={draft} context={ctx} />
+      {ctx.experience.bookingRequired === true && <BookingNotice required providerName={ctx.experience.providerName} url={ctx.experience.bookingUrl} />}
       {needsAck && <Acknowledge label={acknowledgeLabel(ctx.experience.unconfirmed.length ? ctx.experience.unconfirmed : ['price', 'booking'])}
         checked={acked} error={errors.acknowledged}
         onToggle={() => { setErrors(e => ({ ...e, acknowledged: undefined })); update({ acknowledged: !acked }); }} />}

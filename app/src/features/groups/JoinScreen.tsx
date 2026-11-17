@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Button, Card, Label, Screen } from '../../ui';
-import { color, radius, shadow, size, space, type } from '../../ui/theme';
+import { color, minTap, radius, shadow, size, space, type } from '../../ui/theme';
 import { CODE_LENGTH, cleanCode, JoinCodeError, joinErrorMessage, joinGroup, previewCode, type Preview } from './join';
 
 type Props = { initialCode?: string; onBack: () => void; onJoined: (groupId: string) => void };
 
 const messageFor = (error: unknown) => joinErrorMessage[error instanceof JoinCodeError ? error.code : 'unknown'];
 
-// Figma 1.2 Join with Code (28:3048), without the "Your name" field and "No account needed" copy: the name
-// comes from the account (D1, F4). The preview has no member count because `preview_group_code` returns none.
+// Figma 1.2 Join with Code (node 28:3048 in file MkYNxuYFuktTR0yGExJnK7), without the "Your name" field and "No
+// account needed" copy: the name comes from the account (D1, F4). The group card has no member count or avatars
+// because `preview_group_code` returns neither.
 export function JoinScreen({ initialCode = '', onBack, onJoined }: Props) {
   const [code, setCode] = useState(cleanCode(initialCode));
   const [preview, setPreview] = useState<Preview>();
@@ -37,8 +39,22 @@ export function JoinScreen({ initialCode = '', onBack, onJoined }: Props) {
     void check(next);
   }
 
-  return <Screen>
-    <Button label="Back" variant="text" size="small" onPress={onBack} />
+  const joinButton = <Button label={preview ? (preview.alreadyMember ? 'Open group' : `Join ${preview.groupName}`) : 'Join group'}
+    disabled={!preview} errorMessage={messageFor}
+    onPress={async () => {
+      try { onJoined(await joinGroup(code)); }
+      catch (failure) {
+        if (!(failure instanceof JoinCodeError)) throw failure;
+        setPreview(undefined);
+        checked.current = undefined;
+        setError(messageFor(failure));
+      }
+    }} />;
+
+  return <Screen tinted footer={joinButton}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.back}>
+      <Feather name="chevron-left" size={size.tabIcon} color={color.text} />
+    </Pressable>
     <View style={styles.heading}>
       <Label accessibilityRole="header" style={type.title1}>Join a group</Label>
       <Label style={styles.secondary}>Enter the 6-character code a friend shared.</Label>
@@ -62,25 +78,16 @@ export function JoinScreen({ initialCode = '', onBack, onJoined }: Props) {
 
     {preview && <Card>
       <View style={styles.preview} accessible>
-        <Label style={type.headline}>{preview.groupName}</Label>
-        <Label style={styles.caption}>Created by {preview.ownerName}</Label>
-        {preview.alreadyMember && <Label style={styles.caption}>You’re already in this group.</Label>}
+        <View style={styles.groupIcon} importantForAccessibility="no-hide-descendants">
+          <Feather name="users" size={size.tabIcon} color={color.orangeInk} />
+        </View>
+        <View style={styles.groupText}>
+          <Label style={type.headline}>{preview.groupName}</Label>
+          <Label style={styles.caption}>Created by {preview.ownerName}</Label>
+          {preview.alreadyMember && <Label style={styles.caption}>You’re already in this group.</Label>}
+        </View>
       </View>
     </Card>}
-
-    <View style={styles.footer}>
-      <Button label={preview ? (preview.alreadyMember ? 'Open group' : `Join ${preview.groupName}`) : 'Join group'}
-        disabled={!preview} errorMessage={messageFor}
-        onPress={async () => {
-          try { onJoined(await joinGroup(code)); }
-          catch (failure) {
-            if (!(failure instanceof JoinCodeError)) throw failure;
-            setPreview(undefined);
-            checked.current = undefined;
-            setError(messageFor(failure));
-          }
-        }} />
-    </View>
   </Screen>;
 }
 
@@ -93,6 +100,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: color.lineStrong, borderRadius: radius.sm, boxShadow: [...shadow.card] },
   boxActive: { borderColor: color.primary, borderWidth: 2 },
   hiddenInput: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.02, color: 'transparent' },
-  preview: { gap: space.xxs },
-  footer: { marginTop: 'auto' },
+  back: { minWidth: minTap, minHeight: minTap, justifyContent: 'center', alignSelf: 'flex-start' },
+  preview: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  groupIcon: { width: size.avatar.md, height: size.avatar.md, borderRadius: radius.md, backgroundColor: color.orangeSoft,
+    alignItems: 'center', justifyContent: 'center' },
+  groupText: { flex: 1, gap: space.xxs },
 });

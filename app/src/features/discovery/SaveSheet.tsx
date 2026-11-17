@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Button, ErrorState, Label, Loading, Sheet } from '../../ui';
 import { color, minTap, radius, space, type } from '../../ui/theme';
 import { useMyGroups } from '../groups/useMyGroups';
-import { isSaved, saveErrorMessage, savesKey, toggleSave, useSaves } from './saves';
+import { isSaved, saveErrorMessage, savesKey, setSave, useSaves } from './saves';
 
 type Props = { visible: boolean; onClose: () => void; experienceId: string; experienceName: string; userId: string };
 
@@ -28,14 +28,14 @@ export function SaveSheet({ visible, onClose, experienceId, experienceName, user
   const locked = useRef(false);
   const [message, setMessage] = useState<{ text: string; failed: boolean } | null>(null);
 
-  async function toggle(groupId: string | null, destination: string) {
+  async function toggle(groupId: string | null, destination: string, saved: boolean) {
     if (locked.current) return;
     locked.current = true;
     setBusyKey(groupId ?? 'me');
     setMessage(null);
     try {
-      const nowSaved = await toggleSave(experienceId, groupId);
-      setMessage({ text: nowSaved ? `Saved to ${destination}.` : `Removed from ${destination}.`, failed: false });
+      await setSave(experienceId, groupId, saved);
+      setMessage({ text: saved ? `Saved to ${destination}.` : `Removed from ${destination}.`, failed: false });
       await queryClient.invalidateQueries({ queryKey: savesKey });
     } catch (error) {
       // The toggle did not happen, so every row keeps showing what is really saved.
@@ -55,10 +55,10 @@ export function SaveSheet({ visible, onClose, experienceId, experienceName, user
         ? <ErrorState message="Couldn’t load where you can save this." onRetry={async () => { await Promise.all([saves.refetch(), groups.refetch()]); }} />
         : <View style={styles.list}>
           <Row title="Save for me" saved={isSaved(rows, userId, experienceId, null)} busy={busyKey === 'me'}
-            onPress={() => { void toggle(null, 'My saves'); }} />
+            onPress={() => { void toggle(null, 'My saves', !isSaved(rows, userId, experienceId, null)); }} />
           {myGroups.map(group => <Row key={group.id} title={`Save to ${group.name}`}
             saved={isSaved(rows, userId, experienceId, group.id)} busy={busyKey === group.id}
-            onPress={() => { void toggle(group.id, group.name); }} />)}
+            onPress={() => { void toggle(group.id, group.name, !isSaved(rows, userId, experienceId, group.id)); }} />)}
           {myGroups.length === 0 && <Label style={styles.caption}>Join or create a group to save ideas together.</Label>}
           <Label style={styles.caption}>Only you see My saves. Everyone in a group sees what you save to it.</Label>
         </View>}
