@@ -1,58 +1,33 @@
+// The three onboarding steps: ProfileStep (Figma 1.3, 28:3089), InterestsStep (1.4, 28:3118), CalendarStep (1.5, 28:3178).
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Avatar, Button, Label, Screen, TextField } from '../../ui';
-import { color, space, type } from '../../ui/theme';
-import { saveProfile, validateProfile, type ProfileErrors, type ProfileInput } from './api';
+import { signOut, type ProfileInput } from './api';
 import { useAuth } from './AuthProvider';
+import { CalendarStep } from './CalendarStep';
+import { InterestsStep, type Picks } from './InterestsStep';
+import { rememberStep, type OnboardingStep } from './onboarding';
+import { ProfileStep } from './ProfileStep';
 
-// Figma 1.3 Profile Setup (28:3089), cut to what PRO-9 F1 keeps: a name (required), city and age (optional).
-// No username, and the photo comes in Phase 1b, so the avatar shows the initial only.
+// The gate keeps `needs-profile` until the last step is finished or skipped (profile setup stays required, rule D1).
+// Progress is kept on the phone, so reopening the app lands on the first step that isn't done. Back only changes
+// what is on screen; it never forgets progress or what was typed.
 export function ProfileSetupScreen() {
-  const { refresh } = useAuth();
-  const [input, setInput] = useState<ProfileInput>({ name: '', city: '', age: '' });
-  const [errors, setErrors] = useState<ProfileErrors>({});
-  const set = (key: keyof ProfileInput) => (value: string) => setInput(current => ({ ...current, [key]: value }));
+  const { session, onboarding, refresh } = useAuth();
+  const userId = session?.user.id;
+  const [step, setStep] = useState<1 | 2 | 3>(onboarding.step === 'done' ? 3 : onboarding.step);
+  const [profile, setProfile] = useState<ProfileInput>({ name: '', username: '', city: '', age: '' });
+  const [picks, setPicks] = useState<Picks>({ selected: [], spend: null });
 
-  async function submit() {
-    const found = validateProfile(input);
-    setErrors(found);
-    if (Object.keys(found).length > 0) return;
-    await saveProfile(input);
-    await refresh();
+  async function advance(next: OnboardingStep) {
+    if (userId) await rememberStep(userId, next);
+    if (next === 'done') await refresh();
+    else setStep(next);
   }
 
-  return <Screen>
-    <View style={styles.heading}>
-      <Label accessibilityRole="header" style={type.title1}>Set up your profile</Label>
-      <Label style={styles.secondary}>This is how friends and groups will see you.</Label>
-    </View>
-    <View style={styles.avatar}><Avatar name={input.name || '?'} size="xl" /></View>
-    <TextField label="Name" value={input.name} onChangeText={set('name')} error={errors.name}
-      autoCapitalize="words" autoComplete="name" textContentType="name" />
-    <View style={styles.row}>
-      <View style={styles.flex}>
-        <TextField label="Age (optional)" value={input.age} onChangeText={set('age')} error={errors.age}
-          keyboardType="number-pad" maxLength={3} />
-      </View>
-      <View style={styles.flex}>
-        <TextField label="City (optional)" value={input.city} onChangeText={set('city')} error={errors.city}
-          placeholder="Austin, TX" autoCapitalize="words" />
-      </View>
-    </View>
-    <Label style={styles.caption}>Only your city is shared with groups, never your exact location.</Label>
-    <View style={styles.footer}>
-      <Button label="Continue" onPress={submit} errorMessage="Couldn’t save your profile. Check your connection and try again." />
-    </View>
-  </Screen>;
+  if (step === 2) {
+    return <InterestsStep initial={picks} onBack={() => setStep(1)} onSkip={() => advance(3)}
+      onSaved={async saved => { setPicks(saved); await advance(3); }} />;
+  }
+  if (step === 3) return <CalendarStep onBack={() => setStep(2)} onFinish={() => advance('done')} />;
+  return <ProfileStep initial={profile} onBack={() => { void signOut(); }}
+    onSaved={async saved => { setProfile(saved); await advance(2); }} />;
 }
-
-const styles = StyleSheet.create({
-  heading: { gap: space.sm },
-  secondary: { color: color.textSecondary },
-  avatar: { alignItems: 'center' },
-  // At 200% text the two fields stack instead of squeezing.
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  flex: { flexGrow: 1, flexBasis: 140 },
-  caption: { ...type.caption, color: color.textSecondary },
-  footer: { marginTop: 'auto' },
-});

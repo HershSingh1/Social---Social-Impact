@@ -37,14 +37,26 @@ export async function verifyEmailCode(email: string, token: string): Promise<boo
   throw error;
 }
 
-export type ProfileInput = { name: string; city: string; age: string };
+export const USERNAME_RE = /^[A-Za-z0-9_]{3,20}$/;
+export type ProfileInput = { name: string; username: string; city: string; age: string };
 export type ProfileErrors = Partial<Record<keyof ProfileInput, string>>;
 
-export function validateProfile({ name, city, age }: ProfileInput): ProfileErrors {
+/** People type "@Hershey" or "Hershey"; the server stores it without the @. */
+export const cleanUsername = (raw: string) => raw.trim().replace(/^@/, '');
+
+export function validateUsername(raw: string): string | undefined {
+  const username = cleanUsername(raw);
+  if (!username) return 'Choose a username.';
+  if (!USERNAME_RE.test(username)) return 'Use 3 to 20 letters, numbers or underscores.';
+}
+
+export function validateProfile({ name, username, city, age }: ProfileInput): ProfileErrors {
   const errors: ProfileErrors = {};
   const cleanName = name.trim();
   if (!cleanName) errors.name = 'Enter your name.';
   else if (Array.from(cleanName).length > NAME_MAX) errors.name = `Use ${NAME_MAX} characters or fewer.`;
+  const usernameError = validateUsername(username);
+  if (usernameError) errors.username = usernameError;
   if (Array.from(city.trim()).length > CITY_MAX) errors.city = `Use ${CITY_MAX} characters or fewer.`;
   const cleanAge = age.trim();
   if (cleanAge && (!/^\d+$/.test(cleanAge) || Number(cleanAge) < 13 || Number(cleanAge) > 120)) {
@@ -53,18 +65,30 @@ export function validateProfile({ name, city, age }: ProfileInput): ProfileError
   return errors;
 }
 
-export async function saveProfile({ name, city, age }: ProfileInput) {
+/** The two errors `set_profile` raises for the username, as text for under the field; null for anything else. */
+export function usernameErrorFrom(error: unknown): string | null {
+  const message = (error as { message?: string } | null)?.message;
+  if (message === 'username_taken') return 'That username is taken. Try another.';
+  if (message === 'invalid_username') return 'That username isn’t available. Try another.';
+  return null;
+}
+
+type ProfileRow = { display_name: string; avatar_path: string | null; city: string | null; age: number | null };
+
+export async function saveProfile({ name, username, city, age }: ProfileInput, avatarPath: string | null = null) {
   const { error } = await supabase.rpc('set_profile', {
-    display_name: name.trim(), avatar_path: null, city: city.trim() || null, age: age.trim() ? Number(age.trim()) : null,
+    display_name: name.trim(), avatar_path: avatarPath, city: city.trim() || null, age: age.trim() ? Number(age.trim()) : null,
+    username: cleanUsername(username),
   });
   if (error) throw error;
 }
 
-/** True once `set_profile` has given this account a name. RLS only returns the caller's own row. */
-export async function hasProfile(userId: string): Promise<boolean> {
-  const { data, error } = await supabase.from('profiles').select('display_name').eq('id', userId).maybeSingle();
+/** For people who signed up before usernames: `set_profile` clears what it is not sent, so send the rest back as it is. */
+export async function saveUsername(userId: string, username: string) {
+  const { data, error } = await supabase.from('profiles').select('display_name, avatar_path, city, age').eq('id', userId).single();
   if (error) throw error;
-  return Boolean((data as { display_name: string | null } | null)?.display_name);
+  const row = data as ProfileRow;
+  await saveProfile({ name: row.display_name, username, city: row.city ?? '', age: row.age === null ? '' : String(row.age) }, row.avatar_path);
 }
 
 export async function signOut() {

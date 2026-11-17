@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { ErrorState, Loading, Screen } from '../../ui';
 import { savePendingLink, takePendingLink, useAuth, type AuthStatus } from './AuthProvider';
+import { takeUsernamePrompt } from './onboarding';
 
 const AUTH_ROUTES = new Set(['welcome', 'sign-in', 'profile-setup', 'auth']);
 
@@ -20,7 +21,7 @@ export function linkToPath(url: string): string | null {
 type Props = { children: (status: Exclude<AuthStatus, 'loading' | 'error'>) => ReactNode };
 
 export function AuthGate({ children }: Props) {
-  const { status, refresh } = useAuth();
+  const { status, session, onboarding, refresh } = useAuth();
   const url = Linking.useLinkingURL();
 
   // A link opened before sign-in is kept and opened once the profile is set up (D1).
@@ -38,6 +39,14 @@ export function AuthGate({ children }: Props) {
     if (status !== 'ready' || was === 'ready' || was === 'loading') return;
     void takePendingLink().then(path => { if (path) router.push(path as never); });
   }, [status]);
+
+  // People who signed up before usernames are asked once, gently: a modal with Not now, never a block.
+  const userId = session?.user.id;
+  const needsUsername = status === 'ready' && onboarding.needsUsername;
+  useEffect(() => {
+    if (!userId || !needsUsername) return;
+    void takeUsernamePrompt(userId).then(first => { if (first) router.push('/username' as never); });
+  }, [userId, needsUsername]);
 
   if (status === 'loading') return <Loading label="Loading your account…" />;
   if (status === 'error') {
