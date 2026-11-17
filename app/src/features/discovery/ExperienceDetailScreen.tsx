@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, ErrorState, Label, Loading, Tag } from '@/ui';
 import { color, inset, minTap, radius, shadow, space, type } from '@/ui/theme';
 import { useAuth } from '@/features/auth';
+import { StartPlanButton } from '@/features/plans/StartPlanButton';
 import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { BookingNotice } from './BookingNotice';
@@ -106,8 +107,7 @@ export function ExperienceDetail({ experience, userId }: { experience: Experienc
     <View style={styles.footer}>
       <View style={styles.action}><Button label="Add to group pick" variant="secondary"
         onPress={() => router.push({ pathname: '/pick/new', params: { experienceId: experience.id } } as Href)} /></View>
-      <View style={styles.action}><Button label="Start a plan"
-        onPress={() => router.push({ pathname: '/plan/new', params: { experienceId: experience.id } } as Href)} /></View>
+      <View style={styles.action}><StartPlanButton experienceId={experience.id} userId={userId} /></View>
     </View>
   </View>;
 }
