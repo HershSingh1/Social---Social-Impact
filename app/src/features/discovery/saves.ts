@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 
 // Saves (P0-07). A row is one person's save of one experience: `group_id` null is private to them, otherwise it
 // belongs to that group's library. The client only reads (RLS returns the viewer's own personal rows plus the
-// rows of every group they are in) and writes through `toggle_save`.
+// rows of every group they are in) and writes through `set_save`.
 export type SaveRow = { experience_id: string; user_id: string; group_id: string | null };
 
 /** Where the Map is looking: the whole catalog, the viewer's private saves, or one group's saved ideas. */
@@ -22,11 +22,10 @@ export function useSaves(userId: string | undefined) {
   return useQuery({ queryKey: [...savesKey, userId], enabled: Boolean(userId), queryFn: fetchSaves });
 }
 
-/** Adds or removes the viewer's own save. Returns true when the save now exists. */
-export async function toggleSave(experienceId: string, groupId: string | null): Promise<boolean> {
-  const { data, error } = await supabase.rpc('toggle_save', { experience_id: experienceId, group_id: groupId });
+/** Sets the viewer's own save in one place. Sending the same request twice changes nothing, so a retry is safe. */
+export async function setSave(experienceId: string, groupId: string | null, saved: boolean): Promise<void> {
+  const { error } = await supabase.rpc('set_save', { experience_id: experienceId, group_id: groupId, saved });
   if (error) throw error;
-  return data === true;
 }
 
 export const SAVE_FAILED = 'Couldn’t save that. Check your connection and try again.';
