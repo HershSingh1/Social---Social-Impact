@@ -11,6 +11,9 @@ let mockRsvps: { user_id: string; status: RsvpStatus }[];
 let mockOnChange: () => void = () => {};
 let mockStart = '2099-11-14T16:00:00Z';
 let mockPrice: Record<string, unknown> = { kind: 'exact', min: 9, max: 9 };
+const fixedListing = { provider_name: 'Zilker Rentals', booking_url: 'https://zilker.example/book', source: 'https://zilker.example', timing_kind: 'fixed',
+  sessions: [{ start_local: '2099-11-14T10:00', end_local: '2099-11-14T12:00' }, { start_local: '2099-11-15T10:00', end_local: '2099-11-15T12:00' }] };
+let mockListing: Record<string, unknown> | null = null;
 const mockRespond = jest.fn<(args: Record<string, unknown>) => Promise<Result>>();
 const people = ['maya', 'jordan', 'sam', 'alex', 'riley', 'casey'];
 
@@ -18,6 +21,7 @@ function mockBuilder(table: string) {
   const b: Record<string, unknown> = {};
   for (const m of ['select', 'eq', 'is', 'gte']) b[m] = () => b;
   const result = (): Result => table === 'plans' ? { data: mockPlan, error: null }
+    : table === 'experiences' ? { data: mockListing, error: null }
     : table === 'rsvps' ? { data: mockRsvps, error: null }
     : { data: [{ revision: 1, start_at: mockStart, end_at: '2099-11-14T18:00:00Z', meeting_point: 'South gate',
       note: null, price_snapshot: mockPrice, booking_required: true }], error: null };
@@ -28,6 +32,8 @@ function mockBuilder(table: string) {
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories can't use import
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 const mockPush = jest.fn();
+const mockOpenURL = jest.fn();
+jest.mock('expo-linking', () => ({ openURL: (url: string) => mockOpenURL(url) }));
 jest.mock('expo-router', () => ({ router: { push: (href: string) => mockPush(href) } }));
 jest.mock('../../../lib/supabase', () => ({ supabase: {
   from: (table: string) => mockBuilder(table),
@@ -51,6 +57,8 @@ beforeEach(async () => {
   mockPush.mockReset();
   mockRespond.mockReset();
   mockStart = '2099-11-14T16:00:00Z';
+  mockListing = null;
+  mockOpenURL.mockReset();
   mockPrice = { kind: 'exact', min: 9, max: 9 };
   mockPlan = { id: 'p1', experience_name: 'Barton Springs', organizer_id: 'maya', state: 'sent', cancel_reason: null, current_revision: 1, updated_at: '2099-01-01T00:00:00Z' };
   setCounts(1, 5, 0, 0);
@@ -190,4 +198,49 @@ test('a price change says what it was and what it is now', async () => {
   mockPrice = { kind: 'exact', min: 18, max: 18, previous: { kind: 'exact', min: 12, max: 12 } };
   await show('jordan');
   expect(await screen.findByText('Price was $12, now $18')).toBeTruthy();
+});
+
+const withListing = (listing: Record<string, unknown>) => {
+  mockListing = listing;
+  mockPlan = { ...mockPlan, experience_id: 'e1', group_id: 'g1' };
+};
+
+test('a booking-required plan links to the provider', async () => {
+  withListing(fixedListing);
+  await show('jordan');
+  await screen.findByRole('button', { name: 'Open Zilker Rentals' });
+  await tap('Open Zilker Rentals');
+  expect(mockOpenURL).toHaveBeenCalledWith('https://zilker.example/book');
+  expect(screen.getByText('Going here does not reserve a spot.')).toBeTruthy();
+});
+
+test('the organizer is warned when the start no longer matches a listed session; invitees see nothing', async () => {
+  // 16:00 UTC on Nov 14 is 10:00 CST, a listed session.
+  withListing(fixedListing);
+  await show('maya');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByText('Warning: this time isn’t a listed session')).toBeNull();
+
+  // The catalog drops the 10:00 session on Nov 14. The listing is reread on the next poll or refocus.
+  mockListing = { ...fixedListing, sessions: [{ start_local: '2099-11-15T10:00', end_local: '2099-11-15T12:00' }] };
+  await screen.unmount();
+  await show('maya');
+  expect(await screen.findByText('Warning: this time isn’t a listed session')).toBeTruthy();
+  await tap('Change session');
+  expect(await screen.findByText('Save')).toBeTruthy(); // the edit sheet
+});
+
+test('an invitee never sees the session warning, and a removed session never blocks the plan', async () => {
+  withListing({ ...fixedListing, sessions: [{ start_local: '2099-11-15T10:00' }] });
+  await show('jordan');
+  expect(await screen.findByText('Your answer: Awaiting reply')).toBeTruthy();
+  expect(screen.queryByText('Warning: this time isn’t a listed session')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Going' })).toBeTruthy();
+});
+
+test('no warning for a flexible activity or a listing with no sessions', async () => {
+  withListing({ ...fixedListing, timing_kind: 'flexible', sessions: null });
+  await show('maya');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByText('Warning: this time isn’t a listed session')).toBeNull();
 });

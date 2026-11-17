@@ -3,6 +3,7 @@ import { randomUUID } from 'expo-crypto';
 import { logEvent } from '../../lib/analytics';
 import { supabase } from '../../lib/supabase';
 import { fromChicagoLocal, toChicagoLocal } from '../../lib/time';
+import { sourceUrl } from '../discovery/experience';
 
 import { MEETING_POINT_MAX, NOTE_MAX } from './limits';
 
@@ -98,6 +99,8 @@ export type PlanContext = {
     timingKind: string; priceLabel: string;
     /** null: the listing doesn't say whether booking is needed (G15). */
     bookingRequired: boolean | null;
+    /** For the provider link on Review; null while the listing has no link. */
+    providerName: string | null; bookingUrl: string | null;
     /** What Send needs acknowledged; empty when price and booking are both known. */
     unconfirmed: ('price' | 'booking')[];
     /** Upcoming listed sessions, as hints. Any time can still be sent (G6). */
@@ -142,7 +145,7 @@ export function acknowledgeLabel(unconfirmed: PlanContext['experience']['unconfi
 /** The experience and group members a draft needs. Reads only; RLS decides. */
 export async function fetchPlanContext(groupId: string, experienceId: string, me: string): Promise<PlanContext> {
   const [ex, members] = await Promise.all([
-    supabase.from('experiences').select('name, meeting_point, address, hours_text, duration_min, timing_kind, price_kind, price_min, price_max, booking_required, sessions')
+    supabase.from('experiences').select('name, meeting_point, address, hours_text, duration_min, timing_kind, price_kind, price_min, price_max, booking_required, sessions, provider_name, booking_url, source')
       .eq('id', experienceId).maybeSingle(),
     supabase.from('group_members').select('user_id').eq('group_id', groupId).is('removed_at', null).eq('blocked', false).order('joined_at'),
   ]);
@@ -161,6 +164,8 @@ export async function fetchPlanContext(groupId: string, experienceId: string, me
       timingKind: String(e.timing_kind), bookingRequired: (e.booking_required ?? null) as boolean | null,
       unconfirmed: [...(e.price_kind === 'unknown' ? ['price' as const] : []), ...(e.booking_required == null ? ['booking' as const] : [])],
       sessions: listedSessions(e.sessions),
+      providerName: (e.provider_name ?? null) as string | null,
+      bookingUrl: (e.booking_url as string | null) || sourceUrl(String(e.source ?? '')),
       priceLabel: priceLabel(String(e.price_kind), e.price_min as number | null, e.price_max as number | null),
     },
     members: others.map(userId => ({ userId, name: nameOf.get(userId) ?? 'Member' })),
