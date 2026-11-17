@@ -24,21 +24,21 @@ insert into experiences (id, name, category, price_kind, timing_kind, source, st
 
 set local role authenticated;
 select pg_temp.as_user('maya');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day')$$, pg_temp.id('g'), pg_temp.opts(1)),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', null, '00000000-0000-0000-0000-000000000101')$$, pg_temp.id('g'), pg_temp.opts(1)),
   'P0001', 'invalid_option_count', '1 option rejected');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day')$$, pg_temp.id('g'), pg_temp.opts(6)),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', null, '00000000-0000-0000-0000-000000000102')$$, pg_temp.id('g'), pg_temp.opts(6)),
   'P0001', 'invalid_option_count', '6 options rejected');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '30 minutes')$$, pg_temp.id('g'), pg_temp.opts(2)),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '30 minutes', null, '00000000-0000-0000-0000-000000000103')$$, pg_temp.id('g'), pg_temp.opts(2)),
   'P0001', 'invalid_deadline', 'Deadline under 1 h rejected');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '8 days')$$, pg_temp.id('g'), pg_temp.opts(2)),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '8 days', null, '00000000-0000-0000-0000-000000000104')$$, pg_temp.id('g'), pg_temp.opts(2)),
   'P0001', 'invalid_deadline', 'Deadline over 7 days rejected');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', 3)$$, pg_temp.id('g'), pg_temp.opts(2)),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', 3, '00000000-0000-0000-0000-000000000105')$$, pg_temp.id('g'), pg_temp.opts(2)),
   'P0001', 'invalid_starred', 'Star outside options rejected');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day')$$, pg_temp.id('g'),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', null, '00000000-0000-0000-0000-000000000106')$$, pg_temp.id('g'),
   jsonb_build_array(jsonb_build_object('experience_id', pg_temp.id('hidden')), jsonb_build_object('experience_id', pg_temp.id('venue')))),
   'P0001', 'experience_not_found', 'Unpublished experience rejected');
 select is((select count(*) from picks), 0::bigint, 'Rejected creates leave nothing behind');
-select lives_ok(format($$select public.create_pick(%L, %L, now() + interval '1 hour')$$, pg_temp.id('g2'), pg_temp.opts(2)),
+select lives_ok(format($$select public.create_pick(%L, %L, now() + interval '1 hour', null, '00000000-0000-0000-0000-000000000107')$$, pg_temp.id('g2'), pg_temp.opts(2)),
   'Exactly 1 hour accepted (with slack)');
 select lives_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', 2, %L)$$, pg_temp.id('g'), pg_temp.opts(3), pg_temp.id('ck1')),
   'Member creates a pick with 3 options and a star');
@@ -57,11 +57,17 @@ select pg_temp.as_user('maya');
 select is(public.create_pick(pg_temp.id('g'), pg_temp.opts(3), now() + interval '1 day', 2, pg_temp.id('ck1')),
   (select id from the_pick), 'Retry with same client_key returns same pick');
 select is((select count(*) from picks where group_id = pg_temp.id('g')), 1::bigint, 'Retry did not duplicate');
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', 2)$$, pg_temp.id('g'), pg_temp.opts(3)),
+  '42883', null, 'create_pick without client_key is refused');
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day')$$, pg_temp.id('g'), pg_temp.opts(3)),
+  '42883', null, 'create_pick with only the first three arguments is refused');
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', 2, null)$$, pg_temp.id('g'), pg_temp.opts(3)),
+  'P0001', 'client_key_required', 'create_pick with a null client_key is refused');
 select pg_temp.as_user('u1');
 select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', null, %L)$$, pg_temp.id('g'), pg_temp.opts(2), pg_temp.id('ck2')),
   'P0001', 'open_pick_exists', 'Second open pick blocked');
 select pg_temp.as_user('outsider');
-select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day')$$, pg_temp.id('g'), pg_temp.opts(2)),
+select throws_ok(format($$select public.create_pick(%L, %L, now() + interval '1 day', null, '00000000-0000-0000-0000-000000000108')$$, pg_temp.id('g'), pg_temp.opts(2)),
   '42501', 'not_a_member', 'Non-member cannot create');
 select throws_ok(format($$select public.add_option(%L, %L)$$, (select id from the_pick), pg_temp.id('venue')),
   'P0001', 'pick_not_found', 'Non-member cannot add option');

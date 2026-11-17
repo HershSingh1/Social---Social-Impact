@@ -80,8 +80,17 @@ test('Save sheet shows a toggle per destination and confirms where a save went',
   expect(screen.getByRole('switch', { name: 'Save to Saturday crew' }).props.accessibilityState.checked).toBe(false);
   expect(screen.getByRole('switch', { name: 'Save to Work friends' })).toBeTruthy();
   await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Save to Saturday crew' })));
-  expect(mockRpc).toHaveBeenCalledWith('toggle_save', { experience_id: 'a', group_id: 'g1' });
+  expect(mockRpc).toHaveBeenCalledWith('set_save', { experience_id: 'a', group_id: 'g1', saved: true });
   expect(await screen.findByText('Saved to Saturday crew.')).toBeTruthy();
+});
+
+test('pressing a saved row asks for the unsaved state, so a retried request cannot flip it back', async () => {
+  mockRpc.mockResolvedValue({ data: null, error: null });
+  await wrap(clientWith([{ experience_id: 'a', user_id: ME, group_id: null }]),
+    <SaveSheet visible onClose={() => {}} experienceId="a" experienceName="Barton Springs Pool" userId={ME} />);
+  await act(async () => fireEvent.press(screen.getByRole('switch', { name: 'Save for me' })));
+  expect(mockRpc).toHaveBeenCalledWith('set_save', { experience_id: 'a', group_id: null, saved: false });
+  expect(await screen.findByText('Removed from My saves.')).toBeTruthy();
 });
 
 test('a failed save says so and does not claim it saved', async () => {
