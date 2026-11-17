@@ -5,6 +5,7 @@ import { loadSavedDrafts } from './drafts';
 import { EMPTY_HUB_DATA, type HubPick, type HubPlan, type ViewerPlanStatus } from './hub';
 
 export const plansHubQueryKey = ['plans-hub'] as const;
+const HUB_FALLBACK_REFETCH_MS = 30_000;
 
 type RawRelation = { name: string } | { name: string }[] | null;
 type RawPlan = {
@@ -71,17 +72,43 @@ export function usePlansHubQuery() {
   return useQuery({ queryKey: plansHubQueryKey, queryFn: fetchPlansHub });
 }
 
-export function usePlansHubRealtime() {
+type HubData = { plans: HubPlan[]; picks: HubPick[] };
+type RealtimeTarget = { table: 'plans' | 'plan_revisions' | 'rsvps' | 'picks' | 'pick_voter_status'; filter: string };
+
+/** Only rows that can add or change an item in this viewer's hub. */
+export function plansHubRealtimeTargets(userId: string, planIds: string[], pickIds: string[]): RealtimeTarget[] {
+  const targets: RealtimeTarget[] = [
+    { table: 'rsvps', filter: `user_id=eq.${userId}` },
+    { table: 'pick_voter_status', filter: `user_id=eq.${userId}` },
+    { table: 'plans', filter: `organizer_id=eq.${userId}` },
+    { table: 'picks', filter: `organizer_id=eq.${userId}` },
+  ];
+  for (const id of new Set(planIds)) {
+    targets.push({ table: 'plans', filter: `id=eq.${id}` });
+    targets.push({ table: 'plan_revisions', filter: `plan_id=eq.${id}` });
+  }
+  for (const id of new Set(pickIds)) targets.push({ table: 'picks', filter: `id=eq.${id}` });
+  return targets;
+}
+
+export function usePlansHubRealtime(userId: string | undefined, data: HubData | undefined) {
   const queryClient = useQueryClient();
+  const planIds = (data?.plans ?? []).map(plan => plan.id).sort().join(',');
+  const pickIds = (data?.picks ?? []).map(pick => pick.id).sort().join(',');
   useEffect(() => {
+    if (!userId) return;
     const refresh = () => { void queryClient.invalidateQueries({ queryKey: plansHubQueryKey }); };
     const channel = supabase.channel('plans-hub-live');
-    for (const table of ['plans', 'plan_revisions', 'rsvps', 'picks', 'pick_voter_status']) {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table }, refresh);
+    for (const target of plansHubRealtimeTargets(userId, planIds ? planIds.split(',') : [], pickIds ? pickIds.split(',') : [])) {
+      channel.on('postgres_changes', { event: '*', schema: 'public', ...target }, refresh);
     }
     channel.subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [queryClient]);
+    const fallback = setInterval(refresh, HUB_FALLBACK_REFETCH_MS);
+    return () => {
+      clearInterval(fallback);
+      void supabase.removeChannel(channel);
+    };
+  }, [pickIds, planIds, queryClient, userId]);
 }
 
 export const savedDraftsKey = ['plan-drafts'] as const;
