@@ -9,6 +9,7 @@ import { FiltersProvider } from '@/features/discovery';
 import { color, size, type } from '@/ui/theme';
 import { buildPlansHub } from '@/features/plans/hub';
 import { usePlansHubQuery, usePlansHubRealtime } from '@/features/plans/usePlansHub';
+import { useAuth } from '@/features/auth';
 
 const activeTint = color.primary;
 const inactiveTint = color.textSecondary;
@@ -29,8 +30,9 @@ function homeAccessibilityLabel(badgeCount: number) {
 }
 
 export default function TabsLayout() {
+  const { session } = useAuth();
   const query = usePlansHubQuery();
-  usePlansHubRealtime();
+  usePlansHubRealtime(session?.user.id, query.data);
   // The plans badge moved to Home with the Plans hub (TEC-45).
   const badgeCount = query.data ? buildPlansHub(query.data).badgeCount : 0;
   return (
