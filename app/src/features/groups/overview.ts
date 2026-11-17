@@ -4,7 +4,11 @@ import { closesIn, formatWhen } from '../../lib/time';
 export type Person = { id: string; name: string };
 export type OpenPick = { id: string; title: string; deadline: string };
 export type PlanItem = { id: string; name: string; startAt: string };
-export type GroupSummary = { id: string; name: string; memberCount: number; faces: Person[]; next: string };
+/** `openPick` and `nextPlan` are what `next` was made from, for screens that word it their own way (Home). */
+export type GroupSummary = {
+  id: string; name: string; memberCount: number; faces: Person[]; next: string;
+  openPick?: OpenPick; nextPlan?: PlanItem;
+};
 export type GroupExtras = { code: { code: string; expiresAt: string } | null; openPick: OpenPick | null; plans: PlanItem[] };
 
 const check = <T>({ data, error }: { data: T | null; error: unknown }): T => { if (error) throw error; return data as T; };
@@ -63,10 +67,14 @@ export async function fetchMyGroups(userId: string, now = Date.now()): Promise<G
   const nameOf = await names(shown);
   return groupRows.map(g => {
     const people = byGroup.get(g.id) ?? [];
+    const pick = picks.find(p => p.groupId === g.id);
+    const plan = plans.find(p => p.groupId === g.id);
     return {
       id: g.id, name: g.name, memberCount: people.length,
       faces: people.slice(0, 4).map(id => ({ id, name: nameOf.get(id) ?? 'Member' })),
-      next: nextItem(picks.find(p => p.groupId === g.id), plans.find(p => p.groupId === g.id), now),
+      next: nextItem(pick, plan, now),
+      openPick: pick && { id: pick.id, title: pick.title, deadline: pick.deadline },
+      nextPlan: plan && { id: plan.id, name: plan.name, startAt: plan.startAt },
     };
   });
 }

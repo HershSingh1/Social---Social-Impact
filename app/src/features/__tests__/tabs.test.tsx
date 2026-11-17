@@ -7,12 +7,13 @@ import HomeTab from '../../app/(tabs)/index';
 const mockHub: { data?: { plans: unknown[]; picks: unknown[] } } = {};
 jest.mock('@/features/plans/usePlansHub', () => ({ usePlansHubQuery: () => mockHub, usePlansHubRealtime: () => {} }));
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
-// Home stands in with the Plans hub until TEC-113; only its Your groups link matters here.
-jest.mock('@/features/plans/PlansHubScreen', () => ({
+// The Home screen has its own tests; here it only has to stand in the first tab.
+jest.mock('@/features/auth', () => ({ useAuth: () => ({ session: { user: { id: 'me' } } }) }));
+jest.mock('@/features/home/HomeScreen', () => ({
   __esModule: true,
-  default: function MockHub({ onGroups }: { onGroups: () => void }) {
-    const { Pressable: MockPressable, Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
-    return <MockPressable accessibilityRole="link" onPress={onGroups}><MockText>Your groups</MockText></MockPressable>;
+  default: function MockHome() {
+    const { Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
+    return <MockText>Home screen</MockText>;
   },
 }));
 
@@ -25,7 +26,6 @@ const show = () => renderRouter({
   '(tabs)/_layout': TabsLayout,
   '(tabs)/index': HomeTab,
   '(tabs)/discover': () => <Text>Discover screen</Text>,
-  'groups/index': () => <Text>Groups screen</Text>,
 }, { initialUrl: '/' });
 
 // Every button on these stand-in screens is a bar item; React Navigation names each "<label>, tab, n of m".
@@ -46,14 +46,6 @@ test('Discover opens the Map and List and becomes the selected item', async () =
   expect(screen).toHavePathname('/discover');
   expect(screen.getByText('Discover screen')).toBeTruthy();
   expect(item('Discover').props.accessibilityState).toMatchObject({ selected: true });
-});
-
-test('Your groups opens from Home', async () => {
-  mockHub.data = { plans: [], picks: [] };
-  await show();
-  await act(async () => fireEvent.press(screen.getByRole('link', { name: 'Your groups' })));
-  expect(screen).toHavePathname('/groups');
-  expect(await screen.findByText('Groups screen')).toBeTruthy();
 });
 
 test('plans waiting on a reply badge the Home item and are said in words', async () => {
