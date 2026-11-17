@@ -57,6 +57,7 @@ test('a group summary counts members, shows up to four faces, and uses the curre
     id: 'g1', name: 'Saturday crew', memberCount: 2,
     faces: [{ id: 'maya', name: 'Maya' }, { id: 'jordan', name: 'Jordan' }],
     next: 'Barton Springs · Sun, Nov 15 · 10:00 AM',
+    nextPlan: { id: 'p1', name: 'Barton Springs', startAt: '2026-11-15T16:00:00Z' },
   });
 });
 

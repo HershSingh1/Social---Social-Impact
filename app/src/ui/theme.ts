@@ -82,6 +82,8 @@ export const size = {
   avatar: { xs: 24, sm: 32, md: 40, lg: 56, xl: 88 }, // Avatar sizes (4:182 to 4:190)
   grabber: { width: 36, height: 5, radius: 3 }, // Bottom sheet handle (28:4877)
   tabIcon: 22, // bottom bar icons (2.1 Home 28:3386, 4.3 Map View 28:4763)
+  iconTile: 36, // rounded tile behind a row icon (2.1 Home 28:3386)
+  homePhoto: 120, // height of the Up next photo (2.1 Home 28:3386)
 } as const;
 
 // Shadows as measured in Figma, as React Native `boxShadow` layers (supported on RN 0.88).

@@ -42,10 +42,13 @@ export function fromChicagoLocal(local: string): Date | null {
 }
 
 const zoneName = new Intl.DateTimeFormat('en-US', { timeZone: PLAN_TIME_ZONE, timeZoneName: 'short' });
+/** "CST" or "CDT", for the date in question. */
+export function zoneAbbr(date: Date): string {
+  return zoneName.formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? 'CT';
+}
 /** "Austin time (CST)" or "Austin time (CDT)", named on Review and Plan (rule 4). */
 export function zoneLabel(date: Date): string {
-  const abbr = zoneName.formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? 'CT';
-  return `Austin time (${abbr})`;
+  return `Austin time (${zoneAbbr(date)})`;
 }
 
 /** "10:00 AM", in Austin time. */

@@ -1,8 +1,9 @@
-import { router } from 'expo-router';
-import PlansHubScreen from '@/features/plans/PlansHubScreen';
+import { useAuth } from '@/features/auth';
+import HomeScreen from '@/features/home/HomeScreen';
 
-// Home tab. Until the Home screen from Figma 2.1 (28:3386) is built (TEC-113), it shows the Plans hub, with a link
-// to Your groups, which Figma also puts on Home.
+// Home tab (Figma 2.1, TEC-113).
 export default function HomeTab() {
-  return <PlansHubScreen onGroups={() => router.push('/groups')} />;
+  const { session } = useAuth();
+  if (!session) return null; // the auth gate keeps signed-out people off this screen
+  return <HomeScreen userId={session.user.id} />;
 }
