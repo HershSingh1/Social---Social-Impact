@@ -27,6 +27,13 @@
       "expo-router",
       "expo-font",
       [
+        "expo-calendar",
+        {
+          "calendarPermission": "Sidequest reads when you are busy, never event details, so your groups can find times that work.",
+          "remindersPermission": false
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Sidequest uses your location to center the map on activities near you."
