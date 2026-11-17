@@ -41,6 +41,14 @@ Use the team's Supabase organization, not a personal or production project.
    `select extname from pg_extension where extname = 'pg_cron';`.
 6. Share the project URL and **anon/publishable** key privately. Never share a
    service-role key through `EXPO_PUBLIC_*`; these values are bundled into the app.
+7. Storage: after applying the database migrations, verify the `avatars` and
+   `listing-images` buckets exist. Both must be public, limited to **1 MiB**, and
+   allow only `image/jpeg`. The migration creates or corrects them when Storage is
+   available, and `supabase/config.toml` declares the same settings for local resets.
+   If a hosted project does not create the buckets during `db push`, run
+   `supabase seed buckets --remote` from the repository root or create them with
+   those exact settings in Storage → New bucket. The migration still supplies the
+   owner-folder policies; do not add broader dashboard policies.
 
 ## Link and configure locally
 
@@ -84,6 +92,8 @@ an expired code fails, request a code, wait 10 minutes, then run `verify`: it sh
 - [ ] Anonymous sign-in is rejected and Google sign-in works on an iPhone.
 - [ ] All three phones use the same dev project; no credentials appear in Git.
 - [ ] `pg_cron` is enabled. These checks have not been performed by this change.
+- [ ] `avatars` and `listing-images` are public, JPEG-only, 1 MiB buckets; a signed-in
+      user can upload, replace and delete only at `<their user id>/<random name>.jpg`.
 
 References: [Supabase CLI config](https://supabase.com/docs/guides/local-development/cli/config),
 [email OTP](https://supabase.com/docs/guides/auth/auth-email-passwordless),

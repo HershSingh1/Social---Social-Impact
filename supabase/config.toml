@@ -11,6 +11,20 @@ extra_search_path = ["public", "extensions"]
 port = 54322
 major_version = 17
 
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[storage.buckets.avatars]
+public = true
+file_size_limit = "1MiB"
+allowed_mime_types = ["image/jpeg"]
+
+[storage.buckets.listing-images]
+public = true
+file_size_limit = "1MiB"
+allowed_mime_types = ["image/jpeg"]
+
 [auth]
 enabled = true
 site_url = "sidequest://"

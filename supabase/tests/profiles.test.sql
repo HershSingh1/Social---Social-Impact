@@ -26,9 +26,11 @@ select throws_ok($$select public.set_profile(null)$$, 'P0001', 'invalid_display_
 select throws_ok($$select public.set_profile(repeat('x', 61))$$, 'P0001', 'invalid_display_name', '61 characters rejected');
 select throws_ok('select public.test_write()', 'P0001', 'profile_required', 'Rejected names leave profile unset');
 select lives_ok($$select public.set_profile(repeat('x', 60))$$, '60 characters accepted');
-select lives_ok($$select public.set_profile('  Newbie  ', 'avatars/me.png')$$, 'Name trimmed and avatar saved');
+select lives_ok(format(
+  'select public.set_profile(%L, %L)', '  Newbie  ', pg_temp.id('newbie')::text || '/avatar.jpg'
+), 'Name trimmed and avatar saved');
 select is((select display_name from profiles), 'Newbie', 'Stored name is trimmed');
-select is((select avatar_path from profiles), 'avatars/me.png', 'Avatar path stored');
+select is((select avatar_path from profiles), pg_temp.id('newbie')::text || '/avatar.jpg', 'Avatar path stored');
 select is(public.test_write(), pg_temp.id('newbie'), 'Writes allowed once named');
 select lives_ok($$select public.set_profile('Newbie 2')$$, 'Name can be changed');
 select is((select avatar_path from profiles), null, 'Omitted avatar clears it');
