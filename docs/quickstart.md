@@ -4,7 +4,7 @@ Sidequest is an Expo (React Native) app on a Supabase backend. This page gets yo
 
 ## 1. Set up
 
-You need a Mac with Xcode (for the iOS Simulator), Node, and access to the team's Supabase dev project.
+You need a Mac with Xcode (for the iOS Simulator), Node 26 (what CI uses), and access to the team's Supabase dev project.
 
 ```bash
 git clone <repo-url> && cd repo
@@ -47,6 +47,8 @@ For database changes, from `supabase/tests/` (run `npm ci` once):
 ```bash
 npm test    # runs every migration and pgTAP test in-process, no Docker
 ```
+
+GitHub runs the same checks on every pull request into `v2-figma` (`.github/workflows/ci.yml`): an **App** job (typecheck, lint, tests in `app/`) and a **Database** job (pgTAP in `supabase/tests/`), both on Node 26. Fix a red check before asking for review. Run them locally first to save a round trip.
 
 ## 4. Find the code
 
