@@ -7,7 +7,7 @@ These are the working rules for every AI coding agent on this repo (Codex, Claud
 ## Sources of truth
 - `docs/spec.md`: P0–P2 build spec. Requirement IDs (P0-08) are used everywhere: Linear, branches, commits, tests.
 - `docs/spec-decisions.md`: team decisions that override the spec, plus conflicts and gaps with the default we build with. Read it before touching the data model.
-- Figma is the visual design: https://www.figma.com/design/CUXYzgoB8YBvoorBUj1Oly/Event-Planning-App?node-id=28-2943 Build every screen from its frame. Tokens live in `app/src/ui/theme.ts`; never hard-code a color, size or font in a screen.
+- Figma is the visual design: Noah's working copy, https://www.figma.com/design/MkYNxuYFuktTR0yGExJnK7/Event-Planning-App--Copy- (decision D14). The team file (CUXYzgoB8YBvoorBUj1Oly) is no longer the reference. Many frames are AI-generated drafts named after their issue (for example `PRO-17 · Group owner controls (P0-03) · draft`); the designer reviews them later and they will change. Copy each frame exactly (layout, spacing, colors, icons, copy) and don't improve on it, so that a later Figma change is the only reason a screen's look changes. Put the frame's node ID at the top of the screen file (`// Figma: 4046:4006 PRO-17 Group owner controls`) and in the PR body, so whoever applies a later Figma change can find the screens it affects. If a screen has no frame, don't invent one: build what doesn't depend on it and say on the issue which frame is missing. If the Figma MCP is out of calls, open the frame in the browser pane by its `node-id` URL. Tokens live in `app/src/ui/theme.ts`; never hard-code a color, size or font in a screen.
 - `docs/wireframe.html`: grayscale flow, copy and states only. Not a visual reference.
 - `docs/linear.md`: where each requirement lives in Linear (TEC-/PRO- issue IDs).
 - Precedence: spec-decisions > spec > Figma > wireframe. If two disagree, follow the higher one and add a row to `docs/spec-decisions.md`.
@@ -41,8 +41,17 @@ Not in scope, so don't build them:
 ## How agents work here (agreed by the team, Nov 10)
 - Only pick up a Linear issue labeled `agent-ready`, and only once every decision it depends on is agreed in `docs/spec-decisions.md` or the Decision Register (https://claude.ai/artifact/5RqNeJLkWgALx3AzjdRdbK). If a decision is still open, stop and say so on the issue.
 - One agent per issue. Two agents on the same issue or the same files will conflict; another agent may review the PR instead.
+- A person starts an agent on an issue by moving it to In Progress in Linear and then telling the agent "work TEC-NN". That move is the go signal. An agent never starts an issue that is still in Backlog, so two agents cannot both decide to take the same one.
+- A person may hand the queue to a coordinating agent (decision D15). It does the same two steps for them: it moves an `agent-ready` issue to In Progress and starts an agent with "work TEC-NN". It starts an issue only when its blockers are done and no open PR or In Progress issue touches the same files, and it never merges.
+- Claim the issue before you change anything, so other agents can see it is taken:
+  1. Read the issue's status and comments. If it is not In Progress, or it is In Review or Done, stop and tell the user. If a claim comment from another agent is already there, stop too, and do not take over someone else's claim.
+  2. Post a comment that begins `Claimed by <agent> for <person who started it>`, with the branch name and the date.
+  3. Read the comments again. If another claim comment is older than yours, yours loses: delete nothing, post "Releasing: TEC-NN is already claimed above" and stop. The oldest claim comment wins, which settles two agents that start at the same moment.
+  4. Check which files the issue touches against the open PRs and the other In Progress issues. If another claim overlaps, stop and say so on the issue.
+  5. Leave the assignee alone. The team assigns owners (W7), not agents.
+- Keep the claim accurate. When you open the PR, set the status to In Review. If you stop without finishing, post a comment that releases the claim (what state the branch is in) and ask the person to move the issue back to Backlog, so the next agent knows it is free.
 - Work on the branch Linear gives the issue (e.g. `npajibo/tec-12-p0-06-experience-detail`), cut from `v2-figma`. Open the PR into `v2-figma` with `Fixes TEC-12` in the body.
-- A person reviews and merges every PR. Agents never merge their own work.
+- A developer on the team reviews and merges every PR; for now the developers are the reviewers (D15). Agents never merge, their own work or anyone else's.
 - When done, comment on the Linear issue with what you verified and what you couldn't (for example, anything that needs a real phone).
 - Every issue starts with an **In plain words** summary for the team. If your work changes what the issue does, update that summary in plain language.
 - `needs-device` issues are closed only after a person runs them on real phones.
