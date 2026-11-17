@@ -30,6 +30,9 @@ jest.mock('@react-native-community/datetimepicker', () => () => null);
 let mockKey = 0;
 jest.mock('expo-crypto', () => ({ randomUUID: () => `key-${++mockKey}` }));
 
+const mockOpenURL = jest.fn();
+jest.mock('expo-linking', () => ({ openURL: (url: string) => mockOpenURL(url) }));
+
 const NOW = Date.parse('2026-11-13T18:00:00Z');
 const source = { groupId: 'g1', experienceId: 'e1' };
 const draft = (change: Partial<PlanDraft> = {}): PlanDraft => ({
@@ -167,4 +170,21 @@ test('only booking unknown names booking; a server refusal for it stays on Revie
   expect(screen.getByText('This listing’s price or booking isn’t confirmed. Tick the box to send anyway.')).toBeTruthy();
   expect(screen.getByText('Review your plan')).toBeTruthy();
   expect(screen.getByRole('checkbox', { name: 'I understand the booking is unconfirmed' }).props.accessibilityState.checked).toBe(false);
+});
+
+test('Review links to the provider when booking is required, and not when it is not', async () => {
+  mockExperience = { ...flexible, booking_required: true, provider_name: 'Zilker Rentals', booking_url: 'https://zilker.example/book', source: 'x' };
+  await render(wrap());
+  await screen.findByText('Saved on this phone');
+  await tap('Review');
+  await tap('Open Zilker Rentals');
+  expect(mockOpenURL).toHaveBeenCalledWith('https://zilker.example/book');
+  expect(screen.getByText('Going here does not reserve a spot.')).toBeTruthy();
+});
+
+test('Review shows no provider link when booking is not needed', async () => {
+  await render(wrap());
+  await screen.findByText('Saved on this phone');
+  await tap('Review');
+  expect(screen.queryByText('Going here does not reserve a spot.')).toBeNull();
 });

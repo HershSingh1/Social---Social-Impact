@@ -9,9 +9,11 @@ import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { bookingText, countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
 import { CancelPlanSheet } from './CancelPlanSheet';
 import { cancelledLine } from './cancel';
+import { BookingNotice } from '../discovery/BookingNotice';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
 import { InviteesPanel } from './InviteesPanel';
+import { sessionNoLongerListed, usePlanListing } from './listing';
 import { ReconfirmBanner } from './ReconfirmBanner';
 import { priceChangeLine, usePlanUpdated } from './updated';
 import { usePlan } from './usePlan';
@@ -49,6 +51,7 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
   const [cancelling, setCancelling] = useState(false);
   const retry = () => { void query.refetch(); };
   const updated = usePlanUpdated(query.data, viewerId);
+  const listing = usePlanListing(query.data?.experienceId).data;
   // An invitee opening the plan counts as viewing the invite; the organizer opening their own plan does not.
   const organizerId = query.data?.organizerId;
   useEffect(() => {
@@ -84,6 +87,13 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
     {cancelled && <Tag label="Cancelled" variant="dark" />}
     {cancelled && <Label accessibilityRole="alert" style={type.bodyStrong}>{cancelledLine(organizerName, plan.cancelReason)}</Label>}
     <Details plan={plan} />
+    {plan.current.bookingRequired === true && <BookingNotice required providerName={listing?.providerName} url={listing?.bookingUrl} />}
+    {plan.state === 'sent' && isOrganizer && !started && sessionNoLongerListed(listing, plan.current.startAt) && <Card>
+      <Label accessibilityRole="alert" style={type.headline}>Warning: this time isn’t a listed session</Label>
+      <Label>The start time of this plan no longer matches any session the listing shows. The plan still stands, but check with the provider.</Label>
+      <Button label="Change session" variant="secondary" onPress={() => setEditing(true)} />
+      <Button label="Cancel plan" variant="secondary" onPress={() => setCancelling(true)} />
+    </Card>}
 
     {plan.state === 'sent' && me?.status === 'needs_reconfirm' && !started && (() => {
       const was = plan.revisions.find(r => r.revision === me.answeredRevision);
