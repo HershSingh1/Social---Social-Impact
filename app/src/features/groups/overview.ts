@@ -1,7 +1,8 @@
 import { supabase } from '../../lib/supabase';
+import { avatarUrl } from '../../lib/avatar';
 import { closesIn, formatWhen } from '../../lib/time';
 
-export type Person = { id: string; name: string };
+export type Person = { id: string; name: string; uri?: string };
 export type OpenPick = { id: string; title: string; deadline: string };
 export type PlanItem = { id: string; name: string; startAt: string };
 /** `openPick` and `nextPlan` are what `next` was made from, for screens that word it their own way (Home). */
@@ -17,6 +18,16 @@ export async function names(ids: string[]): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
   const cards = check(await supabase.rpc('get_profile_cards', { user_ids: ids })) as { user_id: string; display_name: string }[];
   return new Map((cards ?? []).map(card => [card.user_id, card.display_name]));
+}
+
+export async function profileCards(ids: string[]): Promise<Map<string, Person>> {
+  if (ids.length === 0) return new Map();
+  type Card = { user_id: string; display_name: string; avatar_path: string | null };
+  const cards = check(await supabase.rpc('get_profile_cards', { user_ids: ids })) as Card[];
+  return new Map((cards ?? []).map(card => {
+    const uri = avatarUrl(card.avatar_path);
+    return [card.user_id, { id: card.user_id, name: card.display_name, ...(uri ? { uri } : {}) }];
+  }));
 }
 
 async function openPicks(groupIds: string[]): Promise<(OpenPick & { groupId: string })[]> {
@@ -64,14 +75,14 @@ export async function fetchMyGroups(userId: string, now = Date.now()): Promise<G
   for (const row of memberRows) byGroup.set(row.group_id, [...(byGroup.get(row.group_id) ?? []), row.user_id]);
   // Up to four faces per group, as in Figma.
   const shown = [...new Set([...byGroup.values()].flatMap(list => list.slice(0, 4)))];
-  const nameOf = await names(shown);
+  const cardOf = await profileCards(shown);
   return groupRows.map(g => {
     const people = byGroup.get(g.id) ?? [];
     const pick = picks.find(p => p.groupId === g.id);
     const plan = plans.find(p => p.groupId === g.id);
     return {
       id: g.id, name: g.name, memberCount: people.length,
-      faces: people.slice(0, 4).map(id => ({ id, name: nameOf.get(id) ?? 'Member' })),
+      faces: people.slice(0, 4).map(id => cardOf.get(id) ?? { id, name: 'Member' }),
       next: nextItem(pick, plan, now),
       openPick: pick && { id: pick.id, title: pick.title, deadline: pick.deadline },
       nextPlan: plan && { id: plan.id, name: plan.name, startAt: plan.startAt },

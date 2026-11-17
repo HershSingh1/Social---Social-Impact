@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { logEvent } from '@/lib/analytics';
+import { avatarUrl } from '@/lib/avatar';
 import { supabase } from '@/lib/supabase';
 import { addDraftOption, EMPTY_DRAFT, type DraftOption, type PickDraft, type VoteValue } from './model';
 
@@ -136,7 +137,7 @@ export async function fetchPick(id: string): Promise<PickDetail> {
     overrideOptionId: pick.override_option_id ?? undefined,
     tieRule: pick.tie_rule ?? undefined, planId: (planRow as { id: string } | null)?.id, options,
     voters: memberIds.map(userId => ({ id: userId, name: profileMap.get(userId)?.display_name ?? 'Member',
-      avatar: profileMap.get(userId)?.avatar_path ?? undefined, complete: status.get(userId) ?? false })) };
+      avatar: avatarUrl(profileMap.get(userId)?.avatar_path), complete: status.get(userId) ?? false })) };
 }
 
 const PICK_ERRORS: Record<string, string> = {

@@ -1,8 +1,10 @@
 import { logEvent } from '../../lib/analytics';
+import { avatarUrl } from '../../lib/avatar';
 import { supabase } from '../../lib/supabase';
 
 export type RsvpStatus = 'going' | 'awaiting' | 'cant_go' | 'needs_reconfirm';
 export type Invitee = { userId: string; name: string; status: RsvpStatus; isOrganizer: boolean;
+  avatar?: string;
   /** The revision this person last answered; older than current while they need to reconfirm. */
   answeredRevision: number };
 export type Price = { kind: string; min: number | null; max: number | null; previous?: Omit<Price, 'previous'> };
@@ -74,11 +76,14 @@ export async function fetchPlan(planId: string): Promise<Plan> {
   const rows = (rsvps.data ?? []) as { user_id: string; status: RsvpStatus; revision: number }[];
   const cards = await supabase.rpc('get_profile_cards', { user_ids: rows.map(r => r.user_id) });
   if (cards.error) throw cards.error;
-  const nameOf = new Map(((cards.data ?? []) as { user_id: string; display_name: string }[]).map(c => [c.user_id, c.display_name]));
+  type ProfileCard = { user_id: string; display_name: string; avatar_path: string | null };
+  const cardOf = new Map(((cards.data ?? []) as ProfileCard[]).map(c => [c.user_id, c]));
   return {
     id: p.id, name: p.experience_name, organizerId: p.organizer_id, state: p.state, cancelReason: p.cancel_reason, groupId: p.group_id, experienceId: p.experience_id, updatedAt: p.updated_at,
     current: toRevision(current), revisions: revs.map(toRevision),
-    invitees: rows.map(r => ({ userId: r.user_id, name: nameOf.get(r.user_id) ?? 'Member', status: r.status, isOrganizer: r.user_id === p.organizer_id, answeredRevision: r.revision }))
+    invitees: rows.map(r => ({ userId: r.user_id, name: cardOf.get(r.user_id)?.display_name ?? 'Member',
+      avatar: avatarUrl(cardOf.get(r.user_id)?.avatar_path), status: r.status,
+      isOrganizer: r.user_id === p.organizer_id, answeredRevision: r.revision }))
       // Organizer first, then by name.
       .sort((a, b) => Number(b.isOrganizer) - Number(a.isOrganizer) || a.name.localeCompare(b.name)),
   };

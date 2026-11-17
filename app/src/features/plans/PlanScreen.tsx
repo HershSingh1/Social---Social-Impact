@@ -148,7 +148,7 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
         {counts.going} going · {counts.awaiting} awaiting reply · {counts.cant_go} can’t go · {counts.needs_reconfirm} need to reconfirm
       </Label>
       {plan.invitees.map(i => <View key={i.userId} style={styles.person} accessible accessibilityLabel={`${i.name}${i.isOrganizer ? ', organizer' : ''}: ${statusLabel[i.status]}`}>
-        <Avatar name={i.name} size="sm" />
+        <Avatar name={i.name} uri={i.avatar} size="sm" />
         <Label style={styles.flex}>{i.name}{i.isOrganizer ? ' (organizer)' : ''}</Label>
         <Label style={styles.caption}>{statusLabel[i.status]}</Label>
       </View>)}

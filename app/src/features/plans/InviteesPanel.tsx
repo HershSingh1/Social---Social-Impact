@@ -69,7 +69,7 @@ export function InviteesPanel({ plan, readAt }: { plan: Plan; readAt: number }) 
     <Sheet title="Remove people" visible={open === 'remove'} onClose={close}>
       <Label>They lose access to the plan and leave the counts. You can add them back later.</Label>
       {others.map(person => <View key={person.userId} style={styles.person}>
-        <Avatar name={person.name} size="sm" />
+        <Avatar name={person.name} uri={person.avatar} size="sm" />
         <Label style={styles.name}>{person.name}</Label>
         <Button label="Remove" accessibilityLabel={`Remove ${person.name}`} variant="secondary" size="small"
           errorMessage={refusal('Couldn’t remove them. Check your connection and try again.')}
