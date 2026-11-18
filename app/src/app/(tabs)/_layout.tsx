@@ -1,7 +1,6 @@
 // Bottom bar from Figma 2.1 Home (node 28:3386) and 4.3 Map View (node 28:4763) in file MkYNxuYFuktTR0yGExJnK7.
-// Figma draws five items: Home, Discover, +, Activity and Profile. D11 leaves out an item whose screen has no frame
-// or isn't built: Activity (6.1, not now), Profile (6.3 is drawn but the screen is TEC-98) and + (no frame shows
-// what it opens). Your groups has no bar item (Figma puts it on Home), so it is the /groups screen, opened from Home.
+// Figma draws five items: Home, Discover, +, Activity and Profile. D11 leaves out Activity (6.1, not now) and
+// Profile (6.3 is drawn but the screen is TEC-98). The + opens the PRO-15 suggestion form (TEC-100).
 import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
@@ -51,6 +50,7 @@ export default function TabsLayout() {
           tabBarAccessibilityLabel: homeAccessibilityLabel(badgeCount),
         }} />
         <Tabs.Screen name="discover" options={{ title: 'Discover', tabBarIcon: tabIcon('compass') }} />
+        <Tabs.Screen name="suggest" options={{ title: 'Suggest', tabBarIcon: tabIcon('plus-circle') }} />
       </Tabs>
     </FiltersProvider>
   );
