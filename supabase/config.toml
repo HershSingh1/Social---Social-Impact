@@ -52,3 +52,8 @@ content_path = "./supabase/templates/email-code.html"
 enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+
+# The database calls this once a minute with a shared secret (docs/notify-function.md), so Supabase's own
+# JWT check is off and the function checks the secret itself.
+[functions.notify]
+verify_jwt = false
