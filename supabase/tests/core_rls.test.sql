@@ -49,8 +49,9 @@ select ok(not exists (select 1 from information_schema.tables t
   where t.table_schema = 'public' and has_table_privilege(r, 'public.' || t.table_name, p)), 'No client mutation grants');
 select ok(not has_table_privilege('authenticated', 'public.join_attempts', 'SELECT'), 'Rate limits stay private');
 select set_eq($$select tablename::text from pg_publication_tables where pubname = 'supabase_realtime'$$,
-  $$values ('group_members'), ('picks'), ('pick_options'), ('option_tallies'), ('pick_voter_status'), ('plans'), ('plan_revisions'), ('rsvps')$$,
-  'Exact Realtime table set; raw votes excluded');
+  $$values ('group_members'), ('picks'), ('pick_options'), ('option_tallies'), ('pick_voter_status'), ('plans'), ('plan_revisions'), ('rsvps'),
+    ('availability_tallies')$$,
+  'Exact Realtime table set; raw votes and raw availability excluded');
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', pg_temp.id('carol')::text, true);
