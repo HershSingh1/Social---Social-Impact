@@ -1,3 +1,4 @@
+// Figma: 4145:12152 TEC-109 · A Profile tab, G Profile photo sheet, H Photo library denied (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';

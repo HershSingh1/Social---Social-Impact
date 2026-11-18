@@ -7,7 +7,8 @@ import { isEmail, MAX_CODE_TRIES, sendEmailCode, verifyEmailCode } from './api';
 const SEND_FAILED = 'Couldn’t send the code. Check your connection and try again.';
 const TOO_MANY = 'Too many tries. Send a new code.';
 
-// Figma has no email-code screen, so this uses the UI kit. Success needs no navigation: the auth gate
+// Figma: 4145:16991 P0-02 · Sign in with email and Enter your code (drawn Nov 18, D17). Built from the UI kit before the
+// frame existed; follow the frame on the next change. Success needs no navigation: the auth gate
 // moves on as soon as the session exists.
 export function EmailSignInScreen({ onBack }: { onBack: () => void }) {
   const [email, setEmail] = useState('');

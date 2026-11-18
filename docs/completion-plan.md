@@ -29,6 +29,8 @@ Still for people:
 
 ### A2. Design
 
+Nov 18 update (D17): every screen below now has a frame in the Figma copy, drawn in the original pattern. `docs/figma-frames.md` lists them. The rest of this section is the Nov 16 picture.
+
 Under D11 a screen without a Figma frame isn't built. The Figma file has 31 frames, including first drafts for several P1 and P2 screens (3.2 quiz, 3.3 and 3.4 availability, 6.1 Activity, 6.2 album, 6.3 profile, 6.4 bucket list, 6.5 calendar and notifications, 4.6 post an event). Some of those show things the decisions rule out (naming who is busy, public reviews, group suggestions), so they need changes before agents build from them. Other screens have no frame at all: settings, owner controls, plan link, cancel, save sheet, the suggest form's review queue, did-it-happen, feedback, plan again, contact invites.
 
 The design brief lists every frame to add or change, in priority order: https://claude.ai/artifact/VN8MCuQPyH2r7WbQsWMQiq

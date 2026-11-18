@@ -1,3 +1,4 @@
+// Figma: 4145:17286 P0-08 · Vote · Yes, Maybe or No (Close now, Cancel pick) (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Label, Sheet } from '@/ui';

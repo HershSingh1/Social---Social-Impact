@@ -1,4 +1,5 @@
-// Figma: no frame for the group chooser in the Figma copy yet (TEC-118); built from the kit's Sheet, Empty and Button.
+// Figma: 4145:17963 P0-10 to P0-12 · Start a plan · which group (drawn Nov 18, D17). Built before the frame existed, from
+// the kit's Sheet, Empty and Button (TEC-118); follow the frame on the next change.
 import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
