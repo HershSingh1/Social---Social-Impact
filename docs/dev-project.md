@@ -49,6 +49,16 @@ Use the team's Supabase organization, not a personal or production project.
    `supabase seed buckets --remote` from the repository root or create them with
    those exact settings in Storage → New bucket. The migration still supplies the
    owner-folder policies; do not add broader dashboard policies.
+8. Storage: verify the `album` bucket (TEC-138). It must be **private**, limited to
+   **15 MiB**, and allow only `image/jpeg`. The migration creates or corrects it, and
+   `supabase/config.toml` declares the same settings for local resets; if `db push` does
+   not create it, run `supabase seed buckets --remote`. Files live at
+   `<plan id>/<user id>/<random name>.jpg`. Do not add dashboard policies and never make the
+   bucket public: the migration's policies decide who can upload, read and delete. The app
+   opens photos with signed URLs of at most 5 minutes (`createSignedUrl`, `expiresIn: 300`),
+   which the database cannot enforce. Deleting an album item removes its `storage.objects`
+   row; the app should also remove the file through the Storage API so the stored bytes go
+   too. Never log album paths.
 
 ## Link and configure locally
 

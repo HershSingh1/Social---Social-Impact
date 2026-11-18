@@ -25,6 +25,11 @@ public = true
 file_size_limit = "1MiB"
 allowed_mime_types = ["image/jpeg"]
 
+[storage.buckets.album]
+public = false
+file_size_limit = "15MiB"
+allowed_mime_types = ["image/jpeg"]
+
 [auth]
 enabled = true
 site_url = "sidequest://"
