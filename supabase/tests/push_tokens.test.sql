@@ -103,7 +103,7 @@ select throws_ok($$select public.set_notification_pref('plan_sent', true)$$,
   'P0001', 'profile_required', 'A completed profile is required for prefs');
 
 reset role;
-select is((select array_length(private.notification_kinds(), 1)), 7, 'There are seven kinds');
+select is((select array_length(private.notification_kinds(), 1)), 8, 'There are eight kinds');
 delete from profiles where id = pg_temp.id('alice');
 select is((select count(*) from push_tokens where user_id = pg_temp.id('alice'))
   + (select count(*) from notification_prefs where user_id = pg_temp.id('alice')), 0::bigint,
