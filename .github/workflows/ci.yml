@@ -47,3 +47,14 @@ jobs:
           cache-dependency-path: supabase/tests/package-lock.json
       - run: npm ci
       - run: npm test
+
+  functions:
+    name: Edge functions (node:test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - run: node --test supabase/functions/notify/notify.test.ts
