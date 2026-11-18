@@ -12,6 +12,7 @@ import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { BookingNotice } from './BookingNotice';
 import { SaveSheet } from './SaveSheet';
+import { ReportListingSheet } from './ReportListingSheet';
 import { isSavedAnywhere, useSaves } from './saves';
 import {
   type Experience, formatCheckedOn, formatDuration, formatLocation, formatPrice, formatTiming, sourceUrl,
@@ -55,6 +56,7 @@ function SaveButton({ experience, userId }: { experience: Experience; userId: st
 
 export function ExperienceDetail({ experience, userId }: { experience: Experience; userId?: string }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   useEffect(() => {
     if (experience.status === 'published') logEvent('experience_viewed', { experience_id: experience.id });
   }, [experience.id, experience.status]);
@@ -100,6 +102,8 @@ export function ExperienceDetail({ experience, userId }: { experience: Experienc
           <Label style={type.caption}>{formatCheckedOn(experience.checked_on)}</Label>
           {url && <View style={styles.inlineButton}><Button label="View source" variant="text" size="small"
             onPress={async () => { await Linking.openURL(url); }} /></View>}
+          {userId && <View style={styles.inlineButton}><Button label="Report outdated info" variant="text" size="small"
+            onPress={() => setReportOpen(true)} /></View>}
         </Card>
       </View>
     </ScrollView>
@@ -109,6 +113,7 @@ export function ExperienceDetail({ experience, userId }: { experience: Experienc
         onPress={() => router.push({ pathname: '/pick/new', params: { experienceId: experience.id } } as Href)} /></View>
       <View style={styles.action}><StartPlanButton experienceId={experience.id} userId={userId} /></View>
     </View>
+    <ReportListingSheet experienceId={experience.id} visible={reportOpen} onClose={() => setReportOpen(false)} />
   </View>;
 }
 
