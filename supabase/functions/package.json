@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@jsquash/jpeg": "1.6.0",
+    "@supabase/supabase-js": "2.119.1"
+  },
+  "private": true,
+  "scripts": {
+    "test": "node --test notify/notify.test.ts album-photo/album-photo.test.ts"
+  },
+  "type": "module"
+}

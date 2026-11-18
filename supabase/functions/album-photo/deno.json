@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window", "deno.ns", "dom"],
+    "strict": true
+  },
+  "imports": {
+    "@jsquash/jpeg/": "npm:@jsquash/jpeg@1.6.0/",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.119.1"
+  }
+}

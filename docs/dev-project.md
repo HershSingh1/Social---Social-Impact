@@ -59,6 +59,20 @@ Use the team's Supabase organization, not a personal or production project.
    which the database cannot enforce. Deleting an album item removes its `storage.objects`
    row; the app should also remove the file through the Storage API so the stored bytes go
    too. Never log album paths.
+9. Deploy the authenticated album sanitizer after the TEC-139 migration:
+
+   ```sh
+   supabase functions deploy album-photo --use-docker
+   ```
+
+   The Docker/local bundle is required so the two small MozJPEG WebAssembly files in
+   `supabase/functions/album-photo/wasm/` are included. The function uses the platform's
+   built-in `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`; do not add,
+   print or copy those values. Its gateway JWT check stays on. The app sends multipart form
+   fields `plan_id`, `client_key` and `file` (`image/jpeg`) to `album-photo`, then passes the
+   returned `path` to `add_album_item`. It must not call `storage.from('album').upload()`
+   directly; the migration deliberately denies direct inserts so unsanitized files cannot
+   bypass re-encoding.
 
 ## Link and configure locally
 
@@ -104,6 +118,9 @@ an expired code fails, request a code, wait 10 minutes, then run `verify`: it sh
 - [ ] `pg_cron` is enabled. These checks have not been performed by this change.
 - [ ] `avatars` and `listing-images` are public, JPEG-only, 1 MiB buckets; a signed-in
       user can upload, replace and delete only at `<their user id>/<random name>.jpg`.
+- [ ] `album-photo` is deployed with its WebAssembly files; a person who attended can upload
+      a JPEG through the function, a direct album-bucket upload is denied, and the stored file
+      contains no EXIF block. A person who did not attend gets `upload_not_allowed`.
 
 References: [Supabase CLI config](https://supabase.com/docs/guides/local-development/cli/config),
 [email OTP](https://supabase.com/docs/guides/auth/auth-email-passwordless),

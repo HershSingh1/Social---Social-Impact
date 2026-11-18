@@ -62,3 +62,9 @@ secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 # JWT check is off and the function checks the secret itself.
 [functions.notify]
 verify_jwt = false
+
+# Authenticated album uploads are re-encoded before the service-role Storage write. The bundled MozJPEG
+# modules are small static files; deploy this function locally with Docker so the CLI includes them.
+[functions.album-photo]
+verify_jwt = true
+static_files = ["./functions/album-photo/wasm/*.wasm"]

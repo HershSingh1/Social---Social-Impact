@@ -11,6 +11,9 @@ create function pg_temp.path(pl text, u text, f text) returns text language sql 
   $$ select pg_temp.id(pl)::text || '/' || pg_temp.id(u)::text || '/' || f || '.jpg' $$;
 create function pg_temp.upload(p text) returns void language sql as
   $$ insert into storage.objects (id, bucket_id, name) values (gen_random_uuid(), 'album', p) $$;
+-- The Edge Function writes through the service role after it calls authorize_album_photo_upload.
+create function pg_temp.server_upload(p text) returns void language sql security definer as
+  $$ insert into storage.objects (id, bucket_id, name) values (gen_random_uuid(), 'album', p) $$;
 -- How many album files the caller can list, optionally one name.
 create function pg_temp.files(p text default null) returns bigint language sql as
   $$ select count(*) from storage.objects where bucket_id = 'album' and (p is null or name = p) $$;
@@ -49,14 +52,19 @@ select is((select public from storage.buckets where id = 'album'), false, 'The a
 select is((select file_size_limit from storage.buckets where id = 'album'), 15728640::bigint, 'Files are limited to 15 MiB');
 select is((select allowed_mime_types from storage.buckets where id = 'album'), array['image/jpeg']::text[], 'Files must be JPEG');
 
--- Upload
+-- Upload authorization. Clients cannot write bytes directly because that would bypass server re-encoding.
 set local role authenticated;
 select pg_temp.as_user('a');
-select lives_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'a', 'one')), 'a uploads into their own folder for a plan they attended');
-select lives_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'a', 'two')), 'a uploads a second file');
+select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'a', 'one')), '42501', null, 'Clients cannot bypass the album-photo function');
+select ok(authorize_album_photo_upload(pg_temp.id('past')), 'a is authorized for the plan they attended');
+reset role;
+select lives_ok(format('select pg_temp.server_upload(%L)', pg_temp.path('past', 'a', 'one')), 'The server uploads a''s sanitized photo');
+select lives_ok(format('select pg_temp.server_upload(%L)', pg_temp.path('past', 'a', 'two')), 'The server uploads a second sanitized photo');
+set local role authenticated;
+select pg_temp.as_user('a');
 select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'b', 'x')), '42501', null, 'a cannot upload into b''s folder');
-select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('draft', 'a', 'x')), '42501', null, 'No upload to a draft plan');
-select throws_ok(format('select pg_temp.upload(%L)', pg_temp.id('nope')::text || '/' || pg_temp.id('a')::text || '/x.jpg'), '42501', null, 'No upload to a plan that does not exist');
+select is(authorize_album_photo_upload(pg_temp.id('draft')), false, 'No upload to a draft plan');
+select is(authorize_album_photo_upload(pg_temp.id('nope')), false, 'No upload to a plan that does not exist');
 select throws_ok(format('select pg_temp.upload(%L)', replace(pg_temp.path('past', 'a', 'x'), '.jpg', '.png')), '42501', null, 'Only .jpg names');
 select throws_ok(format('select pg_temp.upload(%L)', pg_temp.id('past')::text || '/' || pg_temp.id('a')::text || '/sub/x.jpg'), '42501', null, 'No nested folders');
 select throws_ok($$select pg_temp.upload('past/a/x.jpg')$$, '42501', null, 'Names that are not ids are refused without a cast error');
@@ -64,11 +72,11 @@ select throws_ok(format('select pg_temp.upload(%L)', upper(pg_temp.path('past', 
 select throws_ok(format($f$insert into storage.objects (id, bucket_id, name) values (gen_random_uuid(), 'album-other', %L)$f$, pg_temp.path('past', 'a', 'x')), '42501', null, 'Another bucket gets no access from the album policies');
 
 select pg_temp.as_user('d');
-select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'd', 'x')), '42501', null, 'Someone who said they did not go cannot upload');
+select is(authorize_album_photo_upload(pg_temp.id('past')), false, 'Someone who said they did not go is not authorized');
 select pg_temp.as_user('gm');
-select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'gm', 'x')), '42501', null, 'A group member who is not on the plan cannot upload');
+select is(authorize_album_photo_upload(pg_temp.id('past')), false, 'A group member who is not on the plan is not authorized');
 select pg_temp.as_user('outsider');
-select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'outsider', 'x')), '42501', null, 'A stranger cannot upload');
+select is(authorize_album_photo_upload(pg_temp.id('past')), false, 'A stranger is not authorized');
 select throws_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'a', 'y')), '42501', null, 'A stranger cannot upload into someone else''s folder either');
 
 -- Read, plan audience
@@ -141,7 +149,11 @@ select is(pg_temp.files(pg_temp.path('past', 'a', 'one')), 0::bigint, 'Nor the o
 
 -- Any other way an item row goes away (an account or plan cleanup) takes its file with it
 select pg_temp.as_user('b');
-select lives_ok(format('select pg_temp.upload(%L)', pg_temp.path('past', 'b', 'cascade')), 'b uploads another file');
+select ok(authorize_album_photo_upload(pg_temp.id('past')), 'b is authorized for another photo');
+reset role;
+select lives_ok(format('select pg_temp.server_upload(%L)', pg_temp.path('past', 'b', 'cascade')), 'The server uploads b''s sanitized file');
+set local role authenticated;
+select pg_temp.as_user('b');
 select lives_ok(format('select add_album_item(%L, %L, %L, %L, null)', pg_temp.id('k2'), pg_temp.id('past'), 'photo', pg_temp.path('past', 'b', 'cascade')), 'and posts it');
 reset role;
 delete from album_items where plan_id = pg_temp.id('past');
