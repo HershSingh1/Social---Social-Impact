@@ -1,3 +1,4 @@
+// Figma: 4046:4006 PRO-17 Group owner controls (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { StyleSheet, View } from 'react-native';
 import { Button, Label, Sheet } from '../../ui';
 import { color, type } from '../../ui/theme';

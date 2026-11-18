@@ -1,3 +1,4 @@
+// Figma: 4046:4165 PRO-18 Invite more · organizer sheet, Add people to a sent plan (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Share, StyleSheet, View } from 'react-native';

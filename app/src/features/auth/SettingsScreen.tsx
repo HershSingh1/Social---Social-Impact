@@ -1,3 +1,4 @@
+// Figma: 4046:3937 PRO-16 Settings, Delete account · confirm sheet (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';

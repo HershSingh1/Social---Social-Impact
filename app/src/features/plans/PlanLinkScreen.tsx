@@ -1,3 +1,4 @@
+// Figma: 4046:4165 PRO-18 Plan link preview · invitee, Plan link ended or turned off (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useQuery } from '@tanstack/react-query';
 import { StyleSheet, View } from 'react-native';
 import { Button, Card, Empty, ErrorState, Label, Loading, Screen } from '../../ui';

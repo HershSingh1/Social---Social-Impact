@@ -1,3 +1,4 @@
+// Figma: 4145:19786 P0-03 · Group · you're no longer in this group (members: 4046:4006 PRO-17) (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Card, Empty, ErrorState, Label, Loading, Screen, Tag } from '../../ui';

@@ -1,3 +1,4 @@
+// Figma: 4046:4367 PRO-20 Group · Ideas tab (saved ideas) (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useQuery } from '@tanstack/react-query';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Empty, ErrorState, Label, Loading } from '../../ui';

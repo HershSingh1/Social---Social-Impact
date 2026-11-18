@@ -1,3 +1,4 @@
+// Figma: 4145:17286 P0-08 · Vote · Yes, Maybe or No (the closed result stays on 3.6, 28:4264) (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';

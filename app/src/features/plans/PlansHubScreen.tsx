@@ -1,3 +1,4 @@
+// Figma: 4145:19280 P0-16 · Plans, Plans · nothing yet (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';

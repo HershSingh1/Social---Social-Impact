@@ -1,3 +1,4 @@
+// Figma: 4145:17286 P0-08 · Start a group pick (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { randomUUID } from 'expo-crypto';

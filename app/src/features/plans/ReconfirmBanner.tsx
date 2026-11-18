@@ -1,3 +1,4 @@
+// Figma: 4145:18677 P0-14 · Plan · changed, are you still going? (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { StyleSheet, View } from 'react-native';
 import { Button, Label } from '../../ui';
 import { color, radius, space, type } from '../../ui/theme';

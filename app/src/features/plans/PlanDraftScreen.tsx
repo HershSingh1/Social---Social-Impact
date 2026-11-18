@@ -50,7 +50,8 @@ function Acknowledge({ label, checked, error, onToggle }: { label: string; check
   </View>;
 }
 
-// Plan draft and review (P0-11) and Send (P0-12). Figma has no draft frame for P0, so this uses the UI kit.
+// Plan draft and review (P0-11) and Send (P0-12). Figma: 4145:17963 P0-10 to P0-12 · Plan draft, Plan draft · errors and
+// Review your plan (drawn Nov 18, D17). Built from the UI kit before the frame existed; follow the frame on the next change.
 export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: Props) {
   const context = useQuery({ queryKey: ['plan-context', source.groupId, source.experienceId], queryFn: () => fetchPlanContext(source.groupId, source.experienceId, organizerId) });
   const [draft, setDraft] = useState<PlanDraft>();

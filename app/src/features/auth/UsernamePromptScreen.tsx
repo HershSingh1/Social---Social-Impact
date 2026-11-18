@@ -7,7 +7,8 @@ import { cleanUsername, saveUsername, usernameErrorFrom, validateUsername } from
 import { useAuth } from './AuthProvider';
 
 // Shown once to people who set up a profile before usernames existed. It is a prompt, not a gate: Not now closes it
-// and everything keeps working. There is no Figma frame for it, so it reuses the 1.3 field and button as they are.
+// and everything keeps working. Figma: 4145:16991 P0-02 · Pick a username (drawn Nov 18, D17). Built earlier from the 1.3
+// field and button; follow the frame on the next change.
 export function UsernamePromptScreen() {
   const { session, refresh } = useAuth();
   const [username, setUsername] = useState('');

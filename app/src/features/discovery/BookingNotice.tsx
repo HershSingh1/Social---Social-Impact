@@ -1,3 +1,4 @@
+// Figma: 4145:19786 P0-15 · Booking notices on Detail (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import * as Linking from 'expo-linking';
 import { View } from 'react-native';
 import { Button, Card, Label } from '@/ui';
