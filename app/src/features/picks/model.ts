@@ -15,6 +15,7 @@ export type PickDraft = {
   starredExperienceId?: string;
   deadlineHours: 6 | 12 | 24 | 48 | 'custom';
   customDeadline?: string;
+  availabilityEnabled?: boolean;
 };
 
 export const EMPTY_DRAFT: PickDraft = { options: [], deadlineHours: 24 };

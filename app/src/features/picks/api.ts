@@ -24,6 +24,7 @@ export type PickDetail = {
   organizerId: string;
   deadline: string;
   state: string;
+  availabilityEnabled?: boolean;
   starredOptionId?: string;
   /** Set by the server when the pick closes (TEC-30); null when nobody voted. */
   winnerOptionId?: string;
@@ -80,6 +81,7 @@ export async function createPick(draft: PickDraft, clientKey: string, deadline: 
     options: draft.options.map(option => ({ experience_id: option.experienceId,
       proposed_start: option.proposedStart ? new Date(option.proposedStart).toISOString() : null })),
     deadline: deadline.toISOString(), starred: starred || null, client_key: clientKey,
+    ...(draft.availabilityEnabled && draft.options.some(option => option.proposedStart) ? { availability: true } : {}),
   });
   if (error) {
     const wrapped = new Error(error.message) as Error & { code?: string; details?: string };
@@ -103,7 +105,7 @@ export async function addOptionToPick(pickId: string, experienceId: string) {
 
 export async function fetchPick(id: string): Promise<PickDetail> {
   const { data: pick, error: pickError } = await supabase.from('picks')
-    .select('id,title,group_id,organizer_id,deadline,state,starred_option_id,winner_option_id,override_option_id,tie_rule,groups(name)').eq('id', id).single();
+    .select('id,title,group_id,organizer_id,deadline,state,availability_enabled,starred_option_id,winner_option_id,override_option_id,tie_rule,groups(name)').eq('id', id).single();
   fail(pickError);
   if (!pick) throw new Error('Pick not found.');
   const [{ data: optionRows, error: optionError }, { data: statusRows, error: statusError }, { data: memberRows, error: memberError }, { data: planRow }] = await Promise.all([
@@ -132,7 +134,7 @@ export async function fetchPick(id: string): Promise<PickDetail> {
   });
   const group = Array.isArray(pick.groups) ? pick.groups[0] : pick.groups;
   return { id: pick.id, title: pick.title, groupId: pick.group_id, groupName: group?.name ?? 'Group',
-    organizerId: pick.organizer_id, deadline: pick.deadline, state: pick.state,
+    organizerId: pick.organizer_id, deadline: pick.deadline, state: pick.state, availabilityEnabled: pick.availability_enabled,
     starredOptionId: pick.starred_option_id ?? undefined, winnerOptionId: pick.winner_option_id ?? undefined,
     overrideOptionId: pick.override_option_id ?? undefined,
     tieRule: pick.tie_rule ?? undefined, planId: (planRow as { id: string } | null)?.id, options,
