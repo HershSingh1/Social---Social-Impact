@@ -76,7 +76,8 @@ test('a refused answer says why under the buttons and keeps the prompt', async (
   await screen.findByText('Did Sketch and stroll happen?');
   mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'too_early' } });
   await press('Happened');
-  expect(screen.getByText(/too early to answer/)).toBeTruthy();
+  // The refusal arrives through react-query's async mutation state, so wait for it instead of reading it at once.
+  expect(await screen.findByText(/too early to answer/, {}, { timeout: 5000 })).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Happened' })).toBeTruthy();
 });
 
