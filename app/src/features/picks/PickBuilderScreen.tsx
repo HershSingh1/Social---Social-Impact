@@ -14,7 +14,7 @@ import {
 } from './model';
 
 export function PickBuilderScreen() {
-  const { experienceId } = useLocalSearchParams<{ experienceId?: string }>();
+  const { experienceId, groupId } = useLocalSearchParams<{ experienceId?: string; groupId?: string }>();
   const groups = useQuery({ queryKey: ['my-groups'], queryFn: fetchGroups });
   const [draft, setDraft] = useState<PickDraft>(EMPTY_DRAFT);
   const [hydrated, setHydrated] = useState(false);
@@ -25,8 +25,10 @@ export function PickBuilderScreen() {
   useEffect(() => { void loadDraft().then(value => { setDraft(withoutBadTimes(value)); setHydrated(true); }); }, []);
   useEffect(() => {
     if (!hydrated || !experienceId) return;
-    void fetchExperience(experienceId).then(option => setDraft(current => addDraftOption(current, option))).catch(() => setError('Couldn’t add that activity. Try again.'));
-  }, [experienceId, hydrated]);
+    // Opened from a group's bucket list: that group is already chosen.
+    void fetchExperience(experienceId).then(option => setDraft(current => ({ ...addDraftOption(current, option), ...(groupId ? { groupId } : {}) })))
+      .catch(() => setError('Couldn’t add that activity. Try again.'));
+  }, [experienceId, groupId, hydrated]);
   useEffect(() => { if (hydrated) void saveDraft(draft); }, [draft, hydrated]);
   const effectiveDraft = useMemo(() => draft.groupId || groups.data?.length !== 1
     ? draft : { ...draft, groupId: groups.data[0].id }, [draft, groups.data]);
