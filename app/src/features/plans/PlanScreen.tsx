@@ -13,6 +13,7 @@ import { BookingNotice } from '../discovery/BookingNotice';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
 import { InviteesPanel } from './InviteesPanel';
+import { OutingPrompts } from '../outings/OutingPrompts';
 import { sessionNoLongerListed, usePlanListing } from './listing';
 import { ReconfirmBanner } from './ReconfirmBanner';
 import { priceChangeLine, usePlanUpdated } from './updated';
@@ -84,8 +85,11 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
     {query.isError && <ErrorState message="Couldn’t refresh this plan. Showing what we loaded last." onRetry={retry} />}
     <Label accessibilityRole="header" style={type.title1}>{plan.name}</Label>
     {updated && plan.state === 'sent' && <Tag label="Updated" variant="dark" />}
+    {ended && plan.state === 'sent' && <Tag label="Ended" variant="dark" />}
     {cancelled && <Tag label="Cancelled" variant="dark" />}
     {cancelled && <Label accessibilityRole="alert" style={type.bodyStrong}>{cancelledLine(organizerName, plan.cancelReason)}</Label>}
+    {plan.state === 'sent' && (isOrganizer || me?.status === 'going') && <OutingPrompts planId={plan.id} planName={plan.name}
+      userId={viewerId} endAt={plan.current.endAt} now={query.dataUpdatedAt} isOrganizer={isOrganizer} isGoing={me?.status === 'going'} />}
     <Details plan={plan} />
     {plan.current.bookingRequired === true && <BookingNotice required providerName={listing?.providerName} url={listing?.bookingUrl} />}
     {plan.state === 'sent' && isOrganizer && !started && sessionNoLongerListed(listing, plan.current.startAt) && <Card>

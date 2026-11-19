@@ -21,7 +21,7 @@ function mockBuilder(table: string) {
 }
 jest.mock('../../../lib/supabase', () => ({ supabase: {
   from: (table: string) => mockBuilder(table),
-  rpc: async () => ({ data: mockCards, error: null }),
+  rpc: async (fn: string) => ({ data: fn === 'group_history' ? [] : mockCards, error: null }),
   channel: () => { const c = { on: () => c, subscribe: () => c }; return c; },
   removeChannel: async () => {},
 } }));

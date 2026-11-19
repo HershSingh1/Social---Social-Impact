@@ -8,6 +8,7 @@ import { closesIn, formatWhen } from '../../lib/time';
 import { formatCode, rosterKey, shareText, spokenCode } from './api';
 import { ManageSheet, type Action } from './GroupManage';
 import { MemberRow, NO_LONGER_IN_GROUP } from './GroupRosterScreen';
+import { PastOutings } from '../outings/PastOutings';
 import { SavedIdeas } from './SavedIdeas';
 import {
   allowBack, fetchRemoved, leaveGroup, regenerateCode, removedKey, removeMember, revokeCode, transferOwner,
@@ -97,6 +98,8 @@ export function GroupDetailScreen({ groupId, userId, onOpenPick, onOpenPlan, onO
         : plans.map(plan => <LinkRow key={plan.id} title={plan.name} detail={formatWhen(plan.startAt)} onPress={() => onOpenPlan(plan.id)} />)}
       <Label style={styles.caption}>Plans you weren’t invited to stay hidden.</Label>
     </Card>
+
+    <PastOutings groupId={groupId} />
 
     <Card>
       <Label accessibilityRole="header" style={type.title2}>Saved ideas</Label>

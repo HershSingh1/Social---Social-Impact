@@ -63,7 +63,7 @@ The first versions of PRO-15 to PRO-20 (bare 390×844 frames without the phone, 
 
 | Section | Node | Req | Screens |
 | --- | --- | --- | --- |
-| TEC-151 · Did it happen and Past outings | `4145:25677` | P2-01 | A Plan, organizer prompt; B Plan, invitee prompt; C After answering; D Group page: Past outings |
+| TEC-151 · Did it happen and Past outings | `4145:25677` | P2-01 | A Plan, organizer prompt; B Plan, invitee prompt; C After answering; D Group page: Past outings | `outings/OutingPrompts.tsx` (A to C), `outings/PastOutings.tsx` (D) |
 | TEC-152 · Shared album | `4145:28190` | P2-02 | A Past plan: photos and notes; B Upload sheet; C Failed upload stays a draft; D Share with the group; E Someone else's photo: report; F Your photo: delete |
 | TEC-153 · Feedback, summary and preferences | `4145:27293` | P2-03 | A Feedback sheet; B Sharing on, save error; C Group summary; D Preferences (Profile) |
 | TEC-154 · Plan again and Repeat | `4145:29393` | P2-04 | A Past plan: Plan again and Repeat; B Repeat; C Plan again draft, price changed; D Activity no longer listed; E Landing from the reminder |
