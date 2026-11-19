@@ -8,17 +8,18 @@ import MapView, { type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Chip, Empty, ErrorState, Label, Loading, Tag, TextField } from '../../ui';
 import { color, minTap, radius, shadow, size, space, type } from '../../ui/theme';
+import { collectionLine, seasonalIds, useCollections, type Collection } from '../bucket/collections';
 import { useMyGroups } from '../groups/useMyGroups';
 import { DiscoveryResults } from './DiscoveryResults';
 import { FilterSheet } from './FilterBar';
 import { useFilters } from './FiltersContext';
 import { type AreaSearchAction, filterToRegion, INITIAL_AREA_SEARCH, updateAreaSearch } from './area';
-import { dateFilterLabel } from './dates';
+import { chicagoToday, dateFilterLabel } from './dates';
 import { countActiveFilters } from './filters';
 import { CategoryRow, PlaceMarker, RoundButton } from './MapControls';
 import { contextIds, EXPLORE, type MapContext, useSaves } from './saves';
 import { AUSTIN, matchesSearch, priceLabel, SEARCH_DELAY_MS, timingLabel } from './search';
-import type { Experience } from './useExperiences';
+import { useExperiences, type Experience } from './useExperiences';
 
 type Props = { onOpen: (experienceId: string) => void; userId?: string };
 type Mode = 'map' | 'list';
@@ -98,11 +99,13 @@ function ListPane({ items, selectedId, top, onOpen }: { items: Experience[]; sel
 
 type ChipsProps = {
   userId?: string; context: MapContext; groups: { id: string; name: string }[]; areaApplied: boolean;
+  /** Seasonal collections with something to show today (P2-05), and the one picked. */
+  collections: Collection[]; collectionId?: string; onCollection: (id?: string) => void;
   onContext: (context: MapContext) => void; onClearArea: () => void;
 };
 
 // The group chips, quick filters and category circles. On the Map they sit at the bottom, on the List under the buttons.
-function Chips({ userId, context, groups, areaApplied, onContext, onClearArea }: ChipsProps) {
+function Chips({ userId, context, groups, areaApplied, collections, collectionId, onCollection, onContext, onClearArea }: ChipsProps) {
   const { filters, setPrice, setDate, setIncludeUnknownPrices } = useFilters();
   return <View style={styles.chipsBlock}>
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
@@ -118,7 +121,10 @@ function Chips({ userId, context, groups, areaApplied, onContext, onClearArea }:
       {filters.date !== 'any' && <Chip label={dateFilterLabel(filters.date)} selected onPress={() => setDate('any')} />}
       {!filters.includeUnknownPrices && <Chip label="Known prices only" selected onPress={() => setIncludeUnknownPrices(true)} />}
       {areaApplied && <Chip label="In this area" selected onPress={onClearArea} />}
+      {collections.map(c => <Chip key={c.id} label={c.name} selected={collectionId === c.id}
+        onPress={() => onCollection(collectionId === c.id ? undefined : c.id)} />)}
     </ScrollView>
+    {collections.filter(c => c.id === collectionId).map(c => <Label key={c.id} accessibilityLiveRegion="polite" style={styles.collectionLine}>{collectionLine(c)}</Label>)}
     <CategoryRow />
   </View>;
 }
@@ -131,6 +137,7 @@ export function MapListScreen({ onOpen, userId }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string>();
   const [context, setContext] = useState<MapContext>(EXPLORE);
+  const [collectionId, setCollectionId] = useState<string>();
   const [headerHeight, setHeaderHeight] = useState(0);
   const [chipsHeight, setChipsHeight] = useState(0);
   const { top } = useSafeAreaInsets();
@@ -140,7 +147,18 @@ export function MapListScreen({ onOpen, userId }: Props) {
   const groupList = groups.data ?? [];
   // A group you left, or that was archived, drops out of the chips; fall back to the whole catalog.
   const activeContext: MapContext = context.kind === 'group' && groups.data && !groupList.some(g => g.id === context.groupId) ? EXPLORE : context;
-  const allowed = userId && saves.data ? contextIds(saves.data, userId, activeContext) : null;
+  const contextAllowed = userId && saves.data ? contextIds(saves.data, userId, activeContext) : null;
+  // Seasonal collections (P2-05): in season only, so one disappears after its end date with no app update.
+  const catalog = useExperiences().data;
+  const collections = useCollections();
+  const today = chicagoToday();
+  const seasonal = useMemo(() => (collections.data ?? [])
+    .map(collection => ({ collection, ids: seasonalIds(collection, catalog ?? [], today) })).filter(s => s.ids.size > 0),
+  [collections.data, catalog, today]);
+  const activeCollection = seasonal.find(s => s.collection.id === collectionId);
+  const allowed = activeCollection
+    ? (contextAllowed ? new Set([...contextAllowed].filter(id => activeCollection.ids.has(id))) : activeCollection.ids)
+    : contextAllowed;
   const contextName = activeContext.kind === 'mine' ? 'My saves'
     : activeContext.kind === 'group' ? groupList.find(g => g.id === activeContext.groupId)?.name ?? 'this group' : '';
   const [areaSearch, dispatchArea] = useReducer(updateAreaSearch, INITIAL_AREA_SEARCH);
@@ -152,6 +170,7 @@ export function MapListScreen({ onOpen, userId }: Props) {
   }, [typed]);
 
   const chips = <Chips userId={userId} context={activeContext} groups={groupList} areaApplied={!!areaSearch.applied}
+    collections={seasonal.map(s => s.collection)} collectionId={activeCollection?.collection.id} onCollection={setCollectionId}
     onContext={setContext} onClearArea={() => dispatchArea({ type: 'clear' })} />;
 
   return <View style={styles.screen}>
@@ -160,7 +179,8 @@ export function MapListScreen({ onOpen, userId }: Props) {
         ? <View style={{ paddingTop: headerHeight }}>{saves.isError
           ? <ErrorState message="Couldn’t load saved ideas." onRetry={async () => { await saves.refetch(); }} />
           : <Loading label="Loading saved ideas…" />}</View>
-        : <DiscoveryResults>{results => <Results results={results} allowed={allowed} contextName={contextName}
+        : <DiscoveryResults>{results => <Results results={results} allowed={allowed} contextName={activeCollection?.collection.name ?? contextName}
+          fromCollection={!!activeCollection}
           onExplore={() => setContext(EXPLORE)} search={search} mode={mode} area={areaSearch.applied}
           pendingArea={areaSearch.candidate} selectedId={selectedId} onSelect={setSelectedId} onOpen={onOpen}
           top={headerHeight} bottom={chipsHeight} onAreaAction={dispatchArea} onClearSearch={() => setTyped('')} />}</DiscoveryResults>}
@@ -186,8 +206,8 @@ export function MapListScreen({ onOpen, userId }: Props) {
   </View>;
 }
 
-function Results({ results, allowed, contextName, onExplore, search, mode, area, pendingArea, selectedId, top, bottom, onSelect, onOpen, onAreaAction, onClearSearch }: {
-  results: Experience[]; allowed: Set<string> | null; contextName: string; onExplore: () => void; search: string; mode: Mode; area?: Region; pendingArea?: Region; selectedId?: string;
+function Results({ results, allowed, contextName, fromCollection, onExplore, search, mode, area, pendingArea, selectedId, top, bottom, onSelect, onOpen, onAreaAction, onClearSearch }: {
+  results: Experience[]; allowed: Set<string> | null; contextName: string; fromCollection: boolean; onExplore: () => void; search: string; mode: Mode; area?: Region; pendingArea?: Region; selectedId?: string;
   top: number; bottom: number; onSelect: (id?: string) => void; onOpen: (id: string) => void;
   onAreaAction: (action: AreaSearchAction) => void; onClearSearch: () => void;
 }) {
@@ -198,8 +218,8 @@ function Results({ results, allowed, contextName, onExplore, search, mode, area,
   ), [area, inContext, search]);
   if (allowed && inContext.length === 0) {
     return <View style={[styles.empty, { paddingTop: top + space.lg }]}>
-      <Empty title={allowed.size === 0 ? `Nothing saved in ${contextName} yet` : `Nothing in ${contextName} matches your filters`}
-        description={allowed.size === 0 ? 'Open an activity and tap Save to add it here.' : 'Clear a filter, or switch to Explore Austin.'} />
+      <Empty title={allowed.size === 0 && !fromCollection ? `Nothing saved in ${contextName} yet` : `Nothing in ${contextName} matches your filters`}
+        description={allowed.size === 0 && !fromCollection ? 'Open an activity and tap Save to add it here.' : 'Clear a filter, or switch to Explore Austin.'} />
       <Button label="Explore Austin" variant="secondary" onPress={onExplore} />
     </View>;
   }
@@ -228,6 +248,7 @@ const styles = StyleSheet.create({
   searchBox: { padding: space.md, borderRadius: radius.lg, backgroundColor: color.bg, boxShadow: [...shadow.card] },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   chipsBlock: { gap: space.xs },
+  collectionLine: { ...type.caption, color: color.text, paddingHorizontal: space.lg },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs },
   overlay: { position: 'absolute', left: space.lg, right: space.lg },
   searchArea: { alignSelf: 'center' },

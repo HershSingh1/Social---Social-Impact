@@ -8,6 +8,7 @@ import { closesIn, formatWhen } from '../../lib/time';
 import { formatCode, rosterKey, shareText, spokenCode } from './api';
 import { ManageSheet, type Action } from './GroupManage';
 import { MemberRow, NO_LONGER_IN_GROUP } from './GroupRosterScreen';
+import { BucketList } from '../bucket/BucketList';
 import { PastOutings } from '../outings/PastOutings';
 import { SavedIdeas } from './SavedIdeas';
 import {
@@ -105,6 +106,8 @@ export function GroupDetailScreen({ groupId, userId, onOpenPick, onOpenPlan, onO
       <Label accessibilityRole="header" style={type.title2}>Saved ideas</Label>
       <SavedIdeas groupId={groupId} userId={userId} onOpenExperience={id => onOpenExperience?.(id)} />
     </Card>
+
+    <BucketList groupId={groupId} userId={userId} />
 
     <Card>
       <Label accessibilityRole="header" style={type.title2}>Join code</Label>
