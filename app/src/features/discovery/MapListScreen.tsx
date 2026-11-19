@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Chip, Empty, ErrorState, Label, Loading, Tag, TextField } from '../../ui';
 import { color, minTap, radius, shadow, size, space, type } from '../../ui/theme';
 import { collectionLine, seasonalIds, useCollections, type Collection } from '../bucket/collections';
+import { useBudgetHidden } from '../budget/budget';
 import { useMyGroups } from '../groups/useMyGroups';
 import { DiscoveryResults } from './DiscoveryResults';
 import { FilterSheet } from './FilterBar';
@@ -101,11 +102,13 @@ type ChipsProps = {
   userId?: string; context: MapContext; groups: { id: string; name: string }[]; areaApplied: boolean;
   /** Seasonal collections with something to show today (P2-05), and the one picked. */
   collections: Collection[]; collectionId?: string; onCollection: (id?: string) => void;
+  /** "Fits everyone's budget" (P1-05): drawn only when the server returned a list for the chosen group. */
+  budget?: { available: boolean; on: boolean; failed: boolean; onToggle: () => void; onRetry: () => void };
   onContext: (context: MapContext) => void; onClearArea: () => void;
 };
 
 // The group chips, quick filters and category circles. On the Map they sit at the bottom, on the List under the buttons.
-function Chips({ userId, context, groups, areaApplied, collections, collectionId, onCollection, onContext, onClearArea }: ChipsProps) {
+function Chips({ userId, context, groups, areaApplied, collections, collectionId, onCollection, budget, onContext, onClearArea }: ChipsProps) {
   const { filters, setPrice, setDate, setIncludeUnknownPrices } = useFilters();
   return <View style={styles.chipsBlock}>
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
@@ -118,6 +121,7 @@ function Chips({ userId, context, groups, areaApplied, collections, collectionId
       </View>}
       <Chip label="Free" selected={filters.price === 'free'} onPress={() => setPrice(filters.price === 'free' ? 'any' : 'free')} />
       <Chip label="Under $25" selected={filters.price === 'under25'} onPress={() => setPrice(filters.price === 'under25' ? 'any' : 'under25')} />
+      {budget?.available && <Chip label="Fits everyone’s budget" selected={budget.on} onPress={budget.onToggle} />}
       {filters.date !== 'any' && <Chip label={dateFilterLabel(filters.date)} selected onPress={() => setDate('any')} />}
       {!filters.includeUnknownPrices && <Chip label="Known prices only" selected onPress={() => setIncludeUnknownPrices(true)} />}
       {areaApplied && <Chip label="In this area" selected onPress={onClearArea} />}
@@ -125,6 +129,11 @@ function Chips({ userId, context, groups, areaApplied, collections, collectionId
         onPress={() => onCollection(collectionId === c.id ? undefined : c.id)} />)}
     </ScrollView>
     {collections.filter(c => c.id === collectionId).map(c => <Label key={c.id} accessibilityLiveRegion="polite" style={styles.collectionLine}>{collectionLine(c)}</Label>)}
+    {budget?.on && <Label accessibilityLiveRegion="polite" style={styles.collectionLine}>Hiding activities above what everyone in this group opted in to spend. Nobody’s budget is shown.</Label>}
+    {budget?.failed && <View style={styles.budgetWarn}>
+      <Label accessibilityRole="alert" style={type.bodyStrong}>Couldn’t check the group’s budgets. Showing every activity.</Label>
+      <Button label="Try again" size="small" variant="secondary" onPress={budget.onRetry} />
+    </View>}
     <CategoryRow />
   </View>;
 }
@@ -138,6 +147,7 @@ export function MapListScreen({ onOpen, userId }: Props) {
   const [selectedId, setSelectedId] = useState<string>();
   const [context, setContext] = useState<MapContext>(EXPLORE);
   const [collectionId, setCollectionId] = useState<string>();
+  const [budgetGroup, setBudgetGroup] = useState<string>(); // the group the budget chip is on for
   const [headerHeight, setHeaderHeight] = useState(0);
   const [chipsHeight, setChipsHeight] = useState(0);
   const { top } = useSafeAreaInsets();
@@ -156,9 +166,18 @@ export function MapListScreen({ onOpen, userId }: Props) {
     .map(collection => ({ collection, ids: seasonalIds(collection, catalog ?? [], today) })).filter(s => s.ids.size > 0),
   [collections.data, catalog, today]);
   const activeCollection = seasonal.find(s => s.collection.id === collectionId);
-  const allowed = activeCollection
+  const inCollection = activeCollection
     ? (contextAllowed ? new Set([...contextAllowed].filter(id => activeCollection.ids.has(id))) : activeCollection.ids)
     : contextAllowed;
+  // "Fits everyone's budget" (P1-05): the server says which activities to hide for the chosen group, never an amount.
+  const budgetGroupId = activeContext.kind === 'group' ? activeContext.groupId : undefined;
+  const budgetCheck = useBudgetHidden(budgetGroupId, catalog);
+  const budgetAvailable = Array.isArray(budgetCheck.data);
+  const budgetOn = budgetAvailable && budgetGroup === budgetGroupId;
+  const hiddenByBudget = budgetOn ? new Set(budgetCheck.data) : null;
+  const allowed = hiddenByBudget
+    ? new Set([...(inCollection ?? (catalog ?? []).map(e => e.id))].filter(id => !hiddenByBudget.has(id)))
+    : inCollection;
   const contextName = activeContext.kind === 'mine' ? 'My saves'
     : activeContext.kind === 'group' ? groupList.find(g => g.id === activeContext.groupId)?.name ?? 'this group' : '';
   const [areaSearch, dispatchArea] = useReducer(updateAreaSearch, INITIAL_AREA_SEARCH);
@@ -171,6 +190,8 @@ export function MapListScreen({ onOpen, userId }: Props) {
 
   const chips = <Chips userId={userId} context={activeContext} groups={groupList} areaApplied={!!areaSearch.applied}
     collections={seasonal.map(s => s.collection)} collectionId={activeCollection?.collection.id} onCollection={setCollectionId}
+    budget={budgetGroupId ? { available: budgetAvailable, on: budgetOn, failed: budgetCheck.isError,
+      onToggle: () => setBudgetGroup(budgetOn ? undefined : budgetGroupId), onRetry: () => { void budgetCheck.refetch(); } } : undefined}
     onContext={setContext} onClearArea={() => dispatchArea({ type: 'clear' })} />;
 
   return <View style={styles.screen}>
@@ -180,7 +201,7 @@ export function MapListScreen({ onOpen, userId }: Props) {
           ? <ErrorState message="Couldn’t load saved ideas." onRetry={async () => { await saves.refetch(); }} />
           : <Loading label="Loading saved ideas…" />}</View>
         : <DiscoveryResults>{results => <Results results={results} allowed={allowed} contextName={activeCollection?.collection.name ?? contextName}
-          fromCollection={!!activeCollection}
+          fromCollection={!!activeCollection} budgetOn={budgetOn} onBudgetOff={() => setBudgetGroup(undefined)}
           onExplore={() => setContext(EXPLORE)} search={search} mode={mode} area={areaSearch.applied}
           pendingArea={areaSearch.candidate} selectedId={selectedId} onSelect={setSelectedId} onOpen={onOpen}
           top={headerHeight} bottom={chipsHeight} onAreaAction={dispatchArea} onClearSearch={() => setTyped('')} />}</DiscoveryResults>}
@@ -206,8 +227,8 @@ export function MapListScreen({ onOpen, userId }: Props) {
   </View>;
 }
 
-function Results({ results, allowed, contextName, fromCollection, onExplore, search, mode, area, pendingArea, selectedId, top, bottom, onSelect, onOpen, onAreaAction, onClearSearch }: {
-  results: Experience[]; allowed: Set<string> | null; contextName: string; fromCollection: boolean; onExplore: () => void; search: string; mode: Mode; area?: Region; pendingArea?: Region; selectedId?: string;
+function Results({ results, allowed, contextName, fromCollection, budgetOn, onBudgetOff, onExplore, search, mode, area, pendingArea, selectedId, top, bottom, onSelect, onOpen, onAreaAction, onClearSearch }: {
+  results: Experience[]; allowed: Set<string> | null; contextName: string; fromCollection: boolean; budgetOn: boolean; onBudgetOff: () => void; onExplore: () => void; search: string; mode: Mode; area?: Region; pendingArea?: Region; selectedId?: string;
   top: number; bottom: number; onSelect: (id?: string) => void; onOpen: (id: string) => void;
   onAreaAction: (action: AreaSearchAction) => void; onClearSearch: () => void;
 }) {
@@ -218,9 +239,9 @@ function Results({ results, allowed, contextName, fromCollection, onExplore, sea
   ), [area, inContext, search]);
   if (allowed && inContext.length === 0) {
     return <View style={[styles.empty, { paddingTop: top + space.lg }]}>
-      <Empty title={allowed.size === 0 && !fromCollection ? `Nothing saved in ${contextName} yet` : `Nothing in ${contextName} matches your filters`}
-        description={allowed.size === 0 && !fromCollection ? 'Open an activity and tap Save to add it here.' : 'Clear a filter, or switch to Explore Austin.'} />
-      <Button label="Explore Austin" variant="secondary" onPress={onExplore} />
+      <Empty title={budgetOn ? 'Nothing fits everyone’s budget' : allowed.size === 0 && !fromCollection ? `Nothing saved in ${contextName} yet` : `Nothing in ${contextName} matches your filters`}
+        description={budgetOn ? 'Turn the filter off to see all activities.' : allowed.size === 0 && !fromCollection ? 'Open an activity and tap Save to add it here.' : 'Clear a filter, or switch to Explore Austin.'} />
+      <Button label={budgetOn ? 'Turn the filter off' : 'Explore Austin'} variant="secondary" onPress={budgetOn ? onBudgetOff : onExplore} />
     </View>;
   }
   if (items.length === 0) {
@@ -248,6 +269,7 @@ const styles = StyleSheet.create({
   searchBox: { padding: space.md, borderRadius: radius.lg, backgroundColor: color.bg, boxShadow: [...shadow.card] },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   chipsBlock: { gap: space.xs },
+  budgetWarn: { gap: space.xs, paddingHorizontal: space.lg },
   collectionLine: { ...type.caption, color: color.text, paddingHorizontal: space.lg },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs },
   overlay: { position: 'absolute', left: space.lg, right: space.lg },
