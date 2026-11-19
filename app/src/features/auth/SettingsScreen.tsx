@@ -1,5 +1,6 @@
 // Figma: 4046:3937 PRO-16 Settings, Delete account · confirm sheet (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { avatarUrl } from '../../lib/avatar';
@@ -60,6 +61,11 @@ export function SettingsScreen() {
           <Label style={styles.muted}>Friends and people in your plans will see this photo.</Label>
         </>
         : <ErrorState message="Couldn’t load your profile photo." onRetry={async () => { await profile.refetch(); }} />}
+    </View></Card>
+    <Card><View style={styles.copy}>
+      <Label style={type.headline}>Activity quiz</Label>
+      <Label style={styles.muted}>Tell us what you’re into and Discover lists matches first. Only you see your answers.</Label>
+      <Button label="Take the quiz" variant="secondary" onPress={() => router.push('/quiz' as never)} />
     </View></Card>
     <Card><View style={styles.copy}>
       <Label style={type.headline}>Account</Label>
