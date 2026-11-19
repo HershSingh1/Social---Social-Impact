@@ -302,6 +302,33 @@ test('someone from before usernames is asked once with a modal, and saving keeps
   expect(mockRpc).toHaveBeenCalledWith('set_profile', { display_name: 'Maya', avatar_path: null, city: 'Austin, TX', age: 30, username: 'maya_k' });
 });
 
+test('the activity quiz is offered once after setup, never over the username prompt, and Settings opens it any time', async () => {
+  mockAuth.getSession.mockResolvedValue({ data: { session } });
+  mockProfile.mockResolvedValue({ data: { display_name: 'Maya', username: 'maya_k' }, error: null });
+  await gate();
+  await screen.findAllByText('ready');
+  await act(async () => {});
+  expect(mockPush).toHaveBeenCalledWith('/quiz');
+  await gate();
+  await act(async () => {});
+  expect(mockPush.mock.calls.filter(([path]) => path === '/quiz')).toHaveLength(1);
+
+  await AsyncStorage.clear();
+  mockPush.mockClear();
+  mockProfile.mockResolvedValue({ data: { display_name: 'Maya', username: null }, error: null });
+  await gate();
+  await screen.findAllByText('ready');
+  await act(async () => {});
+  expect(mockPush).toHaveBeenCalledWith('/username');
+  expect(mockPush).not.toHaveBeenCalledWith('/quiz');
+
+  mockPush.mockClear();
+  mockProfile.mockResolvedValue({ data: { display_name: 'Maya', avatar_path: null }, error: null });
+  await settings();
+  await tap('Take the quiz');
+  expect(mockPush).toHaveBeenCalledWith('/quiz');
+});
+
 test('settings signs out locally', async () => {
   mockAuth.signOut.mockResolvedValue({ error: null });
   await settings();
