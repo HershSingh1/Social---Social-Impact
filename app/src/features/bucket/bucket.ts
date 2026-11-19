@@ -1,5 +1,5 @@
 // P2-05 bucket list (TEC-155, decision N10). Figma 4145:30172 (file MkYNxuYFuktTR0yGExJnK7); see docs/figma-frames.md.
-// sibling section in docs/figma-frames.md. Counts only: the server also returns who added an item, and nothing here shows it.
+// Counts only: the server also returns who added an item, and nothing here shows it.
 import { supabase } from '../../lib/supabase';
 
 export type BucketItem = { experienceId: string; wantCount: number; mine: boolean };
