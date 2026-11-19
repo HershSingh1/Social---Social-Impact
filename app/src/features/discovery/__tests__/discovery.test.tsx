@@ -27,10 +27,14 @@ const choose = (name: string) => fireEvent.press(screen.getByRole('checkbox', { 
 beforeEach(() => { mockOrder.mockReset(); });
 
 test('shows Loading, then the experiences', async () => {
-  mockOrder.mockResolvedValue({ data: CATALOG, error: null });
+  // Held until the test lets it go, so Loading is on screen however fast the machine is.
+  let release: (result: { data: unknown; error: unknown }) => void = () => {};
+  mockOrder.mockReturnValue(new Promise(resolve => { release = resolve; }));
   await setup();
   expect(screen.getByLabelText('Loading experiences…')).toBeTruthy();
+  await act(async () => release({ data: CATALOG, error: null }));
   expect(await screen.findByText('Pottery')).toBeTruthy();
+  expect(screen.queryByLabelText('Loading experiences…')).toBeNull();
 });
 
 test('a failed first load shows an error with Try again, which loads the list', async () => {
