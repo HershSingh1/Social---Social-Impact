@@ -7,6 +7,7 @@ import { avatarUrl } from '../../lib/avatar';
 import { Button, Card, ErrorState, Label, Loading, Screen } from '../../ui';
 import { color, space, type } from '../../ui/theme';
 import { deleteAccount, loadOwnProfile, saveAvatarPath, signOut, type OwnProfile } from './api';
+import { BudgetOptIn } from '../budget/BudgetOptIn';
 import { ProfilePhotoControl } from './ProfilePhotoControl';
 import { deleteProfilePhoto, uploadProfilePhoto, type ImageResult } from './photo';
 
@@ -62,6 +63,7 @@ export function SettingsScreen() {
         </>
         : <ErrorState message="Couldn’t load your profile photo." onRetry={async () => { await profile.refetch(); }} />}
     </View></Card>
+    {profile.data && <BudgetOptIn userId={profile.data.userId} />}
     <Card><View style={styles.copy}>
       <Label style={type.headline}>Activity quiz</Label>
       <Label style={styles.muted}>Tell us what you’re into and Discover lists matches first. Only you see your answers.</Label>
