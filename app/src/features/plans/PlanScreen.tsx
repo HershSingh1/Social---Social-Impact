@@ -9,6 +9,7 @@ import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { bookingText, countRsvps, planKey, PlanUnavailable, priceText, respond, RespondRefused, statusLabel, type Plan } from './plan';
 import { CancelPlanSheet } from './CancelPlanSheet';
 import { cancelledLine } from './cancel';
+import { AddToCalendarButton, CalendarUpdateNotice } from '../calendar/PlanCalendar';
 import { BookingNotice } from '../discovery/BookingNotice';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
@@ -75,6 +76,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
   const ended = new Date(plan.current.endAt).getTime() <= query.dataUpdatedAt;
   const organizerName = plan.invitees.find(i => i.userId === plan.organizerId)?.name;
   const cancelled = plan.state === 'cancelled';
+  // Adding to a calendar is for anyone invited who hasn't declined; it never changes the answer (P1-03).
+  const calendarOk = me !== undefined && me.status !== 'cant_go';
 
   async function answer(status: 'going' | 'cant_go') {
     try { await respond(plan.id, plan.current.revision, status); }
@@ -104,6 +107,7 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
       const was = plan.revisions.find(r => r.revision === me.answeredRevision);
       return was ? <ReconfirmBanner was={was} now={plan.current} onAnswer={answer} errorMessage={saveFailed} /> : null;
     })()}
+    {calendarOk && (plan.state === 'sent' || cancelled) && <CalendarUpdateNotice plan={plan} userId={viewerId} />}
     {plan.state === 'sent' && isOrganizer && !started && <>
       <Button label="Edit plan" variant="secondary" onPress={() => setEditing(true)} />
       {editing && <EditPlanSheet plan={plan} visible onClose={() => setEditing(false)}
@@ -141,6 +145,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
             accessibilityLabel={me.status === 'cant_go' ? 'Can’t go, your answer' : 'Can’t go'} errorMessage={saveFailed} onPress={() => answer('cant_go')} /></View>
         </View>}
     </View>}
+
+    {calendarOk && plan.state === 'sent' && !ended && <AddToCalendarButton plan={plan} userId={viewerId} />}
 
     {cancelled && me && !isOrganizer && <View style={styles.section}>
       <Label accessibilityRole="header" style={styles.overline}>ARE YOU GOING?</Label>
