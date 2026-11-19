@@ -10,6 +10,7 @@ let mockPlan: Record<string, unknown> | null;
 let mockRsvps: { user_id: string; status: RsvpStatus }[];
 let mockOnChange: () => void = () => {};
 let mockStart = '2099-11-14T16:00:00Z';
+let mockEnd = '2099-11-14T18:00:00Z';
 let mockPrice: Record<string, unknown> = { kind: 'exact', min: 9, max: 9 };
 const fixedListing = { provider_name: 'Zilker Rentals', booking_url: 'https://zilker.example/book', source: 'https://zilker.example', timing_kind: 'fixed',
   sessions: [{ start_local: '2099-11-14T10:00', end_local: '2099-11-14T12:00' }, { start_local: '2099-11-15T10:00', end_local: '2099-11-15T12:00' }] };
@@ -23,7 +24,7 @@ function mockBuilder(table: string) {
   const result = (): Result => table === 'plans' ? { data: mockPlan, error: null }
     : table === 'experiences' ? { data: mockListing, error: null }
     : table === 'rsvps' ? { data: mockRsvps, error: null }
-    : { data: [{ revision: 1, start_at: mockStart, end_at: '2099-11-14T18:00:00Z', meeting_point: 'South gate',
+    : { data: [{ revision: 1, start_at: mockStart, end_at: mockEnd, meeting_point: 'South gate',
       note: null, price_snapshot: mockPrice, booking_required: true }], error: null };
   b.maybeSingle = async () => result();
   b.then = (resolve: (r: Result) => unknown) => Promise.resolve(result()).then(resolve);
@@ -57,6 +58,7 @@ beforeEach(async () => {
   mockPush.mockReset();
   mockRespond.mockReset();
   mockStart = '2099-11-14T16:00:00Z';
+  mockEnd = '2099-11-14T18:00:00Z';
   mockListing = null;
   mockOpenURL.mockReset();
   mockPrice = { kind: 'exact', min: 9, max: 9 };
@@ -243,4 +245,21 @@ test('no warning for a flexible activity or a listing with no sessions', async (
   await show('maya');
   await screen.findByText('Who’s coming');
   expect(screen.queryByText('Warning: this time isn’t a listed session')).toBeNull();
+});
+
+test('an ended plan offers Plan again to anyone, and Repeat only to the organizer', async () => {
+  mockStart = '2020-11-14T16:00:00Z'; mockEnd = '2020-11-14T18:00:00Z';
+  mockPlan = { ...mockPlan!, group_id: 'g1', experience_id: 'e1' };
+  await show('jordan');
+  await screen.findByText('Barton Springs');
+  await tap('Plan again');
+  expect(mockPush).toHaveBeenCalledWith('/plan/again?plan=p1');
+  expect(screen.queryByRole('button', { name: /^Repeat/ })).toBeNull();
+});
+
+test('the organizer of a plan sees its Repeat setting, which reads "Doesn’t repeat" until one is set', async () => {
+  mockPlan = { ...mockPlan!, group_id: 'g1', experience_id: 'e1', repeat_rule: 'every_2_weeks' };
+  await show('maya');
+  expect(await screen.findByRole('button', { name: 'Repeat, Every 2 weeks. Change' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Plan again' })).toBeNull();
 });
