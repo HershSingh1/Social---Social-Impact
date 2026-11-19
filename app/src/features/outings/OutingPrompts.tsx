@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, Label } from '../../ui';
 import { color, space, type } from '../../ui/theme';
+import { OutingFeedback, SummaryLine } from '../feedback/OutingFeedback';
 import { answersKey, attendedSaid, fetchMyAnswers, OUTING_CHOICES, outingSaid, promptOpen, reportAttendance, reportOuting,
   saveFailed, type Attended, type OutingStatus } from './outings';
 
@@ -17,6 +18,7 @@ export function OutingPrompts({ planId, planName, userId, endAt, now, isOrganize
   const answers = useQuery({ queryKey: answersKey(planId, userId), queryFn: () => fetchMyAnswers(planId, userId, isOrganizer), enabled: open });
   const [changing, setChanging] = useState<'outing' | 'attended' | null>(null);
   const [skipped, setSkipped] = useState(false);
+  const [rating, setRating] = useState(false);
   if (!open || !answers.data) return null;
 
   const { outing, attended } = answers.data;
@@ -25,7 +27,13 @@ export function OutingPrompts({ planId, planName, userId, endAt, now, isOrganize
     queryClient.invalidateQueries({ queryKey: ['group-history'] }),
   ]);
   async function saveOuting(status: OutingStatus) { await reportOuting(planId, status); setChanging(null); await refresh(); }
-  async function saveAttended(value: Attended) { await reportAttendance(planId, value); setChanging(null); await refresh(); }
+  async function saveAttended(value: Attended) {
+    await reportAttendance(planId, value);
+    setChanging(null);
+    await refresh();
+    // Saying Yes opens the feedback sheet (P2-03). It is private unless they share it.
+    if (value === 'yes') setRating(true);
+  }
 
   return <>
     {isOrganizer && (outing === null
@@ -73,6 +81,9 @@ export function OutingPrompts({ planId, planName, userId, endAt, now, isOrganize
         {changing === 'attended' && <ChoiceChips choices={[{ value: 'yes', label: 'Yes, I went' }, { value: 'no', label: 'No, I didn’t go' }]}
           selected={attended} onChoose={saveAttended} />}
       </Card>)}
+
+    {attended === 'yes' && <OutingFeedback planId={planId} planName={planName} userId={userId} open={rating} onOpen={setRating} />}
+    <SummaryLine planId={planId} />
   </>;
 }
 
