@@ -63,6 +63,11 @@ export function SettingsScreen() {
         : <ErrorState message="Couldn’t load your profile photo." onRetry={async () => { await profile.refetch(); }} />}
     </View></Card>
     <Card><View style={styles.copy}>
+      <Label style={type.headline}>Activity quiz</Label>
+      <Label style={styles.muted}>Tell us what you’re into and Discover lists matches first. Only you see your answers.</Label>
+      <Button label="Take the quiz" variant="secondary" onPress={() => router.push('/quiz' as never)} />
+    </View></Card>
+    <Card><View style={styles.copy}>
       <Label style={type.headline}>Account</Label>
       <Label style={styles.muted}>Signing out keeps your account and everything in it.</Label>
       <Button label="Sign out" variant="secondary" errorMessage="Couldn’t sign out. Try again." onPress={signOut} />

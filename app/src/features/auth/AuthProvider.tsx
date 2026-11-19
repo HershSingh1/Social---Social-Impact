@@ -1,15 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '../../lib/supabase';
+import { AuthContext, type AuthStatus } from './authContext';
 import { loadOnboarding, type OnboardingState } from './onboarding';
 
-/** `loading` until the stored session is read; `error` if the profile check failed (the gate offers Try again). */
-export type AuthStatus = 'loading' | 'signed-out' | 'needs-profile' | 'ready' | 'error';
-/** `needs-profile` lasts through all three onboarding steps; `onboarding.step` says which one to show. */
-type AuthState = { status: AuthStatus; session: Session | null; onboarding: OnboardingState; refresh: () => Promise<void> };
-
-const AuthContext = createContext<AuthState | null>(null);
+export { useOptionalAuth } from './authContext';
+export type { AuthStatus } from './authContext';
 
 export function useAuth() {
   const value = useContext(AuthContext);

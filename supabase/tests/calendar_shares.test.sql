@@ -1,5 +1,5 @@
 -- TEC-136 (P1-02 backend): calendar sharing opt-in per group.
--- Calendar answers are inserted as the server here because set_availability cannot write them yet (see the PR).
+-- Calendar answers are inserted as the server here; writing them through set_availability is tested in availability_source.test.sql.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
@@ -37,7 +37,7 @@ insert into pick_options (id, pick_id, experience_id, position) values
 select has_table('public', 'calendar_shares', 'calendar_shares exists');
 select col_is_pk('public', 'calendar_shares', array['user_id', 'group_id'], 'One share per person per group');
 select has_function('public', 'set_calendar_share', array['uuid', 'boolean'], 'set_calendar_share(group_id, enabled) exists');
-select has_function('public', 'set_availability', array['uuid', 'text'], 'set_availability keeps its signature');
+select has_function('public', 'set_availability', array['uuid', 'text', 'text'], 'set_availability takes the source as an optional last parameter');
 select ok(not has_table_privilege('authenticated', 'public.calendar_shares', 'INSERT')
   and not has_table_privilege('authenticated', 'public.calendar_shares', 'UPDATE')
   and not has_table_privilege('authenticated', 'public.calendar_shares', 'DELETE'), 'Clients cannot write shares');

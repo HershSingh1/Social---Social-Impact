@@ -17,6 +17,8 @@ export type Plan = {
   groupId: string | null; experienceId: string | null;
   /** Set by the server on every edit, material or minor. */
   updatedAt: string;
+  /** The organizer's repeat rule (P2-04), or null. */
+  repeatRule?: 'weekly' | 'every_2_weeks' | 'monthly' | null;
   current: Revision; revisions: Revision[]; invitees: Invitee[];
 };
 export type Counts = Record<RsvpStatus, number>;
@@ -57,12 +59,12 @@ export class PlanUnavailable extends Error { constructor() { super('plan_unavail
 
 /** Reads only; RLS returns nothing for a plan the viewer isn't invited to. */
 export async function fetchPlan(planId: string): Promise<Plan> {
-  const plan = await supabase.from('plans').select('id, experience_name, organizer_id, state, cancel_reason, current_revision, group_id, experience_id, updated_at')
+  const plan = await supabase.from('plans').select('id, experience_name, organizer_id, state, cancel_reason, current_revision, group_id, experience_id, updated_at, repeat_rule')
     .eq('id', planId).maybeSingle();
   if (plan.error) throw plan.error;
   if (!plan.data) throw new PlanUnavailable();
   const p = plan.data as { id: string; experience_name: string; organizer_id: string; state: Plan['state']; cancel_reason: string | null; current_revision: number;
-    group_id: string | null; experience_id: string | null; updated_at: string };
+    group_id: string | null; experience_id: string | null; updated_at: string; repeat_rule?: Plan['repeatRule'] };
   const [revisions, rsvps] = await Promise.all([
     supabase.from('plan_revisions').select('revision, start_at, end_at, meeting_point, note, price_snapshot, booking_required')
       .eq('plan_id', planId),
@@ -79,7 +81,7 @@ export async function fetchPlan(planId: string): Promise<Plan> {
   type ProfileCard = { user_id: string; display_name: string; avatar_path: string | null };
   const cardOf = new Map(((cards.data ?? []) as ProfileCard[]).map(c => [c.user_id, c]));
   return {
-    id: p.id, name: p.experience_name, organizerId: p.organizer_id, state: p.state, cancelReason: p.cancel_reason, groupId: p.group_id, experienceId: p.experience_id, updatedAt: p.updated_at,
+    id: p.id, name: p.experience_name, organizerId: p.organizer_id, state: p.state, cancelReason: p.cancel_reason, groupId: p.group_id, experienceId: p.experience_id, updatedAt: p.updated_at, repeatRule: p.repeat_rule ?? null,
     current: toRevision(current), revisions: revs.map(toRevision),
     invitees: rows.map(r => ({ userId: r.user_id, name: cardOf.get(r.user_id)?.display_name ?? 'Member',
       avatar: avatarUrl(cardOf.get(r.user_id)?.avatar_path), status: r.status,
