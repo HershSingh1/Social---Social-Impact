@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, ErrorState, Label, Loading, Tag } from '@/ui';
 import { color, inset, minTap, radius, shadow, space, type } from '@/ui/theme';
 import { useAuth } from '@/features/auth';
+import { WantToDo } from '@/features/bucket/WantToDo';
 import { StartPlanButton } from '@/features/plans/StartPlanButton';
 import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
@@ -92,6 +93,7 @@ export function ExperienceDetail({ experience, userId }: { experience: Experienc
         {timing.sessions.length > 0 && <View style={styles.tags}>{timing.sessions.map(session => <Tag key={session} label={session} />)}</View>}
         <InfoRow icon="⌖" title={location} detail={`Meeting point: ${meetingPoint}`} />
         <InfoRow icon="$" title={price} detail={`Duration: ${formatDuration(experience.duration_min)}`} />
+        {userId && <WantToDo experienceId={experience.id} experienceName={experience.name} userId={userId} />}
 
         <Card><Label style={type.headline}>About</Label><Label>{experience.description.trim() || 'Description being checked.'}</Label></Card>
         <BookingNotice required={experience.booking_required} providerName={experience.provider_name}
