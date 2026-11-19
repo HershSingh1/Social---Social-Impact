@@ -73,6 +73,11 @@ export function SettingsScreen() {
       <Button label="Sign out" variant="secondary" errorMessage="Couldn’t sign out. Try again." onPress={signOut} />
     </View></Card>
     <Card><View style={styles.copy}>
+      <Label style={type.headline}>Preferences</Label>
+      <Label style={styles.muted}>Days, times and accessibility needs. Only you see them.</Label>
+      <Button label="Edit preferences" variant="secondary" onPress={() => router.push('/preferences' as never)} />
+    </View></Card>
+    <Card><View style={styles.copy}>
       <Label style={type.headline}>Delete account</Label>
       <Label style={styles.muted}>Permanently remove your account and personal data.</Label>
       <Button label="Delete account" variant="text" onPress={() => setConfirming(true)} />

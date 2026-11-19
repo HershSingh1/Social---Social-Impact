@@ -11,6 +11,12 @@ export function formatWhen(iso: string): string {
   return `${parts.weekday}, ${parts.month} ${parts.day} · ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
 }
 
+/** "Sat, Nov 14" in Austin time, for lists of past plans. */
+export function formatDay(iso: string): string {
+  const parts = Object.fromEntries(dayTime.formatToParts(new Date(iso)).map(p => [p.type, p.value]));
+  return `${parts.weekday}, ${parts.month} ${parts.day}`;
+}
+
 /** "closes in 5 h", "closes in 20 min" or "closing now", for a pick deadline. */
 export function closesIn(iso: string, now = Date.now()): string {
   const minutes = Math.round((new Date(iso).getTime() - now) / 60_000);
