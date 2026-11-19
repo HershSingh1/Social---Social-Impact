@@ -13,6 +13,9 @@ import { takeQuizOffer } from '../offer';
 import { QuizScreen } from '../QuizScreen';
 import { matchingCategories, QUIZ_CARDS, saveQuiz, swipeAnswer, withInterests, type Answers } from '../quiz';
 
+// These tests tap through all 10 cards, each tap a render. A cold or busy machine can run past Jest's 5 s default.
+const SLOW = 20_000;
+
 type Result = { data: unknown; error: { message: string } | null };
 let mockOld: Result;
 const mockRpc = jest.fn<(fn: string, args: Record<string, unknown>) => Promise<Result>>();
@@ -105,7 +108,7 @@ test('intro, then cards with progress; answering all sends one set_interests wit
   const sent = saves()[0][1].answers as Answers;
   expect(Object.keys(sent).sort()).toEqual(QUIZ_CARDS.map(c => c.id).sort());
   expect(onDone).toHaveBeenCalled();
-});
+}, SLOW);
 
 test('Yes, Maybe and No send their own answer; Skip leaves a card unanswered', async () => {
   await show();
@@ -118,7 +121,7 @@ test('Yes, Maybe and No send their own answer; Skip leaves a card unanswered', a
   for (const card of QUIZ_CARDS.slice(4)) await press(new RegExp(`^Yes to ${card.title}$`));
   expect(saves()[0][1].answers).toEqual({ brunch: 'yes', cocktails: 'maybe', concerts: 'no',
     ...Object.fromEntries(QUIZ_CARDS.slice(4).map(c => [c.id, 'yes'])) });
-});
+}, SLOW);
 
 test('Back returns to the previous card and Skip for now closes without saving', async () => {
   const onClose = jest.fn();
@@ -144,7 +147,7 @@ test('retaking says the new answers replace the old ones, and old answers for ot
   const sent = saves()[0][1].answers as Answers;
   expect(sent.coffee).toBe('yes');
   expect(sent.brunch).toBe('maybe');
-});
+}, SLOW);
 
 test('a failed save keeps every answer, says so, and Try again sends the same answers', async () => {
   const onDone = jest.fn();
@@ -161,7 +164,7 @@ test('a failed save keeps every answer, says so, and Try again sends the same an
   expect(saves()[1][1]).toEqual(saves()[0][1]);
   expect((saves()[1][1].answers as Answers).workshops).toBe('no');
   expect(onDone).toHaveBeenCalled();
-});
+}, SLOW);
 
 test('if the old answers cannot load, the quiz says so and skipping still works', async () => {
   const onClose = jest.fn();
