@@ -33,6 +33,7 @@ export default function RootLayout() {
                 <Stack.Screen name="pick/new" />
                 <Stack.Screen name="pick/[id]" />
                 <Stack.Screen name="settings" />
+                <Stack.Screen name="calendar-settings" />
                 <Stack.Screen name="review" />
                 <Stack.Screen name="username" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="quiz" options={{ presentation: 'modal' }} />

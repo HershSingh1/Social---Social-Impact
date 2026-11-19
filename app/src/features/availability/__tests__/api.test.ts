@@ -34,3 +34,11 @@ test('writes and clears a manual answer through the availability RPC', async () 
   expect(mockRpc).toHaveBeenNthCalledWith(1, 'set_availability', { option_id: 'first', status: 'free' });
   expect(mockRpc).toHaveBeenNthCalledWith(2, 'set_availability', { option_id: 'first', status: null });
 });
+
+test('a calendar answer names its source; a manual one still sends the two arguments it always did', async () => {
+  mockRpc.mockClear();
+  await setAvailability('first', 'busy', 'calendar');
+  await setAvailability('first', 'free', 'manual');
+  expect(mockRpc).toHaveBeenNthCalledWith(1, 'set_availability', { option_id: 'first', status: 'busy', source: 'calendar' });
+  expect(mockRpc).toHaveBeenNthCalledWith(2, 'set_availability', { option_id: 'first', status: 'free' });
+});

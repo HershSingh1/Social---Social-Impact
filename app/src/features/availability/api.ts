@@ -19,7 +19,9 @@ export async function fetchAvailability(optionIds: string[], viewerId: string): 
   }]));
 }
 
-export async function setAvailability(optionId: string, answer: AvailabilityAnswer | null) {
-  const { error } = await supabase.rpc('set_availability', { option_id: optionId, status: answer });
+/** `source` is only sent for a calendar answer; the server refuses it without a share and never lets it overwrite a hand answer. */
+export async function setAvailability(optionId: string, answer: AvailabilityAnswer | null, source: 'manual' | 'calendar' = 'manual') {
+  const { error } = await supabase.rpc('set_availability', source === 'manual'
+    ? { option_id: optionId, status: answer } : { option_id: optionId, status: answer, source });
   if (error) throw new Error(error.message);
 }
