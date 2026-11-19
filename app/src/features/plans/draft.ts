@@ -12,7 +12,17 @@ export { MEETING_POINT_MAX, NOTE_MAX };
 /** Where a draft came from: Plan this on a closed pick, or Start a plan on Detail. */
 export type DraftSource = { groupId: string; experienceId: string; pickId?: string };
 
+/** Set on a draft made by Plan again (P2-04), so the draft can say where it came from and what changed. */
+export type AgainInfo = {
+  planId: string; name: string; fromStart: string;
+  /** "Price changed from $30 to $38" when today's catalog price differs from the plan's. */
+  priceNote: string | null;
+  /** Present when the draft was opened from the "time to plan again" reminder. */
+  reminderRule?: 'weekly' | 'every_2_weeks' | 'monthly';
+};
+
 export type PlanDraft = DraftSource & {
+  again?: AgainInfo;
   /** Created once, with the draft, and reused by every Send and Retry (rule 3, P0-12). */
   clientKey: string;
   start: string; // ISO instant

@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { ErrorState, Loading, Screen } from '../../ui';
 import { savePendingLink, takePendingLink, useAuth, type AuthStatus } from './AuthProvider';
+import { takeQuizOffer } from '../quiz/offer';
 import { takeUsernamePrompt } from './onboarding';
 
 const AUTH_ROUTES = new Set(['welcome', 'sign-in', 'profile-setup', 'auth']);
@@ -47,6 +48,13 @@ export function AuthGate({ children }: Props) {
     if (!userId || !needsUsername) return;
     void takeUsernamePrompt(userId).then(first => { if (first) router.push('/username' as never); });
   }, [userId, needsUsername]);
+
+  // The activity quiz is offered once, after the steps and never over the username prompt (P1-06). Skip is always there.
+  const offerQuiz = status === 'ready' && onboarding.step === 'done' && !onboarding.needsUsername;
+  useEffect(() => {
+    if (!userId || !offerQuiz) return;
+    void takeQuizOffer(userId).then(first => { if (first) router.push('/quiz' as never); });
+  }, [userId, offerQuiz]);
 
   if (status === 'loading') return <Loading label="Loading your account…" />;
   if (status === 'error') {

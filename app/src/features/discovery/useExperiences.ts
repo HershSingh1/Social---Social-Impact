@@ -16,6 +16,8 @@ export type Experience = Filterable & {
   /** `[{ start_local, end_local }]` in Austin time, or null (G6). Read by the date filter. */
   sessions?: unknown;
   booking_required: boolean | null;
+  /** Set on the phone for matches to the person's own quiz answers (P1-06). Never comes from the server. */
+  matchesInterests?: boolean;
 };
 
 const COLUMNS = 'id, name, category, description, lat, lng, area, image_url, price_kind, price_min, price_max, timing_kind, sessions, hours_text, booking_required';

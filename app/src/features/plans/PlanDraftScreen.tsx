@@ -7,6 +7,8 @@ import { logEvent } from '../../lib/analytics';
 import { formatClock, formatWhen, zoneLabel } from '../../lib/time';
 import { BookingNotice } from '../discovery/BookingNotice';
 import { bookingText } from './plan';
+import { AgainBanner } from './AgainBanner';
+import { setRepeat } from './again';
 import { TimeField } from './TimeField';
 import {
   acknowledgeLabel, discardDraft, fetchPlanContext, loadDraft, newDraft, saveDraft, sendPlan, SendRefused, validateDraft,
@@ -130,6 +132,10 @@ export function PlanDraftScreen({ source, organizerId, proposedStart, onSent }: 
   const fixed = ctx.experience.timingKind === 'fixed';
   return <Screen>
     <Label accessibilityRole="header" style={type.title1}>{ctx.experience.name}</Label>
+    {draft.again && <AgainBanner again={draft.again} onStop={async () => {
+      await setRepeat(draft.again!.planId, null);
+      update({ again: { ...draft.again!, reminderRule: undefined } });
+    }} />}
     <Label style={styles.caption}>Saved on this phone</Label>
     {errors.form && <Label accessibilityRole="alert">{errors.form}</Label>}
     <TimeField label="Starts" value={draft.start} error={errors.start} onChange={moveStart} />

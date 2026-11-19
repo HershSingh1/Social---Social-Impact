@@ -13,6 +13,7 @@ import { BookingNotice } from '../discovery/BookingNotice';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
 import { InviteesPanel } from './InviteesPanel';
+import { RepeatControl } from './RepeatControl';
 import { sessionNoLongerListed, usePlanListing } from './listing';
 import { ReconfirmBanner } from './ReconfirmBanner';
 import { priceChangeLine, usePlanUpdated } from './updated';
@@ -110,6 +111,12 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
         onClose={() => setCancelling(false)}
         onCancelled={() => { setCancelling(false); void queryClient.invalidateQueries({ queryKey: planKey(plan.id) }); }} />}
     </>}
+    {plan.state === 'sent' && ended && plan.groupId && <>
+      <Button label="Plan again" onPress={() => router.push(`/plan/again?plan=${plan.id}` as never)} />
+      <Label style={styles.caption}>Plan again starts a new draft with the same activity and the same people. Answers, votes and bookings don’t carry over.</Label>
+    </>}
+    {plan.state === 'sent' && isOrganizer && <RepeatControl planId={plan.id} rule={plan.repeatRule ?? null}
+      onSaved={() => { void queryClient.invalidateQueries({ queryKey: planKey(plan.id) }); }} />}
     {cancelled && isOrganizer && plan.groupId && plan.experienceId && (
       <Button label="Start a new plan from it" variant="secondary" onPress={async () => {
         // A fresh draft: nothing from this plan, not even an old saved draft for the same activity, carries over.

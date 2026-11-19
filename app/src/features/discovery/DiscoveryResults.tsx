@@ -1,7 +1,10 @@
-import type { ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { Button, Empty, ErrorState, Loading } from '../../ui';
 import { space } from '../../ui/theme';
+import { useOptionalAuth } from '../auth/authContext';
+import { fetchInterests, interestsKey, withInterests } from '../quiz/quiz';
 import { useFilters } from './FiltersContext';
 import { useDiscovery } from './useDiscovery';
 import type { Experience } from './useExperiences';
@@ -19,7 +22,11 @@ const LOAD_ERROR = 'Couldn’t load experiences. Check your connection and try a
 // Loading, Empty, Error and Ready for the experience list. The Map and List both render their own view of the
 // filtered experiences through `children`. A failed refresh keeps the experiences already on screen.
 export function DiscoveryResults({ children }: { children: (experiences: Experience[]) => ReactNode }) {
-  const { query, results } = useDiscovery();
+  const { query, results: filtered } = useDiscovery();
+  // The person's own quiz answers put matching categories first. Skipping the quiz, or a failed read, changes nothing.
+  const userId = useOptionalAuth()?.session?.user.id;
+  const interests = useQuery({ queryKey: interestsKey(userId), queryFn: fetchInterests, enabled: Boolean(userId), retry: 1 });
+  const results = useMemo(() => (filtered ? withInterests(filtered, interests.data) : undefined), [filtered, interests.data]);
   const retry = async () => { await query.refetch(); };
   if (!results) {
     return query.isError ? <ErrorState message={LOAD_ERROR} onRetry={retry} /> : <Loading label="Loading experiences…" />;

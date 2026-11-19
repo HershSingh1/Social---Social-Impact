@@ -35,6 +35,7 @@ export default function RootLayout() {
                 <Stack.Screen name="settings" />
                 <Stack.Screen name="review" />
                 <Stack.Screen name="username" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="quiz" options={{ presentation: 'modal' }} />
                 {/* Developer screens (UI kit, filters demo) only exist in development builds. */}
                 <Stack.Protected guard={__DEV__}>
                   <Stack.Screen name="dev" />
