@@ -34,7 +34,7 @@ select has_table('public', 'availability_tallies', 'availability_tallies exists'
 select has_column('public', 'picks', 'availability_enabled', 'picks has availability_enabled');
 select col_default_is('public', 'picks', 'availability_enabled', 'false', 'Availability is off by default');
 select col_default_is('public', 'availability', 'source', 'manual','Source defaults to manual');
-select has_function('public', 'set_availability', array['uuid','text'], 'set_availability(option_id, status) exists');
+select has_function('public', 'set_availability', array['uuid','text','text'], 'set_availability(option_id, status, source) exists');
 select has_function('public', 'create_pick', array['uuid','jsonb','timestamp with time zone','integer','uuid','boolean'],
   'create_pick takes availability as its last parameter');
 select ok(not has_table_privilege('authenticated', 'public.availability', 'INSERT')
@@ -45,8 +45,8 @@ select ok(not has_table_privilege('authenticated', 'public.availability_tallies'
   and not has_table_privilege('authenticated', 'public.availability_tallies', 'DELETE'), 'Clients cannot write tallies');
 select ok(not has_table_privilege('anon', 'public.availability', 'SELECT')
   and not has_table_privilege('anon', 'public.availability_tallies', 'SELECT'), 'Signed-out callers read nothing');
-select ok(not has_function_privilege('anon', 'public.set_availability(uuid,text)', 'EXECUTE')
-  and has_function_privilege('authenticated', 'public.set_availability(uuid,text)', 'EXECUTE'), 'Only signed-in users run set_availability');
+select ok(not has_function_privilege('anon', 'public.set_availability(uuid,text,text)', 'EXECUTE')
+  and has_function_privilege('authenticated', 'public.set_availability(uuid,text,text)', 'EXECUTE'), 'Only signed-in users run set_availability');
 select ok(exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public'
   and tablename = 'availability_tallies'), 'Tallies are in the Realtime publication');
 select ok(not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public'
