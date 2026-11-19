@@ -55,7 +55,7 @@ The first versions of PRO-15 to PRO-20 (bare 390×844 frames without the phone, 
 | TEC-145 · Settings: Calendar | `4145:20920` | P1-02 | A Settings (entry point); B Calendar, not allowed yet; C Calendar allowed; D Denied or revoked in iPhone Settings |
 | TEC-146 · Add to calendar and Update notice | `4145:22330` | P1-03 | A Plan, Going; B Choose a calendar; C Added; D After a time change: Update; E Calendar access denied |
 | TEC-150 · Settings: Notifications and Nudge | `4145:21543` | P1-04 | A Notifications; B Asking for permission; C Denied in iPhone Settings; D Plan: Nudge (organizer) |
-| TEC-147 · Fits everyone's budget chip | `4145:23408` | P1-05 | A Chip available, off; B Chip on; C Chip check failed |
+| TEC-147 · Fits everyone's budget chip | `4145:23408` | P1-05 | A Chip available, off; B Chip on; C Chip check failed | `budget/budget.ts` and the chip in `discovery/MapListScreen.tsx` (shown in Discover when a group is chosen); switch in `budget/BudgetOptIn.tsx` (Settings) |
 | TEC-148 · Activity quiz | `4145:25136` | P1-06 | A Intro; B A card; C Last card: saving and error; D Discover, matches first | `quiz/QuizScreen.tsx` (A to C), label in `discovery/MapListScreen.tsx` and order in `discovery/DiscoveryResults.tsx` (D); entry in Settings |
 | TEC-149 · Invite from contacts | `4145:24283` | P1-07 | A Group page: Invite from contacts; B Message preview; C Contacts denied |
 
