@@ -302,6 +302,13 @@ test('someone from before usernames is asked once with a modal, and saving keeps
   expect(mockRpc).toHaveBeenCalledWith('set_profile', { display_name: 'Maya', avatar_path: null, city: 'Austin, TX', age: 30, username: 'maya_k' });
 });
 
+test('settings opens the private preferences', async () => {
+  mockProfile.mockResolvedValue({ data: { display_name: 'Maya', avatar_path: null }, error: null });
+  await settings();
+  await tap('Edit preferences');
+  expect(mockPush).toHaveBeenCalledWith('/preferences');
+});
+
 test('settings signs out locally', async () => {
   mockAuth.signOut.mockResolvedValue({ error: null });
   await settings();

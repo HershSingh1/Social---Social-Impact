@@ -1,5 +1,6 @@
 // Figma: 4046:3937 PRO-16 Settings, Delete account · confirm sheet (file MkYNxuYFuktTR0yGExJnK7; see docs/figma-frames.md).
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { avatarUrl } from '../../lib/avatar';
@@ -65,6 +66,11 @@ export function SettingsScreen() {
       <Label style={type.headline}>Account</Label>
       <Label style={styles.muted}>Signing out keeps your account and everything in it.</Label>
       <Button label="Sign out" variant="secondary" errorMessage="Couldn’t sign out. Try again." onPress={signOut} />
+    </View></Card>
+    <Card><View style={styles.copy}>
+      <Label style={type.headline}>Preferences</Label>
+      <Label style={styles.muted}>Days, times and accessibility needs. Only you see them.</Label>
+      <Button label="Edit preferences" variant="secondary" onPress={() => router.push('/preferences' as never)} />
     </View></Card>
     <Card><View style={styles.copy}>
       <Label style={type.headline}>Delete account</Label>

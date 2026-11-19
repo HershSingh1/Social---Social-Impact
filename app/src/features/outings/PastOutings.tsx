@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Card, Empty, ErrorState, Label, Loading, Tag } from '../../ui';
 import { color, space, type } from '../../ui/theme';
 import { formatDay } from '../../lib/time';
+import { SummaryLine } from '../feedback/OutingFeedback';
 import { fetchGroupHistory, groupHistoryKey, outingBadges } from './outings';
 
 export function PastOutings({ groupId }: { groupId: string }) {
@@ -28,8 +29,10 @@ export function PastOutings({ groupId }: { groupId: string }) {
           <Label style={type.bodyStrong}>{row.name}</Label>
           <Label style={styles.caption}>{formatDay(row.startAt)}</Label>
           <View style={styles.badges}>{badges.map(b => <Tag key={b.label} label={b.label} variant={b.variant} />)}</View>
+          {!row.cancelled && <SummaryLine planId={row.planId} />}
         </View>;
       })}
+    {rows.some(r => !r.cancelled) && <Label style={styles.caption}>Only people who chose to share are counted. You never see who shared or why.</Label>}
   </Card>;
 }
 
