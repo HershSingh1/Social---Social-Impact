@@ -70,6 +70,11 @@ export function SettingsScreen() {
       <Button label="Take the quiz" variant="secondary" onPress={() => router.push('/quiz' as never)} />
     </View></Card>
     <Card><View style={styles.copy}>
+      <Label style={type.headline}>Calendar</Label>
+      <Label style={styles.muted}>Let Sidequest pre-fill Free or Busy from your phone’s calendar. Event details are never read.</Label>
+      <Button label="Calendar settings" variant="secondary" onPress={() => router.push('/calendar-settings' as never)} />
+    </View></Card>
+    <Card><View style={styles.copy}>
       <Label style={type.headline}>Account</Label>
       <Label style={styles.muted}>Signing out keeps your account and everything in it.</Label>
       <Button label="Sign out" variant="secondary" errorMessage="Couldn’t sign out. Try again." onPress={signOut} />
