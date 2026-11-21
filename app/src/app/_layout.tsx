@@ -38,6 +38,7 @@ export default function RootLayout() {
                 <Stack.Screen name="settings" />
                 <Stack.Screen name="calendar-settings" />
                 <Stack.Screen name="notification-settings" />
+                <Stack.Screen name="profile-defaults" />
                 <Stack.Screen name="preferences" />
                 <Stack.Screen name="review" />
                 <Stack.Screen name="username" options={{ presentation: 'modal' }} />
