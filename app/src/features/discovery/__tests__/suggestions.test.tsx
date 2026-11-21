@@ -20,14 +20,15 @@ jest.mock('../../../lib/supabase', () => ({ supabase: { rpc: (fn: string, args?:
 jest.mock('expo-crypto', () => ({ randomUUID: () => 'client-key' }));
 jest.mock('../../auth', () => ({ useAuth: () => ({ session: { user: { id: 'me' } } }) }));
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ router: { push: (path: string) => mockPush(path), back: jest.fn() } }));
+let mockParams: Record<string, string> = {};
+jest.mock('expo-router', () => ({ router: { push: (path: string) => mockPush(path), back: jest.fn() }, useLocalSearchParams: () => mockParams }));
 
 const testClient = () => new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
 const wrap = (node: ReactNode, client = testClient()) => <QueryClientProvider client={client}>{node}</QueryClientProvider>;
 const tap = (name: string) => act(async () => fireEvent.press(screen.getByRole('button', { name })));
 
 beforeEach(() => {
-  jest.clearAllMocks(); mockRows = [];
+  jest.clearAllMocks(); mockRows = []; mockParams = {};
   mockRpc.mockImplementation(async fn => ({ data: fn === 'can_review_listings' ? false : 'submission-id', error: null }));
 });
 
@@ -52,7 +53,7 @@ test('server field errors are mapped back under the form fields', async () => {
 });
 
 test('Needs changes can be reconstructed without losing any submitted values', () => {
-  const draft = draftFrom({ id: 's1', authorId: 'me', state: 'needs_changes', reason: 'Add hours', createdAt: '', updatedAt: '', payload: {
+  const draft = draftFrom({ id: 's1', authorId: 'me', kind: 'listing', state: 'needs_changes', reason: 'Add hours', createdAt: '', updatedAt: '', payload: {
     name: 'Pottery', description: 'A welcoming pottery studio for beginners.', category: 'Make something', address: '12 Clay St',
     timing_kind: 'fixed', sessions: [{ start_local: '2026-11-22 10:00', end_local: '2026-11-22 12:00' }], duration_min: 120,
     price_kind: 'estimated', price_min: 20, price_max: 30, source: 'https://example.com/pottery', image_url: 'https://example.com/a.jpg',

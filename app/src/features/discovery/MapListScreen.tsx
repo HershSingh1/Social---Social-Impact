@@ -12,6 +12,7 @@ import { collectionLine, seasonalIds, useCollections, type Collection } from '..
 import { useBudgetHidden } from '../budget/budget';
 import { useMyGroups } from '../groups/useMyGroups';
 import { DiscoveryResults } from './DiscoveryResults';
+import { LocalSpotTags } from './localSpots';
 import { FilterSheet } from './FilterBar';
 import { useFilters } from './FiltersContext';
 import { type AreaSearchAction, filterToRegion, INITIAL_AREA_SEARCH, updateAreaSearch } from './area';
@@ -30,6 +31,7 @@ function Summary({ item }: { item: Experience }) {
     <Label style={type.headline}>{item.name}</Label>
     <Label style={styles.caption}>{[item.category, item.area].filter(Boolean).join(' · ')}</Label>
     <Label style={styles.caption}>{priceLabel(item)} · {timingLabel(item)}</Label>
+    <LocalSpotTags item={item} />
     {item.matchesInterests && <Tag label="Matches your interests" variant="dark" />}
     {item.booking_required && <Tag label="Booking required" variant="outline" />}
   </View>;

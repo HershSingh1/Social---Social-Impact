@@ -16,11 +16,15 @@ export type Experience = Filterable & {
   /** `[{ start_local, end_local }]` in Austin time, or null (G6). Read by the date filter. */
   sessions?: unknown;
   booking_required: boolean | null;
+  /** `local_spot` for a place a person added (P2-11); the catalog rows are `catalog`. */
+  origin?: 'catalog' | 'local_spot';
+  /** Who added a local spot, for the "Added by" line. Null for the catalog and after that account is deleted. */
+  added_by?: string | null;
   /** Set on the phone for matches to the person's own quiz answers (P1-06). Never comes from the server. */
   matchesInterests?: boolean;
 };
 
-const COLUMNS = 'id, name, category, description, lat, lng, area, image_url, price_kind, price_min, price_max, timing_kind, sessions, hours_text, booking_required';
+const COLUMNS = 'id, name, category, description, lat, lng, area, image_url, price_kind, price_min, price_max, timing_kind, sessions, hours_text, booking_required, origin, added_by';
 
 export const EXPERIENCES_KEY = ['experiences'] as const;
 

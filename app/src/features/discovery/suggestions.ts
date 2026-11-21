@@ -3,19 +3,23 @@ import { supabase } from '../../lib/supabase';
 
 export const CATEGORIES = ['Art and walks', 'Make something', 'Outdoors', 'Food and drink', 'Games and trivia', 'Music and film', 'Active'] as const;
 export type SubmissionState = 'pending' | 'approved' | 'needs_changes' | 'rejected';
+/** A plain suggestion, or a lesser-known place a person adds themselves (P2-11). */
+export type SuggestionKind = 'listing' | 'local_spot';
 export type SuggestionDraft = {
   name: string; description: string; category: string; location: string;
   timingKind: 'fixed' | 'flexible'; sessions: string; hours: string; duration: string;
   priceKind: 'exact' | 'estimated' | 'free' | 'unknown'; priceMin: string; priceMax: string;
   source: string; imageUrl: string;
+  /** "I may share this photo": needed for a local spot that has a photo. */
+  photoConfirmed: boolean;
 };
-export type Submission = { id: string; authorId: string | null; payload: Record<string, unknown>;
+export type Submission = { id: string; authorId: string | null; kind: SuggestionKind; payload: Record<string, unknown>;
   state: SubmissionState; reason: string | null; createdAt: string; updatedAt: string };
 export type ListingReport = { experienceId: string; issue: string; createdAt: string; name: string };
 export type DraftErrors = Partial<Record<keyof SuggestionDraft, string>>;
 
 export const EMPTY_SUGGESTION: SuggestionDraft = { name: '', description: '', category: '', location: '', timingKind: 'flexible',
-  sessions: '', hours: '', duration: '', priceKind: 'unknown', priceMin: '', priceMax: '', source: '', imageUrl: '' };
+  sessions: '', hours: '', duration: '', priceKind: 'unknown', priceMin: '', priceMax: '', source: '', imageUrl: '', photoConfirmed: false };
 
 export const reviewerCapabilityKey = (userId: string | undefined) => ['can-review-listings', userId] as const;
 
@@ -30,7 +34,7 @@ export function parseSessions(value: string) {
   });
 }
 
-export function validateSuggestion(draft: SuggestionDraft): DraftErrors {
+export function validateSuggestion(draft: SuggestionDraft, kind: SuggestionKind = 'listing'): DraftErrors {
   const errors: DraftErrors = {};
   if (!draft.name.trim()) errors.name = 'Enter a name.';
   if (draft.description.trim().length < 20) errors.description = 'Write at least 20 characters.';
@@ -54,39 +58,43 @@ export function validateSuggestion(draft: SuggestionDraft): DraftErrors {
   }
   if (!/^https?:\/\/\S+$/.test(draft.source.trim())) errors.source = 'Enter a full http:// or https:// link.';
   if (draft.imageUrl && !/^https:\/\/\S+$/.test(draft.imageUrl.trim())) errors.imageUrl = 'Enter a full https:// image link.';
+  if (kind === 'local_spot' && draft.imageUrl.trim() && !draft.photoConfirmed) errors.photoConfirmed = 'Confirm you may share this photo.';
   return errors;
 }
 
-function payload(d: SuggestionDraft, submissionId?: string) {
+function payload(d: SuggestionDraft, submissionId?: string, kind: SuggestionKind = 'listing', experienceId?: string) {
   return { name: d.name.trim(), description: d.description.trim(), category: d.category, address: d.location.trim(),
     timing_kind: d.timingKind, ...(d.timingKind === 'fixed' ? { sessions: parseSessions(d.sessions) } : { hours_text: d.hours.trim() }),
     duration_min: Number(d.duration), price_kind: d.priceKind,
     ...((d.priceKind === 'exact' || d.priceKind === 'estimated') ? { price_min: Number(d.priceMin), ...(d.priceMax.trim() ? { price_max: Number(d.priceMax) } : {}) } : {}),
-    source: d.source.trim(), ...(d.imageUrl.trim() ? { image_url: d.imageUrl.trim() } : {}), ...(submissionId ? { submission_id: submissionId } : {}) };
+    source: d.source.trim(), ...(d.imageUrl.trim() ? { image_url: d.imageUrl.trim() } : {}), ...(submissionId ? { submission_id: submissionId } : {}),
+    ...(experienceId ? { experience_id: experienceId } : {}),
+    ...(kind === 'local_spot' && d.imageUrl.trim() ? { photo_confirmed: d.photoConfirmed } : {}) };
 }
 
 export class SuggestionError extends Error { constructor(public fields: DraftErrors = {}) { super('suggestion_failed'); } }
-export async function submitSuggestion(draft: SuggestionDraft, key: string, submissionId?: string) {
-  const { data, error } = await supabase.rpc('submit_listing', { client_key: key, payload: payload(draft, submissionId) });
+/** `kind` and `experienceId` are optional: a plain suggestion makes exactly the call it always did. `experienceId` edits a spot you added. */
+export async function submitSuggestion(draft: SuggestionDraft, key: string, submissionId?: string, kind: SuggestionKind = 'listing', experienceId?: string) {
+  const { data, error } = await supabase.rpc('submit_listing', { client_key: key, payload: payload(draft, submissionId, kind, experienceId), ...(kind === 'local_spot' ? { kind } : {}) });
   if (!error) return data as string;
   if (error.message.includes('invalid_listing')) {
     let raw: Record<string, string> = {}; try { raw = JSON.parse(error.details ?? '{}') as Record<string, string>; } catch {}
-    const aliases: Record<string, keyof SuggestionDraft> = { location: 'location', sessions: 'sessions', hours_text: 'hours', duration_min: 'duration', price: 'priceMin', source: 'source', image_url: 'imageUrl', name: 'name', description: 'description', category: 'category' };
+    const aliases: Record<string, keyof SuggestionDraft> = { location: 'location', sessions: 'sessions', hours_text: 'hours', duration_min: 'duration', price: 'priceMin', source: 'source', image_url: 'imageUrl', photo_confirmed: 'photoConfirmed', name: 'name', description: 'description', category: 'category' };
     throw new SuggestionError(Object.fromEntries(Object.entries(raw).map(([field, code]) => [aliases[field] ?? field, errorText[code] ?? 'Check this value.'])) as DraftErrors);
   }
   throw error;
 }
 
-const row = (r: { id: string; author_id: string | null; payload: Record<string, unknown>; state: SubmissionState; reason: string | null; created_at: string; updated_at: string }): Submission =>
-  ({ id: r.id, authorId: r.author_id, payload: r.payload, state: r.state, reason: r.reason, createdAt: r.created_at, updatedAt: r.updated_at });
+const row = (r: { id: string; author_id: string | null; kind?: SuggestionKind; payload: Record<string, unknown>; state: SubmissionState; reason: string | null; created_at: string; updated_at: string }): Submission =>
+  ({ id: r.id, authorId: r.author_id, kind: r.kind ?? 'listing', payload: r.payload, state: r.state, reason: r.reason, createdAt: r.created_at, updatedAt: r.updated_at });
 export async function loadSubmissions(userId: string) {
-  const { data, error } = await supabase.from('submissions').select('id,author_id,payload,state,reason,created_at,updated_at').eq('author_id', userId).order('updated_at', { ascending: false });
+  const { data, error } = await supabase.from('submissions').select('id,author_id,kind,payload,state,reason,created_at,updated_at').eq('author_id', userId).order('updated_at', { ascending: false });
   if (error) throw error; return (data ?? []).map(r => row(r as Parameters<typeof row>[0]));
 }
 export async function canReview() { const { data, error } = await supabase.rpc('can_review_listings'); if (error) throw error; return data === true; }
 export async function loadReviewQueue() {
   const [subs, reports] = await Promise.all([
-    supabase.from('submissions').select('id,author_id,payload,state,reason,created_at,updated_at').eq('state', 'pending').order('created_at'),
+    supabase.from('submissions').select('id,author_id,kind,payload,state,reason,created_at,updated_at').eq('state', 'pending').order('created_at'),
     supabase.from('listing_reports').select('experience_id,issue,created_at,experiences(name)').order('created_at'),
   ]);
   if (subs.error) throw subs.error; if (reports.error) throw reports.error;
@@ -109,5 +117,34 @@ export function draftFrom(submission: Submission): SuggestionDraft {
     location: String(p.address ?? p.meeting_point ?? ''), timingKind: p.timing_kind === 'fixed' ? 'fixed' : 'flexible',
     sessions: sessions.map(s => `${s.start_local ?? ''} | ${s.end_local ?? ''}`).join('\n'), hours: String(p.hours_text ?? ''),
     duration: String(p.duration_min ?? ''), priceKind: ['exact', 'estimated', 'free'].includes(String(p.price_kind)) ? p.price_kind as SuggestionDraft['priceKind'] : 'unknown',
-    priceMin: p.price_min == null ? '' : String(p.price_min), priceMax: p.price_max == null ? '' : String(p.price_max), source: String(p.source ?? ''), imageUrl: String(p.image_url ?? '') };
+    priceMin: p.price_min == null ? '' : String(p.price_min), priceMax: p.price_max == null ? '' : String(p.price_max), source: String(p.source ?? ''), imageUrl: String(p.image_url ?? ''), photoConfirmed: p.photo_confirmed === true };
+}
+
+/** The live spot as the form's starting point when its author edits it. The photo has to be confirmed again. */
+export function draftFromExperience(e: { name: string; description: string; category: string; address: string | null; meeting_point: string | null;
+  timing_kind: string; sessions: unknown; hours_text: string | null; duration_min: number | null; price_kind: string; price_min: number | null;
+  price_max: number | null; source: string; image_url: string | null }): SuggestionDraft {
+  const sessions = Array.isArray(e.sessions) ? e.sessions as { start_local?: string; end_local?: string }[] : [];
+  const priced = e.price_kind === 'exact' || e.price_kind === 'estimated';
+  return { ...EMPTY_SUGGESTION, name: e.name, description: e.description, category: e.category, location: e.address ?? e.meeting_point ?? '',
+    timingKind: e.timing_kind === 'fixed' ? 'fixed' : 'flexible', sessions: sessions.map(s => `${s.start_local ?? ''} | ${s.end_local ?? ''}`).join('\n'),
+    hours: e.hours_text ?? '', duration: e.duration_min == null ? '' : String(e.duration_min),
+    priceKind: ['exact', 'estimated', 'free'].includes(e.price_kind) ? e.price_kind as SuggestionDraft['priceKind'] : 'unknown',
+    priceMin: priced && e.price_min != null ? String(e.price_min) : '', priceMax: priced && e.price_max != null && e.price_max !== e.price_min ? String(e.price_max) : '',
+    source: e.source, imageUrl: e.image_url ?? '' };
+}
+
+// Removal requests: a reviewer sees them and takes the spot off the map (remove_local_spot).
+export type RemovalRequest = { experienceId: string; name: string; createdAt: string };
+export const removalRequestsKey = ['local-spot-removal-requests'] as const;
+export async function loadRemovalRequests(): Promise<RemovalRequest[]> {
+  const { data, error } = await supabase.from('local_spot_removal_requests').select('experience_id,created_at,experiences(name)').order('created_at');
+  if (error) throw error;
+  return (data ?? []).map(r => {
+    const ex = r.experiences as { name: string } | { name: string }[] | null;
+    return { experienceId: r.experience_id as string, createdAt: r.created_at as string, name: (Array.isArray(ex) ? ex[0]?.name : ex?.name) ?? 'Local spot' };
+  });
+}
+export async function removeLocalSpot(experienceId: string) {
+  const { error } = await supabase.rpc('remove_local_spot', { experience_id: experienceId }); if (error) throw error;
 }

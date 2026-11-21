@@ -12,6 +12,8 @@ import { StartPlanButton } from '@/features/plans/StartPlanButton';
 import { logEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { BookingNotice } from './BookingNotice';
+import { LocalSpotOwner } from './LocalSpotOwner';
+import { LocalSpotTags } from './localSpots';
 import { SaveSheet } from './SaveSheet';
 import { ReportListingSheet } from './ReportListingSheet';
 import { isSavedAnywhere, useSaves } from './saves';
@@ -19,7 +21,7 @@ import {
   type Experience, formatCheckedOn, formatDuration, formatLocation, formatPrice, formatTiming, sourceUrl,
 } from './experience';
 
-const selection = 'id,name,category,description,area,image_url,address,provider_name,price_kind,price_min,price_max,timing_kind,sessions,hours_text,duration_min,meeting_point,booking_required,booking_url,source,checked_on,status';
+const selection = 'id,name,category,description,area,image_url,address,provider_name,price_kind,price_min,price_max,timing_kind,sessions,hours_text,duration_min,meeting_point,booking_required,booking_url,source,checked_on,status,origin,added_by';
 
 async function loadExperience(id: string) {
   const { data, error } = await supabase.from('experiences').select(selection).eq('id', id).maybeSingle();
@@ -88,6 +90,7 @@ export function ExperienceDetail({ experience, userId }: { experience: Experienc
 
       <View style={styles.body}>
         <View style={styles.tags}><Tag label={experience.category} /><Tag label={experience.price_kind === 'estimated' ? 'Estimated' : price} variant="outline" /></View>
+        <LocalSpotTags item={experience} />
         <Label accessibilityRole="header" style={type.title1}>{experience.name}</Label>
         <InfoRow icon="◷" title={timing.label} detail={timing.detail} />
         {timing.sessions.length > 0 && <View style={styles.tags}>{timing.sessions.map(session => <Tag key={session} label={session} />)}</View>}
@@ -98,6 +101,7 @@ export function ExperienceDetail({ experience, userId }: { experience: Experienc
         <Card><Label style={type.headline}>About</Label><Label>{experience.description.trim() || 'Description being checked.'}</Label></Card>
         <BookingNotice required={experience.booking_required} providerName={experience.provider_name}
           url={experience.booking_url || url} />
+        {userId && experience.origin === 'local_spot' && experience.added_by === userId && <LocalSpotOwner experienceId={experience.id} />}
         <Card>
           <Label style={type.headline}>Source</Label>
           <Label>{experience.provider_name || 'Source listing'}</Label>

@@ -10,9 +10,11 @@ import { useDiscovery } from './useDiscovery';
 import type { Experience } from './useExperiences';
 
 export function NoMatches() {
-  const { clear } = useFilters();
+  const { clear, filters } = useFilters();
   return <View>
-    <Empty title="Nothing matches here" description="Try a different activity or price." />
+    {filters.localOnly
+      ? <Empty title="No local spots yet" description="Add one with the + button." />
+      : <Empty title="Nothing matches here" description="Try a different activity or price." />}
     <View style={{ paddingHorizontal: space.lg }}><Button label="Clear filters" variant="secondary" onPress={clear} /></View>
   </View>;
 }

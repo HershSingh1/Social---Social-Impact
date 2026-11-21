@@ -23,6 +23,8 @@ export type Experience = {
   source: string;
   checked_on: string | null;
   status: string;
+  origin?: 'catalog' | 'local_spot';
+  added_by?: string | null;
 };
 
 const dollars = new Intl.NumberFormat('en-US', {

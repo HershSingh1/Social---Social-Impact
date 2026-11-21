@@ -6,7 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { useAuth } from '../auth';
 import { Button, Card, Chip, Empty, ErrorState, Label, Loading, Screen, Tag, TextField } from '../../ui';
 import { color, space, type } from '../../ui/theme';
-import { canReview, loadReviewQueue, reviewerCapabilityKey, reviewSuggestion, type Submission } from './suggestions';
+import { canReview, loadRemovalRequests, loadReviewQueue, removalRequestsKey, removeLocalSpot, reviewerCapabilityKey, reviewSuggestion, type Submission } from './suggestions';
 
 const checks = ['In Austin', 'Location and timing are usable', 'Price label is honest', 'Source link works', 'Not a duplicate'];
 
@@ -20,6 +20,8 @@ function ReviewQueue({ userId }: { userId: string | undefined }) {
   const queueKey = ['listing-review-queue', userId] as const;
   const capability = useQuery({ queryKey: reviewerCapabilityKey(userId), queryFn: canReview, enabled: !!userId });
   const queue = useQuery({ queryKey: queueKey, queryFn: loadReviewQueue, enabled: !!userId && capability.data === true });
+  // Removal requests for local spots load on their own, so a problem here never hides the review queue.
+  const removals = useQuery({ queryKey: removalRequestsKey, queryFn: loadRemovalRequests, enabled: !!userId && capability.data === true });
   const client = useQueryClient(); const [selected, setSelected] = useState<Submission>();
   const [checked, setChecked] = useState<string[]>([]); const [reason, setReason] = useState('');
   async function decide(decision: 'approve' | 'needs_changes' | 'reject') {
@@ -34,7 +36,7 @@ function ReviewQueue({ userId }: { userId: string | undefined }) {
   if (!queue.data) return <Screen><ErrorState message="Couldn’t load the review queue." onRetry={async () => { await queue.refetch(); }} /></Screen>;
   if (selected) { const p = selected.payload; return <Screen>
     <Label accessibilityRole="header" style={type.title1}>Review</Label><Label style={styles.caption}>1 of {queue.data.submissions.length} waiting</Label>
-    <Card><Label style={type.title2}>{String(p.name ?? 'Untitled suggestion')}</Label><Label>{String(p.description ?? '')}</Label>
+    <Card>{selected.kind === 'local_spot' && <Tag label="Local spot" variant="outline" />}<Label style={type.title2}>{String(p.name ?? 'Untitled suggestion')}</Label><Label>{String(p.description ?? '')}</Label>
       <Label>{String(p.address ?? p.meeting_point ?? '')}</Label><Label>{String(p.timing_kind ?? '')} · {String(p.duration_min ?? '')} minutes</Label>
       <Label>{String(p.source ?? '')}</Label></Card>
     <View style={styles.checks}>{checks.map(item => <Chip key={item} label={item} selected={checked.includes(item)}
@@ -50,8 +52,17 @@ function ReviewQueue({ userId }: { userId: string | undefined }) {
     {queue.isError && <ErrorState message="Couldn’t refresh the queue. Showing what we loaded." onRetry={async () => { await queue.refetch(); }} />}
     {!queue.data.submissions.length ? <Empty title="Nothing waiting" description="New suggestions will appear here." /> : queue.data.submissions.map(item =>
       <Card key={item.id}><View style={styles.row}><View style={styles.flex}><Label style={type.bodyStrong}>{String(item.payload.name ?? 'Untitled')}</Label>
+        {item.kind === 'local_spot' && <Tag label="Local spot" variant="outline" />}
         <Label style={styles.caption}>Waiting for review</Label></View><Button label="Review" accessibilityLabel={`Review ${String(item.payload.name ?? 'suggestion')}`}
           variant="text" size="small" onPress={() => setSelected(item)} /></View></Card>)}
+    <Card><View style={styles.row}><Label style={[type.bodyStrong, styles.flex]}>Local spot removal requests</Label><Tag label={String(removals.data?.length ?? 0)} variant="dark" /></View>
+      {removals.isPending ? <Loading label="Loading removal requests…" />
+        : !removals.data ? <ErrorState message="Couldn’t load removal requests." onRetry={async () => { await removals.refetch(); }} />
+          : !removals.data.length ? <Label style={styles.caption}>No removal requests waiting.</Label> : removals.data.map(request =>
+            <View key={request.experienceId} style={styles.row}><Label style={[type.bodyStrong, styles.flex]}>{request.name}</Label>
+              <Button label="Remove from map" accessibilityLabel={`Remove ${request.name} from the map`} variant="secondary" size="small"
+                errorMessage="Couldn’t remove it. Try again."
+                onPress={async () => { await removeLocalSpot(request.experienceId); await client.invalidateQueries({ queryKey: removalRequestsKey }); }} /></View>)}</Card>
     <Card><View style={styles.row}><Label style={[type.bodyStrong, styles.flex]}>Outdated-info reports</Label><Tag label={String(queue.data.reports.length)} variant="dark" /></View>
       {!queue.data.reports.length ? <Label style={styles.caption}>No reports waiting.</Label> : queue.data.reports.map((report, index) =>
         <View key={`${report.experienceId}-${index}`}><Label style={type.bodyStrong}>{report.name}</Label><Label>{report.issue}</Label></View>)}</Card>

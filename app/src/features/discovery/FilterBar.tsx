@@ -35,7 +35,7 @@ function DayPicker({ day, onChange }: { day: string; onChange: (day: string) => 
 }
 
 export function FilterSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, clear } = useFilters();
+  const { filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, setLocalOnly, clear } = useFilters();
   const picked = typeof filters.date === 'object' ? filters.date.day : null;
   const { results } = useDiscovery();
   const count = results?.length;
@@ -56,6 +56,9 @@ export function FilterSheet({ visible, onClose }: { visible: boolean; onClose: (
       {PRICE_FILTERS.map(option => <Chip key={option.id} label={option.label}
         selected={filters.price === option.id} onPress={() => setPrice(option.id)} />)}
     </Section>
+    <Section title="Local spots">
+      <Chip label="Local spots" selected={filters.localOnly} onPress={() => setLocalOnly(!filters.localOnly)} />
+    </Section>
     <View style={styles.toggle}>
       <View style={styles.toggleText}>
         <Label style={type.bodyStrong}>Include unknown prices</Label>
@@ -75,13 +78,14 @@ export function FilterSheet({ visible, onClose }: { visible: boolean; onClose: (
 // The row under the Map and List headers: a Filters button, plus a chip for each filter that is on.
 // Tapping a chip turns that filter off, so the state is always visible in words and one tap from undone.
 export function FilterBar() {
-  const { filters, setActivity, setPrice, setDate, setIncludeUnknownPrices } = useFilters();
+  const { filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, setLocalOnly } = useFilters();
   const [open, setOpen] = useState(false);
   const active = countActiveFilters(filters);
   return <View style={styles.bar}>
     <Button label="Filters" size="small" variant="secondary"
       accessibilityLabel={active ? `Filters, ${active} applied` : 'Filters'} onPress={() => setOpen(true)} />
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.active}>
+      {filters.localOnly && <Chip label="Local spots" selected onPress={() => setLocalOnly(false)} />}
       {filters.activity !== 'all' && <Chip label={filters.activity} selected onPress={() => setActivity('all')} />}
       {filters.price !== 'any' && <Chip label={priceFilterLabel(filters.price)} selected onPress={() => setPrice('any')} />}
       {!filters.includeUnknownPrices && <Chip label="Known prices only" selected onPress={() => setIncludeUnknownPrices(true)} />}

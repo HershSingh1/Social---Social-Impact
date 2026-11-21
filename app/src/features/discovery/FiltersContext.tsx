@@ -8,6 +8,7 @@ type FiltersValue = {
   setPrice: (price: PriceFilterId) => void;
   setDate: (date: DateFilter) => void;
   setIncludeUnknownPrices: (includeUnknownPrices: boolean) => void;
+  setLocalOnly: (localOnly: boolean) => void;
   clear: () => void;
 };
 
@@ -21,9 +22,10 @@ export function FiltersProvider({ children }: { children: ReactNode }) {
   const setDate = useCallback((date: DateFilter) => setFilters(current => ({ ...current, date })), []);
   const setIncludeUnknownPrices = useCallback(
     (includeUnknownPrices: boolean) => setFilters(current => ({ ...current, includeUnknownPrices })), []);
+  const setLocalOnly = useCallback((localOnly: boolean) => setFilters(current => ({ ...current, localOnly })), []);
   const clear = useCallback(() => setFilters(DEFAULT_FILTERS), []);
-  const value = useMemo(() => ({ filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, clear }),
-    [filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, clear]);
+  const value = useMemo(() => ({ filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, setLocalOnly, clear }),
+    [filters, setActivity, setPrice, setDate, setIncludeUnknownPrices, setLocalOnly, clear]);
   return <FiltersContext.Provider value={value}>{children}</FiltersContext.Provider>;
 }
 
