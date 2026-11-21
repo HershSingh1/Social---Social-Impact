@@ -24,6 +24,8 @@ function mockBuilder(table: string) {
 }
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories can't use import
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+// The contact picker and Messages are native-only; the invite flow has its own tests (invites/__tests__).
+jest.mock('../../invites/contacts', () => ({ pickContact: async () => ({ kind: 'cancelled' }), canSendText: async () => true, sendText: async () => 'sent' }));
 jest.mock('../../../lib/supabase', () => ({ supabase: {
   from: (table: string) => mockBuilder(table),
   rpc: async (fn: string, args: unknown) => { mockCalls.push([fn, args]); return mockRpc[fn]?.() ?? { data: null, error: null }; },
