@@ -1,5 +1,6 @@
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../../lib/supabase';
+import { unregisterPhone } from '../notifications/register';
 
 // Listed in supabase/config.toml `additional_redirect_urls`.
 export const AUTH_REDIRECT = 'sidequest://auth/callback';
@@ -110,6 +111,7 @@ export async function saveAvatarPath(profile: OwnProfile, avatarPath: string | n
 }
 
 export async function signOut() {
+  await unregisterPhone(); // while still signed in; best effort, never blocks sign-out
   const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) throw error;
 }

@@ -75,6 +75,11 @@ export function SettingsScreen() {
       <Button label="Calendar settings" variant="secondary" onPress={() => router.push('/calendar-settings' as never)} />
     </View></Card>
     <Card><View style={styles.copy}>
+      <Label style={type.headline}>Notifications</Label>
+      <Label style={styles.muted}>Choose which updates Sidequest sends you. Everything still shows in your Plans tab.</Label>
+      <Button label="Notification settings" variant="secondary" onPress={() => router.push('/notification-settings' as never)} />
+    </View></Card>
+    <Card><View style={styles.copy}>
       <Label style={type.headline}>Account</Label>
       <Label style={styles.muted}>Signing out keeps your account and everything in it.</Label>
       <Button label="Sign out" variant="secondary" errorMessage="Couldn’t sign out. Try again." onPress={signOut} />

@@ -10,7 +10,9 @@ jest.mock('../../../ui/fonts', () => ({ useAppFonts: () => [true, null] }));
 jest.mock('../../auth', () => ({
   AuthProvider: ({ children }: { children: ReactNode }) => children,
   AuthGate: ({ children }: { children: (status: string) => ReactNode }) => children('ready'),
+  useAuth: () => ({ session: null }),
 }));
+jest.mock('../../notifications', () => ({ NotificationHost: () => null }));
 
 const routes = {
   _layout: RootLayout,
