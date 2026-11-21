@@ -29,7 +29,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Sidequest reads when you are busy, never event details, so your groups can find times that work.",
+          "calendarPermission": "Sidequest adds plans you choose to your calendar, and checks when you are busy (never event details) if you let it.",
           "remindersPermission": false
         }
       ],

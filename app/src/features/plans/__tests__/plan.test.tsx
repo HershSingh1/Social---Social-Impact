@@ -263,3 +263,34 @@ test('the organizer of a plan sees its Repeat setting, which reads "Doesn’t re
   expect(await screen.findByRole('button', { name: 'Repeat, Every 2 weeks. Change' })).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Plan again' })).toBeNull();
 });
+
+// P1-03: one button and one notice on the plan, and neither changes an RSVP.
+test('an invitee sees Add to calendar, and nothing is answered for them', async () => {
+  await show('jordan');
+  expect(await screen.findByRole('button', { name: 'Add to calendar' })).toBeTruthy();
+  expect(mockRespond).not.toHaveBeenCalled();
+});
+
+test('no Add to calendar for someone who said Can’t go', async () => {
+  setCounts(1, 4, 1, 0);
+  await show('jordan');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByRole('button', { name: 'Add to calendar' })).toBeNull();
+});
+
+test('no Add to calendar once the plan has ended', async () => {
+  mockStart = '2020-11-14T16:00:00Z'; mockEnd = '2020-11-14T18:00:00Z';
+  await show('jordan');
+  await screen.findByText('Who’s coming');
+  expect(screen.queryByRole('button', { name: 'Add to calendar' })).toBeNull();
+});
+
+test('a cancelled plan that was added to the calendar offers the update', async () => {
+  await AsyncStorage.setItem('sidequest.calendarEvent.jordan.p1', JSON.stringify({ eventId: 'ev1', calendarId: 'home', calendarTitle: 'Home',
+    startAt: mockStart, endAt: mockEnd, meetingPoint: 'South gate', cancelled: false }));
+  mockPlan = { ...mockPlan, state: 'cancelled', cancel_reason: 'Weather', group_id: 'g1', experience_id: 'e1' };
+  await show('jordan');
+  await screen.findByText('Who’s coming', {}, { timeout: 3000 });
+  expect(await screen.findByText('This plan was cancelled. Your calendar still has it. Update it?', {}, { timeout: 3000 })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Add to calendar' })).toBeNull();
+});
