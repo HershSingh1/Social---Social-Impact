@@ -20,8 +20,9 @@ export const PRICE_FILTERS = [
 export type PriceFilterId = (typeof PRICE_FILTERS)[number]['id'];
 
 /** `includeUnknownPrices` is the spec's "Include unknown prices" toggle; it only matters under a price cap. */
-export type Filters = { activity: ActivityFilter; price: PriceFilterId; date: DateFilter; includeUnknownPrices: boolean };
-export const DEFAULT_FILTERS: Filters = { activity: 'all', price: 'any', date: 'any', includeUnknownPrices: true };
+/** `localOnly` is the Local spots filter (P2-11): it hides every catalog row. */
+export type Filters = { activity: ActivityFilter; price: PriceFilterId; date: DateFilter; includeUnknownPrices: boolean; localOnly: boolean };
+export const DEFAULT_FILTERS: Filters = { activity: 'all', price: 'any', date: 'any', includeUnknownPrices: true, localOnly: false };
 
 /** The columns the filters read. Catalog rows (price_kind, price_min, price_max, category) fit this. */
 export type Filterable = {
@@ -29,6 +30,7 @@ export type Filterable = {
   price_kind: 'exact' | 'estimated' | 'free' | 'unknown';
   price_min: number | null;
   price_max: number | null;
+  origin?: 'catalog' | 'local_spot';
 };
 
 export const PRICE_UNKNOWN_LABEL = 'Price unknown';
@@ -61,12 +63,13 @@ export function matchesActivity(experience: Filterable, activity: ActivityFilter
 /** `today` is the Austin date ("YYYY-MM-DD") that "This weekend" and "Next weekend" count from. */
 export function applyFilters<T extends Filterable & Schedulable>(experiences: readonly T[], filters: Filters, today = chicagoToday()): T[] {
   return experiences.filter(item => matchesActivity(item, filters.activity)
-    && matchesPrice(item, filters.price, filters.includeUnknownPrices) && matchesDate(item, filters.date, today));
+    && matchesPrice(item, filters.price, filters.includeUnknownPrices) && matchesDate(item, filters.date, today)
+    && (!filters.localOnly || item.origin === 'local_spot'));
 }
 
 export function countActiveFilters(filters: Filters): number {
   return Number(filters.activity !== DEFAULT_FILTERS.activity) + Number(filters.price !== DEFAULT_FILTERS.price)
-    + Number(filters.date !== DEFAULT_FILTERS.date) + Number(!filters.includeUnknownPrices);
+    + Number(filters.date !== DEFAULT_FILTERS.date) + Number(!filters.includeUnknownPrices) + Number(filters.localOnly);
 }
 
 export function priceFilterLabel(price: PriceFilterId): string {
