@@ -1,5 +1,5 @@
-// Figma 4145:23408 refers to TEC-109 screens B and C: the opt-in switch next to the private budget. The Profile screen isn't
-// on v2-figma yet, so it sits in Settings. The text says nobody sees your amount.
+// Figma 4145:23408 and TEC-109 boards B and C: the opt-in switch under the private budget on "Budget and getting around".
+// Without a saved budget there is nothing to count, so it is off and says how to turn it on. The text says nobody sees your amount.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
@@ -7,7 +7,7 @@ import { Card, ErrorState, Label, Loading } from '../../ui';
 import { color, space, type } from '../../ui/theme';
 import { fetchOptIn, OPT_IN_FAILED, optInKey, setOptIn } from './budget';
 
-export function BudgetOptIn({ userId }: { userId: string }) {
+export function BudgetOptIn({ userId, hasBudget = true }: { userId: string; hasBudget?: boolean }) {
   const queryClient = useQueryClient();
   const opt = useQuery({ queryKey: optInKey(userId), queryFn: () => fetchOptIn(userId) });
   const [saving, setSaving] = useState(false);
@@ -23,17 +23,18 @@ export function BudgetOptIn({ userId }: { userId: string }) {
   }
 
   return <Card><View style={styles.copy}>
-    <Label style={type.headline}>Group budget filter</Label>
     {opt.isPending ? <Loading label="Loading your setting…" />
       : opt.data === undefined ? <ErrorState message="Couldn’t load this setting." onRetry={async () => { await opt.refetch(); }} />
         : <>
           <View style={styles.row}>
-            <Label style={styles.flex}>Use my budget in group filters</Label>
-            <Switch accessibilityLabel="Use my budget in group filters" value={opt.data} disabled={saving} onValueChange={next => { void change(next); }}
+            <View style={styles.flex}><Label style={type.bodyStrong}>Use my budget in group filters</Label>
+              <Label style={styles.muted}>{hasBudget
+                ? 'Nobody sees your amount. The filter hides activities above the lowest budget among people who opted in, and only when at least 3 people have.'
+                : 'Set a budget to turn this on.'}</Label></View>
+            <Switch accessibilityLabel="Use my budget in group filters" value={hasBudget && opt.data} disabled={saving || !hasBudget} onValueChange={next => { void change(next); }}
               trackColor={{ true: color.primary }} />
-            <Label style={type.bodyStrong}>{saving ? 'Saving…' : opt.data ? 'On' : 'Off'}</Label>
+            <Label style={type.bodyStrong}>{saving ? 'Saving…' : hasBudget && opt.data ? 'On' : 'Off'}</Label>
           </View>
-          <Label style={styles.muted}>Nobody sees your amount. It only helps hide activities above what everyone in a group opted in to spend.</Label>
           {failed && <Label accessibilityRole="alert" accessibilityLiveRegion="polite" style={type.bodyStrong}>{OPT_IN_FAILED}</Label>}
         </>}
   </View></Card>;

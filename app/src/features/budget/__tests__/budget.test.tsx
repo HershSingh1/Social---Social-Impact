@@ -75,7 +75,7 @@ const wrap = (node: ReactNode, c = client()) => <QueryClientProvider client={c}>
 
 test('the switch starts off, says nobody sees your amount, and turns on once', async () => {
   await render(wrap(<BudgetOptIn userId="me" />));
-  expect(await screen.findByText('Nobody sees your amount. It only helps hide activities above what everyone in a group opted in to spend.')).toBeTruthy();
+  expect(await screen.findByText('Nobody sees your amount. The filter hides activities above the lowest budget among people who opted in, and only when at least 3 people have.')).toBeTruthy();
   expect(screen.getByLabelText('Use my budget in group filters').props.value).toBe(false);
   await act(async () => fireEvent(screen.getByLabelText('Use my budget in group filters'), 'valueChange', true));
   expect(mockRpc.mock.calls.filter(([fn]) => fn === 'set_budget_opt_in')).toEqual([['set_budget_opt_in', { opt_in: true }]]);
