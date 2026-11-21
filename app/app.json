@@ -27,6 +27,12 @@
       "expo-router",
       "expo-font",
       [
+        "expo-contacts",
+        {
+          "contactsPermission": "Sidequest opens your contact list only when you tap Invite from contacts. Contacts stay on your phone."
+        }
+      ],
+      [
         "expo-calendar",
         {
           "calendarPermission": "Sidequest adds plans you choose to your calendar, and checks when you are busy (never event details) if you let it.",

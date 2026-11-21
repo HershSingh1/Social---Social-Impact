@@ -10,6 +10,8 @@ import { ManageSheet, type Action } from './GroupManage';
 import { MemberRow, NO_LONGER_IN_GROUP } from './GroupRosterScreen';
 import { BucketList } from '../bucket/BucketList';
 import { PastOutings } from '../outings/PastOutings';
+import { InviteFromContacts } from '../invites/InviteFromContacts';
+import { inviteMessage } from '../invites/message';
 import { SavedIdeas } from './SavedIdeas';
 import {
   allowBack, fetchRemoved, leaveGroup, regenerateCode, removedKey, removeMember, revokeCode, transferOwner,
@@ -121,6 +123,7 @@ export function GroupDetailScreen({ groupId, userId, onOpenPick, onOpenPlan, onO
             onPress={async () => { await Share.share({ message: shareText(groupName, code.code) }); }} />
         </View>
         {copied && <Label accessibilityRole="alert" accessibilityLiveRegion="polite">Code copied.</Label>}
+        <InviteFromContacts message={inviteMessage(groupName, code.code)} code={code.code} />
       </> : <Label style={styles.secondary}>{isOwner ? 'No active code. Make a new one when you want more people to join.' : 'No active code. The owner can make a new one.'}</Label>}
       {isOwner && <View style={styles.actions}>
         {code && <Button label="Revoke" accessibilityLabel="Revoke group code" variant="secondary" size="small"
