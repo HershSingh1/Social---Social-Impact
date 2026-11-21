@@ -5,7 +5,7 @@ Simulator builds. No cloud build, signing registration, account linking or devic
 installation has been run.
 
 **No paid Apple account?** Use the iOS Simulator for the iPhone side (see "iOS
-Simulator" below). The Android phone is still needed.
+Simulator" below). Sidequest is iOS only for now (D9), so there is no Android phone to set up.
 
 ## Link the team's accounts
 
@@ -44,7 +44,6 @@ npm ci
 npm run typecheck
 npm run lint
 npx eas-cli@latest build --platform ios --profile development
-npx eas-cli@latest build --platform android --profile development
 npx expo start --dev-client
 ```
 
@@ -79,13 +78,36 @@ need the Simulator signed in to an Apple ID) and whether Supabase accepts the
 resulting token. Check this with TEC-34, and keep Google and email-code sign-in as
 the fallback (decision D2).
 
+## TestFlight (testers install from a link)
+
+The `preview` profile builds a store-signed iOS app for TestFlight, so testers install it from a link without each
+iPhone being registered by hand. It uses the Expo project's **preview** environment, auto-increments the build
+number (`cli.appVersionSource` is `remote`) and needs the same three values as a development build.
+`ITSAppUsesNonExemptEncryption` is `false`, so TestFlight does not ask the export question on every build.
+
+A person has to do these first (an agent cannot sign in to Apple):
+
+1. Create the EAS project (see "Link the team's accounts") and add `EAS_PROJECT_ID`, `EXPO_PUBLIC_SUPABASE_URL` and
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the Expo project's **preview** environment (plain text; they are public ids).
+2. In App Store Connect, create the app record for `com.sidequest.app` and note its numeric Apple ID (`ascAppId`).
+   Add it to `app/eas.json` under `submit.preview.ios.ascAppId`, or leave it out and EAS will ask for it.
+
+```sh
+cd app
+npx eas-cli@latest build --platform ios --profile preview
+npx eas-cli@latest submit --platform ios --profile preview --latest
+```
+
+Then add testers in App Store Connect > TestFlight and send them the invite link. The build is accepted by the
+config check only when the three values above are set; otherwise it stops with "Configure <name> before building".
+
 ## Three-phone verification record — all pending
 
 | Phone | OS/build ID | Opens app | Same dev project | Sign-in | Map visible |
 | --- | --- | --- | --- | --- | --- |
-| iPhone (or iOS Simulator if no paid Apple account) | Pending | Pending | Pending | Apple pending | Pending |
-| Android | Pending | Pending | Pending | Google pending | Backlogged (TEC-103) |
-| Third phone (team selects OS) | Pending | Pending | Pending | Pending | Pending |
+| iPhone (or iOS Simulator if no paid Apple account) | Pending | Pending | Pending | Google or email code pending | Pending |
+| Second iPhone | Pending | Pending | Pending | Google or email code pending | Pending |
+| Third iPhone | Pending | Pending | Pending | Google or email code pending | Pending |
 
 Use this as an installation check, not a demo script. Once feature screens exist,
 verify sign-in, session persistence after restart, nonblank map tiles, and consistent

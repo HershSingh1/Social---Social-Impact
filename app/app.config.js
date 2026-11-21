@@ -2,7 +2,8 @@
 module.exports = ({ config }) => {
   const projectId = process.env.EAS_PROJECT_ID || config.extra?.eas?.projectId;
   const mapsKey = process.env.GOOGLE_MAPS_ANDROID_API_KEY;
-  if (process.env.EAS_BUILD_PROFILE?.startsWith('development')) {
+  // Development and TestFlight (preview) builds need the project id and the two Supabase values.
+  if (/^(development|preview)/.test(process.env.EAS_BUILD_PROFILE ?? '')) {
     const required = {
       EAS_PROJECT_ID: projectId,
       EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
