@@ -16,6 +16,7 @@ import { EditPlanSheet } from './EditPlanSheet';
 import { NudgePanel } from '../notifications/NudgePanel';
 import { InviteesPanel } from './InviteesPanel';
 import { OutingPrompts } from '../outings/OutingPrompts';
+import { AlbumSection } from '../album/AlbumSection';
 import { RepeatControl } from './RepeatControl';
 import { sessionNoLongerListed, usePlanListing } from './listing';
 import { ReconfirmBanner } from './ReconfirmBanner';
@@ -173,6 +174,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
         <Label style={styles.caption}>{statusLabel[i.status]}</Label>
       </View>)}
     </Card>
+    {plan.state === 'sent' && ended && me && <AlbumSection planId={plan.id} userId={viewerId} groupName={null} hasGroup={Boolean(plan.groupId)}
+      invitees={plan.invitees.map(i => ({ userId: i.userId, name: i.name }))} />}
   </Screen>;
 }
 
