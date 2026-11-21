@@ -64,7 +64,8 @@ test('nothing set: an empty field, No preference chosen, the switch off with its
   expect(screen.getByLabelText('Usual budget, per person (optional)').props.value).toBe('');
   expect(screen.getByText('Dollars for one outing. 0 to 1,000, cents allowed.')).toBeTruthy();
   expect(screen.getByRole('checkbox', { name: 'No preference' }).props.accessibilityState.checked).toBe(true);
-  expect(screen.getByText('Set a budget to turn this on.')).toBeTruthy();
+  // The switch reads its own setting, so it can still be loading when the form first appears.
+  expect(await screen.findByText('Set a budget to turn this on.')).toBeTruthy();
   expect(screen.getByLabelText('Use my budget in group filters').props.disabled).toBe(true);
   expect(save().props.accessibilityState.disabled).toBe(true);
   expect(screen.queryByText('Clear budget')).toBeNull();
@@ -75,7 +76,7 @@ test('saved values come back into the form, and the switch explains itself once 
   await show();
   expect((await screen.findByLabelText('Usual budget, per person (optional)')).props.value).toBe('12.50');
   expect(screen.getByRole('checkbox', { name: 'Transit' }).props.accessibilityState.checked).toBe(true);
-  expect(screen.getByText(/Nobody sees your amount. The filter hides activities above the lowest budget/)).toBeTruthy();
+  expect(await screen.findByText(/Nobody sees your amount. The filter hides activities above the lowest budget/)).toBeTruthy();
   expect(screen.getByLabelText('Use my budget in group filters').props.value).toBe(true);
   expect(screen.getByText('Clear budget')).toBeTruthy();
 });
@@ -91,7 +92,7 @@ test('saving sends both values, then says Saved just now and dims the button', a
   expect(screen.getByRole('button', { name: 'Saved' }).props.accessibilityState.disabled).toBe(true);
   expect(screen.getByLabelText('Usual budget, per person (optional)').props.value).toBe('40');
   // The switch now has a saved budget to count.
-  expect(screen.getByLabelText('Use my budget in group filters').props.disabled).toBe(false);
+  expect((await screen.findByLabelText('Use my budget in group filters')).props.disabled).toBe(false);
 });
 
 test('tapping the chosen chip again, or No preference, clears how you get around', async () => {
