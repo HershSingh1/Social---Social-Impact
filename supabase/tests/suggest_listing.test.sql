@@ -30,11 +30,11 @@ insert into auth.users (id) select pg_temp.id(n) from unnest(array['ann','bob','
 update profiles set display_name = id::text where id <> pg_temp.id('nameless');
 insert into private.reviewers (user_id) values (pg_temp.id('rev'));
 
-select has_function('public', 'submit_listing', array['uuid','jsonb'], 'submit_listing exists');
+select has_function('public', 'submit_listing', array['uuid','jsonb','text'], 'submit_listing exists');
 select has_function('public', 'review_submission', array['uuid','text','text'], 'review_submission exists');
 select has_function('public', 'report_listing', array['uuid','text'], 'report_listing exists');
 select has_function('public', 'can_review_listings', array[]::text[], 'reviewer capability exists');
-select ok(not has_function_privilege('anon', 'public.submit_listing(uuid,jsonb)', 'EXECUTE'), 'Signed-out clients cannot submit');
+select ok(not has_function_privilege('anon', 'public.submit_listing(uuid,jsonb,text)', 'EXECUTE'), 'Signed-out clients cannot submit');
 select ok(not has_table_privilege('authenticated', 'public.submissions', 'INSERT'), 'Clients cannot write submissions directly');
 select ok(not has_table_privilege('authenticated', 'private.reviewers', 'SELECT'), 'Clients cannot read the reviewer list');
 
