@@ -13,6 +13,7 @@ import { AddToCalendarButton, CalendarUpdateNotice } from '../calendar/PlanCalen
 import { BookingNotice } from '../discovery/BookingNotice';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
+import { AlbumSection } from '../album/AlbumSection';
 import { InviteesPanel } from './InviteesPanel';
 import { OutingPrompts } from '../outings/OutingPrompts';
 import { RepeatControl } from './RepeatControl';
@@ -157,6 +158,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
       </View>
     </View>}
 
+    {plan.state === 'sent' && ended && me && <AlbumSection planId={plan.id} userId={viewerId} groupName={null} hasGroup={Boolean(plan.groupId)}
+      invitees={plan.invitees.map(i => ({ userId: i.userId, name: i.name }))} />}
     {isOrganizer && <InviteesPanel plan={plan} readAt={query.dataUpdatedAt} />}
 
     <Card>
