@@ -13,6 +13,7 @@ import { AddToCalendarButton, CalendarUpdateNotice } from '../calendar/PlanCalen
 import { BookingNotice } from '../discovery/BookingNotice';
 import { discardDraft } from './draft';
 import { EditPlanSheet } from './EditPlanSheet';
+import { NudgePanel } from '../notifications/NudgePanel';
 import { InviteesPanel } from './InviteesPanel';
 import { OutingPrompts } from '../outings/OutingPrompts';
 import { RepeatControl } from './RepeatControl';
@@ -157,6 +158,8 @@ export function PlanScreen({ planId, viewerId, justSent }: Props) {
       </View>
     </View>}
 
+    {isOrganizer && plan.state === 'sent' && !started && <NudgePanel planId={plan.id} organizerName={organizerName ?? 'The organizer'}
+      awaiting={plan.invitees.filter(i => i.status === 'awaiting' && !i.isOrganizer).map(i => ({ userId: i.userId, name: i.name, avatar: i.avatar }))} />}
     {isOrganizer && <InviteesPanel plan={plan} readAt={query.dataUpdatedAt} />}
 
     <Card>
